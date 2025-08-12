@@ -13,6 +13,16 @@ ROOT: Path = Path(__file__).parent.resolve()
 
 log_info(f"Root directory: {ROOT}")
 
+def get_current_version() -> str:
+    """Get the current version from Engine/pyproject.toml"""
+    pyproject_toml_path: Path = ROOT / "Engine" / "pyproject.toml"
+    
+    with open(pyproject_toml_path, "r") as f:
+        pyproject_data: TOMLDocument = parse(f.read())
+        current_version = pyproject_data["project"]["version"]
+    
+    return current_version
+
 def update_versions(new_version: str) -> None:
 
     log_info(f"Updating versions to {new_version}")
@@ -171,7 +181,19 @@ def dgupdater_commit_and_publish(new_version: str) -> None:
 def main() -> None:
     log_info("Starting build and release process...")
     
+    current_version: str = get_current_version()
+    log_info(f"Current version: {current_version}")
+    
     new_version: str = input("Enter the new version: ")
+    
+    # Check if the new version is the same as the current version
+    if current_version == new_version:
+        log_info(f"Warning: The new version '{new_version}' is the same as the current version.")
+        confirmation = input("Are you sure you want to continue with the same version? (y/N): ").lower().strip()
+        
+        if confirmation not in ['y', 'yes']:
+            log_info("Build and release process aborted.")
+            return
 
     update_versions(new_version)
     generate_exe()
