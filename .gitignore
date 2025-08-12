@@ -5,3 +5,5 @@ output
 .env.production
 *.log
 *.spec
+__pycache__/
+*.pyc
