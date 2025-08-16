@@ -13,23 +13,6 @@ ROOT: Path = Path(__file__).parent.resolve()
 log_info(f"Root directory: {ROOT}")
 
 def update_versions(new_version: str) -> None:
-    
-    new_version_split: list[int] = [int(i) for i in new_version.split(".")]
-    
-    # project.json
-    with open(ROOT / "project.json", "r") as f:
-        project_data: dict = load(f)
-        current_version: list[int] = [int(i) for i in project_data["version"].split(".")]
-
-
-        if new_version_split <= current_version:
-            raise ValueError("New version must be greater than current version.")
-
-        project_data["version"] = new_version
-        
-        with open(ROOT / "project.json", "w") as f:
-            dump(project_data, f, indent=4)
-
 
     log_info(f"Updating versions to {new_version}")
     
@@ -38,26 +21,35 @@ def update_versions(new_version: str) -> None:
     log_info(f"Updating {pyproject_toml_path}")
     
     with open(pyproject_toml_path, "r") as f:
-        pyproject_data: TOMLDocument = parse(f.read())
+        pyproject_data: TOMLDocument = parse(f.read())        
         
     pyproject_data["project"]["version"] = new_version
-        
     with open(pyproject_toml_path, "w") as f:
         f.write(dumps(pyproject_data))
-        
+
+    # UI/package.json
+    package_json_path: Path = ROOT / "UI" / "package.json"
+    log_info(f"Updating {package_json_path}")
     
-    # UI/package.json and SITE/package.json
-    def update_package_json(file_path: Path, new_version: str) -> None:
-        log_info(f"Updating {file_path}")
-        with open(file_path, "r") as f:
-            data: dict = load(f)
-        data["version"] = new_version
-        with open(file_path, "w") as f:
-            dump(data, f, indent=4)
+    with open(package_json_path, "r") as f:
+        package_data: dict = load(f)
+        
+    package_data["version"] = new_version
+    
+    with open(package_json_path, "w") as f:
+        dump(package_data, f, indent=4)
 
-    update_package_json(ROOT / "UI" / "package.json", new_version)
-    update_package_json(ROOT / "Site" / "package.json", new_version)
-
+    # Site/package.json
+    site_package_json_path: Path = ROOT / "Site" / "package.json"
+    log_info(f"Updating {site_package_json_path}")
+    
+    with open(site_package_json_path, "r") as f:
+        site_data: dict = load(f)
+        
+    site_data["version"] = new_version
+    
+    with open(site_package_json_path, "w") as f:
+        dump(site_data, f, indent=4)
 
     # INNO Setup / create_setup.iss
     create_setup_iss: Path = ROOT / "INNO Setup" / "create_setup.iss"
@@ -168,26 +160,13 @@ def main() -> None:
     log_info("Starting build and release process...")
     
     new_version: str = input("Enter the new version: ")
-    
-    # Step 1
+
     update_versions(new_version)
-
-    # Step 2
     generate_exe()
-
-    # Step 3
     generate_setup_file()
-    
-    # Step 4
     build_SITE()
-    
-    # Step 5
     build_UI()
-    
-    # Step 6
     firebase_deploy()
-
-    # Step 7
     dgupdater_commit_and_publish(new_version)
     
     log_info("Build and release process completed.")
