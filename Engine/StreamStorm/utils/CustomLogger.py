@@ -25,13 +25,16 @@ class CustomLogger:
         handler: Optional[RichHandler | StreamHandler] = None
 
         if env == "production":
-            formatter = Formatter(
-                "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s",
-                datefmt="%m/%d/%y %H:%M:%S"
-            )
+            
+            # formatter = Formatter(
+            #     "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s",
+            #     datefmt="%m/%d/%y %H:%M:%S"
+            # )
 
-            handler: StreamHandler = StreamHandler()
-            handler.setFormatter(formatter)
+            # handler: StreamHandler = StreamHandler()
+            # handler.setFormatter(formatter)
+            
+            pass # No console handler is required in production
             
         elif env == "development":           
 
