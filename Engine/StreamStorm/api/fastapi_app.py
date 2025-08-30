@@ -8,6 +8,7 @@ path.append(".")
 from config import CONFIG
 
 from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -93,23 +94,29 @@ app.include_router(storm_router)
 app.include_router(profile_router)
 
 @app.get("/")
-async def root() -> dict[str, str]:
-    return {
-        "success": True,
-        "message": "I am the StreamStorm Engine"
-    }
+async def root() -> JSONResponse:
+    
+    return JSONResponse(
+        status_code=200,
+        content={
+            "success": True,
+            "message": "I am the StreamStorm Engine"
+        }
+    )
     
     
 @app.get("/get_ram_info")
-async def get_ram_info():
-    return {
-        "free": virtual_memory().available / (1024**3),
-        "total": virtual_memory().total / (1024**3),
-    }
-    
+async def get_ram_info() -> JSONResponse:
+    return JSONResponse(
+        status_code=200, 
+        content={
+            "free": virtual_memory().available / (1024**3), 
+            "total": virtual_memory().total / (1024**3)
+        }
+    )
     
 @app.get("/engine-status")
-async def status():
+async def status() -> JSONResponse:
     response: dict = {}
 
     if StreamStorm.ss_instance is not None:
@@ -117,7 +124,10 @@ async def status():
     else:
         response["storm_in_progress"] = False
 
-    return response
+    return JSONResponse(
+        status_code=200, 
+        content=response
+    )
     
 
 __all__: list[str] = ["app"]
