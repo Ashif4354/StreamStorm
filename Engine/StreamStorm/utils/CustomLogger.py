@@ -1,6 +1,5 @@
-from logging import Formatter, Logger, getLogger, DEBUG, FileHandler, StreamHandler
+from logging import Formatter, Logger, getLogger, DEBUG, FileHandler, StreamHandler, NullHandler, Handler
 from logging.handlers import QueueHandler, QueueListener
-from typing import Optional
 from platformdirs import user_data_dir
 from pathlib import Path
 from queue import Queue
@@ -19,26 +18,26 @@ class CustomLogger:
     def __init__(self):
         self.logging_dir: Path = Path(user_data_dir("StreamStorm", "DarkGlance")) / "logs"
 
-    def __get_console_handler(self) -> RichHandler:
+    def __get_console_handler(self) -> Handler:
         
         env: str = CONFIG.get("ENV")
-        handler: Optional[RichHandler | StreamHandler] = None
+        handler: Handler = NullHandler()
 
         if env == "production":
             
-            # formatter = Formatter(
+            # formatter: Formatter = Formatter(
             #     "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s",
             #     datefmt="%m/%d/%y %H:%M:%S"
             # )
 
-            # handler: StreamHandler = StreamHandler()
+            # handler: Handler = StreamHandler()
             # handler.setFormatter(formatter)
             
             pass # No console handler is required in production
             
         elif env == "development":           
 
-            handler: RichHandler = RichHandler(
+            handler: Handler = RichHandler(
                 rich_tracebacks=True,
                 markup=False,
                 show_time=True,
