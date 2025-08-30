@@ -1,6 +1,6 @@
 from typing import Self, Optional
 from warnings import deprecated
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, field_validator, model_validator, StrictInt
 from logging import getLogger, Logger
 
 logger: Logger = getLogger("fastapi." + __name__)
@@ -99,11 +99,11 @@ class StormData(BaseModel):
 
 
 class ProfileData(BaseModel):
-    count: Optional[int] = 1
+    count: StrictInt = 1
     
     @field_validator("count")
     def validate_count(cls, value: Optional[int]) -> Optional[int]:
-        if value is not None and value < 0:
+        if value is not None and value <= 0:
             raise ValueError("count cannot be negative")
         
         return value

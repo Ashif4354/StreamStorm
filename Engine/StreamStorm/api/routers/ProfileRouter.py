@@ -2,6 +2,7 @@ from os import environ
 from logging import getLogger, Logger
 from fastapi import APIRouter
 from fastapi.concurrency import run_in_threadpool
+from fastapi.responses import JSONResponse
 
 from ..validation import ProfileData
 from ...core.Profiles import Profiles
@@ -21,14 +22,17 @@ async def create_profiles(data: ProfileData) -> dict:
         logger.info(f"Created {data.count} profiles")
     finally:
         environ.update({"BUSY": "0", "BUSY_REASON": ""})
-
-    return {
-        "success": True, 
-        "message": "Profiles created successfully"
-    }
+    
+    return JSONResponse(
+        status_code=200, 
+        content={
+            "success": True, 
+            "message": "Profiles created successfully"
+        }
+    )
     
 @router.post("/delete_all_profiles")
-async def delete_all_profiles(data: ProfileData) -> dict:
+async def delete_all_profiles() -> dict:
     environ.update({"BUSY": "1", "BUSY_REASON": "Deleting profiles"})
 
     profiles: Profiles = Profiles()
@@ -38,7 +42,10 @@ async def delete_all_profiles(data: ProfileData) -> dict:
     finally:
         environ.update({"BUSY": "0", "BUSY_REASON": ""})
 
-    return {
-        "success": True,
-        "message": "Profiles deleted successfully"
-    }
+    return JSONResponse(
+        status_code=200, 
+        content={
+            "success": True, 
+            "message": "Profiles deleted successfully"
+        }
+    )

@@ -1,4 +1,4 @@
-from logging import Formatter, Logger, getLogger, DEBUG, FileHandler, StreamHandler, NullHandler, Handler
+from logging import Formatter, Logger, getLogger, DEBUG, FileHandler, StreamHandler, NullHandler, Handler  # noqa: F401
 from logging.handlers import QueueHandler, QueueListener
 from platformdirs import user_data_dir
 from pathlib import Path
@@ -17,6 +17,11 @@ class CustomLogger:
     
     def __init__(self):
         self.logging_dir: Path = Path(user_data_dir("StreamStorm", "DarkGlance")) / "logs"
+        
+        CustomLogger.listener = QueueListener(self.log_queue, self.__get_console_handler(), self.__get_file_handler())
+        CustomLogger.listener.start()
+        
+        atexit_register(CustomLogger.listener.stop)
 
     def __get_console_handler(self) -> Handler:
         
@@ -72,27 +77,20 @@ class CustomLogger:
         return handler
 
     def setup_streamstorm_logging(self) -> None:
-        queue_handler = QueueHandler(self.log_queue)
+        queue_handler: Handler = QueueHandler(self.log_queue)
         
-        self.logger: Logger = getLogger("streamstorm")
-        self.logger.setLevel(DEBUG)
-        self.logger.addHandler(queue_handler)
-        self.logger.propagate = False
-
-        CustomLogger.listener = QueueListener(self.log_queue, self.__get_console_handler(), self.__get_file_handler())
-        CustomLogger.listener.start()
+        logger: Logger = getLogger("streamstorm")
+        logger.setLevel(DEBUG)
+        logger.addHandler(queue_handler)
+        logger.propagate = False
         
-        atexit_register(CustomLogger.listener.stop)
 
     def setup_fastapi_logging(self) -> None:
-        queue_handler = QueueHandler(self.log_queue)
+        queue_handler: Handler = QueueHandler(self.log_queue)
 
-        self.logger: Logger = getLogger("fastapi")
-        self.logger.setLevel(DEBUG)
-        self.logger.addHandler(queue_handler)
-        self.logger.propagate = False
-
-        CustomLogger.listener = QueueListener(self.log_queue, self.__get_console_handler(), self.__get_file_handler())
-        CustomLogger.listener.start()
+        logger: Logger = getLogger("fastapi")
+        logger.setLevel(DEBUG)
+        logger.addHandler(queue_handler)
+        logger.propagate = False
 
 
