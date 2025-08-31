@@ -1,6 +1,6 @@
 from typing import Self, Optional
 from warnings import deprecated
-from pydantic import BaseModel, field_validator, model_validator, StrictInt
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator, StrictInt
 from logging import getLogger, Logger
 
 logger: Logger = getLogger("fastapi." + __name__)
@@ -19,12 +19,15 @@ def Validate(data: dict, validator: BaseModel) -> dict:
         raise Exception(f"Error in {errors[0]['loc'][0]} : {errors[0]['msg']}")
 
 class StormData(BaseModel):
+    
+    model_config = ConfigDict(strict=True)
+    
     video_url: str
     chat_url: str
     messages: list[str]
     subscribe: bool
     subscribe_and_wait: bool
-    subscribe_and_wait_time: int
+    subscribe_and_wait_time: StrictInt
     slow_mode: int
     channels: list[int]
     background: bool
@@ -34,7 +37,17 @@ class StormData(BaseModel):
         if not value.startswith("https://www.youtube.com/watch?v="):
             raise ValueError("Invalid video url")
         
-        if value.split("https://www.youtube.com/watch?v=")[1] == "":
+        if " " in value:
+            raise ValueError("Invalid video url")
+                
+        id: str = value.split("https://www.youtube.com/watch?v=")[1]
+        id = id.split("&")[0]
+        id = id.strip("/")
+        
+        if id == "":
+            raise ValueError("Invalid video url")
+        
+        if len(id) != 11:
             raise ValueError("Invalid video url")
         
         return value
@@ -58,6 +71,7 @@ class StormData(BaseModel):
 
     @field_validator("subscribe_and_wait_time")
     def validate_subscribe_and_wait_time(cls, value: int) -> int:
+        
         if value < 0:
             raise ValueError("Subscribe and wait time cannot be negative")
         
@@ -65,6 +79,7 @@ class StormData(BaseModel):
 
     @field_validator("slow_mode")
     def validate_slow_mode(cls, value: int) -> int:
+        
         if value < 0:
             raise ValueError("Slow mode cannot be negative")
         
@@ -91,7 +106,7 @@ class StormData(BaseModel):
     @model_validator(mode = 'after')
     def validate_data(self) -> Self:
         if self.video_url.replace("watch", "live_chat") != self.chat_url:
-            raise ValueError("Invalid video URL")
+            raise ValueError("Invalid Video/Chat URL")
         
         self.channels = list(set(self.channels)) # Remove duplicates
         
@@ -141,6 +156,12 @@ class StartMoreChannelsData(BaseModel):
     def validate_channels(cls, value: list[int]) -> list[int]:
         if not value:
             raise ValueError("Channels cannot be empty")
+        
+        if not all(isinstance(channel, int) for channel in value):
+            raise ValueError("All channels must be integers")
+        
+        if any(channel <= 0 for channel in value):
+            raise ValueError("Channel IDs must be positive integers")
 
         return value
     

@@ -25,5 +25,7 @@ dev = [
     "pyinstaller>=6.15.0",
     "tomlkit>=0.13.3",
     "atatus>=2.0.0",
-    "python-dotenv>=1.1.1"
+    "python-dotenv>=1.1.1",
+    "pytest>=8.4.1",
+    "pytest-mock>=3.14.1"
 ]

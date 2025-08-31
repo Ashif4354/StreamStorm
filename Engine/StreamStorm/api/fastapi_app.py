@@ -103,7 +103,7 @@ async def root() -> JSONResponse:
             "message": "I am the StreamStorm Engine"
         }
     )
-    
+
     
 @app.get("/get_ram_info")
 async def get_ram_info() -> JSONResponse:

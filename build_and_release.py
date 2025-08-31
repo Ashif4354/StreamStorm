@@ -18,7 +18,7 @@ def check_engine_env():
     
     log_info("Checking environment configuration...")
     
-    if CONFIG["ENV"] == "development":
+    if CONFIG["ENV"] in ("development", "test"):
         raise ValueError(
             "Environment is set to 'development' in Engine/config/config.py. "
             "Change it to 'production' before building the release."

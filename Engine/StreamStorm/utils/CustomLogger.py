@@ -51,6 +51,9 @@ class CustomLogger:
                 enable_link_path=True
             )
         
+        else: 
+            pass
+        
         
         
         return handler
