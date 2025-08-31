@@ -1,0 +1,631 @@
+{
+    "storm_data": {
+        "valid_data": [
+            {
+                "id": "valid_data_1",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "valid_data_2",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Hi"
+                ],
+                "subscribe": true,
+                "subscribe_and_wait": true,
+                "subscribe_and_wait_time": 25,
+                "slow_mode": 10,
+                "channels": [
+                    45
+                ],
+                "background": false
+            }
+        ],
+        "missing_data": [
+            {
+                "id": "missing_data_1_video_url",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "missing_data_2_chat_url",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "missing_data_3_messages",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "missing_data_4_channels",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "background": true
+            },
+            {
+                "id": "missing_data_5_background",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ]
+            },
+            {
+                "id": "missing_data_6_subscribe",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "missing_data_7_subscribe_and_wait",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "missing_data_8_subscribe_and_wait_time",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "missing_data_9_slow_mode",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            }
+        ],
+        "invalid_data": [
+            {
+                "id": "invalid_data_1_video_url=incomplete_1",
+                "video_url": "https://www.youtube.com/watch?v=",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_2_video_url=incomplete_2",
+                "video_url": "https://www.youtube.com/",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_3_video_url=protocol_error",
+                "video_url": "http://www.youtube.com/watch?v=dQw4w9WgXcQ/",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_4_video_url=empty",
+                "video_url": "",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_5_video_url=different_1",
+                "video_url": "https://www.google.com",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_6_video_url=id_length_less_than_11",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgX",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_7_video_url=id_length_more_than_11",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQdQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_8_video_url=contains_space_1",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_9_video_url=contains_space_2",
+                "video_url": "https://www.youtube.com/watch?v= dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_10_video_url=contains_space_3",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9 WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_11_video_url=invalid_type",
+                "video_url": [],
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up",
+                    "Never gonna let you down"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_12_messages=empty",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_13_messages=invalid_type",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": "Never gonna give you up",
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_14_subscribe=invalid_type",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up"
+                ],
+                "subscribe": [],
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_15_subscribe_and_wait=invalid_type",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": {},
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_16_subscribe_and_wait_time=invalid_type",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": [],
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_17_subscribe_and_wait_time=negative_value",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": -1,
+                "slow_mode": "",
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_18_slow_mode=invalid_type",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": {},
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_19_slow_mode=negative_value",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": -1,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_20_channels=invalid_type",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": {},
+                "background": true
+            },
+            {
+                "id": "invalid_data_21_channels=empty",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [],
+                "background": true
+            },
+            {
+                "id": "invalid_data_22_channels=invalid_values",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    "1",
+                    "2"
+                ],
+                "background": true
+            },
+            {
+                "id": "invalid_data_23_channels=zero_value",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    0
+                ],
+                "background": {}
+            },
+            {
+                "id": "invalid_data_24_channels=empty_value",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [],
+                "background": {}
+            },
+            {
+                "id": "invalid_data_25_channels=negative_value",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    -1
+                ],
+                "background": {}
+            },
+            {
+                "id": "invalid_data_26_background=invalid_type",
+                "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+                "messages": [
+                    "Never gonna give you up"
+                ],
+                "subscribe": false,
+                "subscribe_and_wait": false,
+                "subscribe_and_wait_time": 70,
+                "slow_mode": 5,
+                "channels": [
+                    1,
+                    2
+                ],
+                "background": {}
+            }
+        ]
+    }
+}
