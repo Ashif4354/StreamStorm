@@ -1,9 +1,6 @@
-from os import environ
 from logging import Logger, getLogger
 
-from unittest.mock import MagicMock
-from pytest import fixture
-from pytest_mock import MockerFixture
+from pytest import MonkeyPatch, fixture
 
 from fastapi.testclient import TestClient
 from fastapi.responses import Response
@@ -11,9 +8,9 @@ from fastapi.responses import Response
 logger: Logger = getLogger("tests." + __name__)
 
 @fixture(autouse=True)
-def set_engine_busy(mocker: MockerFixture) -> None:
-    environ.update({"BUSY_REASON": "Mocked busy"})
-    mocker.patch("StreamStorm.api.lib.middlewares.environ.get", new=MagicMock(return_value="1"))
+def set_engine_busy(monkeypatch: MonkeyPatch) -> None:
+    monkeypatch.setenv("BUSY_REASON", "Mocked busy")
+    monkeypatch.setenv("BUSY", "1")    
     
     
 def test_start_storm(client: TestClient):
