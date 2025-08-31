@@ -9,7 +9,7 @@ from fastapi.responses import Response
 
 logger: Logger = getLogger("tests." + __name__)
 
-with open("tests/endpoints/validation/data.json", "r") as f:
+with open("tests/api/test_validation/data.json", "r") as f:
     data: dict = load(f)
     
     valid_data: list = data["storm_data"]["valid_data"]

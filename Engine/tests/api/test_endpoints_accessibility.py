@@ -114,21 +114,23 @@ def test_get_channels_data(client: TestClient) -> NoReturn:
     
 def test_create_profiles(mocker: MockerFixture, client: TestClient) -> NoReturn:
     
-    mocker.patch("StreamStorm.api.routers.ProfileRouter.run_in_threadpool", new=AsyncMock())
+    new_run_in_threadpool: AsyncMock = mocker.patch("StreamStorm.api.routers.ProfileRouter.run_in_threadpool", new=AsyncMock())
     
     data: dict = {"count": 1}
 
     response: Response = client.post("/profiles/create_profiles", json=data)
     logger.debug(response.json())
 
-    assert response.status_code == 200
+    assert response.status_code == 200    
+    new_run_in_threadpool.assert_called_once()
     
 def test_delete_all_profiles(mocker: MockerFixture, client: TestClient) -> NoReturn:
     
     
-    mocker.patch("StreamStorm.api.routers.ProfileRouter.run_in_threadpool", new = AsyncMock())
+    new_run_in_threadpool: AsyncMock = mocker.patch("StreamStorm.api.routers.ProfileRouter.run_in_threadpool", new = AsyncMock())
     
     response: Response = client.post("/profiles/delete_all_profiles")
     logger.debug(response.json())
 
-    assert response.status_code == 200
+    assert response.status_code == 200    
+    new_run_in_threadpool.assert_called_once()

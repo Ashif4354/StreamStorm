@@ -44,7 +44,7 @@ async def start(data: StormData) -> JSONResponse:
         data.subscribe_and_wait_time,
         data.slow_mode,
         data.channels,
-        data.background,
+        data.background
     )
 
     StreamStormObj.ready_event.clear()  # Clear the ready event to ensure it will be only set when all instances are ready

@@ -3,7 +3,7 @@ from logging import getLogger, Logger, DEBUG
 from pathlib import Path
 path.insert(0, str(Path(__file__).parent.parent.resolve()))
 
-from pytest import fixture
+from pytest import TempPathFactory, fixture
 
 from fastapi.testclient import TestClient
 
@@ -19,3 +19,8 @@ def client():
 def configure_logger() -> None:
     logger: Logger = getLogger("tests")
     logger.setLevel(DEBUG)
+    
+    
+@fixture(scope="session")
+def user_data_dir(tmp_path_factory: TempPathFactory):
+    return tmp_path_factory.mktemp("user_data_dir")

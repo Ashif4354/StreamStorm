@@ -1,7 +1,7 @@
 from logging import Logger, getLogger
 
 from fastapi import Response
-from pytest import fixture
+from pytest import MonkeyPatch, fixture
 from pytest_mock import MockerFixture
 
 from fastapi.testclient import TestClient
@@ -9,8 +9,9 @@ from fastapi.testclient import TestClient
 logger: Logger = getLogger("tests." + __name__)
 
 @fixture(autouse=True)
-def set_ss_instance(mocker: MockerFixture):
+def set_ss_instance(mocker: MockerFixture, monkeypatch: MonkeyPatch):
     mocker.patch("StreamStorm.api.routers.StormRouter.StreamStorm.ss_instance", object())
+    monkeypatch.setenv("BUSY", "0")
     
     
     
