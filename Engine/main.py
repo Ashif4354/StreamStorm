@@ -47,6 +47,7 @@ def main() -> None:
     try:
 
         ui_url: str = "https://streamstorm-ui.web.app/" if CONFIG["ENV"] == "production" else "http://localhost:5173"
+        # ui_url = "https://streamstorm-ui.web.app/"
 
         create_window(
             title="StreamStorm",
