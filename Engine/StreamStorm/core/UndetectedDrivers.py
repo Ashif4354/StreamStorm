@@ -95,7 +95,7 @@ class UndetectedDrivers(Selenium):
         
         self.initiate_config_json(total_channels, channels)
 
-    def youtube_login(self) -> None:
+    def youtube_login(self, for_create_channels: bool = False) -> None:
         self.go_to_page(self.youtube_login_url)
         logged_in: bool = False
 
@@ -119,10 +119,11 @@ class UndetectedDrivers(Selenium):
                             EC.presence_of_element_located((By.ID, "avatar-btn"))
                         )
                         logger.info("Youtube login successful")
-
-                        self.get_total_channels()
                         
-                        self.driver.close()
+                        if not for_create_channels:
+                            self.get_total_channels()                            
+                            self.driver.close()
+                            
                         sleep(2)
 
                         logged_in = True
