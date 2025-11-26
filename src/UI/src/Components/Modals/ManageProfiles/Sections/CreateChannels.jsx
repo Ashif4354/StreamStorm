@@ -17,13 +17,14 @@ import "./Sections.css";
 import ErrorText from '../../../Elements/ErrorText';
 import { useCustomMUIProps } from '../../../../context/CustomMUIPropsContext';
 import { useStormData } from '../../../../context/StormDataContext';
+import { useAppState } from '../../../../context/AppStateContext';
 import { analytics } from '../../../../config/firebase';
 
 const CreateChannels = () => {
     const { colorScheme } = useColorScheme();
     const { btnProps, inputProps } = useCustomMUIProps();
-    const formControls = useStormData();
     const notifications = useNotifications();
+    const appState = useAppState();
 
     const [logoRequired, setLogoRequired] = useState(false);
     const [logoSelection, setLogoSelection] = useState('random');
@@ -68,7 +69,7 @@ const CreateChannels = () => {
 
         setValidatingPath(true);
 
-        fetch(`${formControls.hostAddress}/environment/channels/verify_dir`, {
+        fetch(`${appState.hostAddress}/environment/channels/verify_dir`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -152,7 +153,7 @@ const CreateChannels = () => {
 
         setCreatingChannels(true);
 
-        fetch(`${formControls.hostAddress}/environment/channels/create`, {
+        fetch(`${appState.hostAddress}/environment/channels/create`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

@@ -5,7 +5,6 @@ import { useColorScheme } from '@mui/material';
 
 const InfoCard = ({ title, icon, text, color }) => {
     const { colorScheme } = useColorScheme();
-    console.log(color);
 
     return (
         <Card
