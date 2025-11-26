@@ -14,7 +14,7 @@ const AppStateProvider = ({ children }) => {
     const [UIVersion, setUIVersion] = useLocalStorageState("VITE_APP_VERSION", "0.0.0");
     const [engineVersion, setEngineVersion] = useState('...');
     const [allChannels, setAllChannels] = useState({});
-    const [stormInProgress, setStormInProgress] = useState(true);
+    const [stormInProgress, setStormInProgress] = useState(false);
     const [stormStatus, setStormStatus] = useState("Storming");
 
     const values = {

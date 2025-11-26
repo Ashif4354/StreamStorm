@@ -35,7 +35,7 @@ const StormControls = () => {
     const [controlsDisabled, setControlsDisabled] = useState(false);
 
     useEffect(() => {
-        formControls.SC.current = new StormControlsClass(formControls.hostAddress);
+        formControls.SC.current = new StormControlsClass(appState.hostAddress);
         formControls.SC.current.setPausing = setPausing;
         formControls.SC.current.stopping = stopping;
         formControls.SC.current.setStopping = setStopping;
@@ -46,7 +46,7 @@ const StormControls = () => {
         formControls.SC.current.setChangeSlowModeLoading = setChangeSlowModeLoading;
         formControls.SC.current.setMoreChannelsLoading = setMoreChannelsLoading;
         formControls.SC.current.notifications = formControls.notifications;
-    }, [formControls.hostAddress]);
+    }, [appState.hostAddress]);
 
 
     const onStopHandler = async () => {
@@ -126,16 +126,6 @@ const StormControls = () => {
                 <Zap className='zap-icon' size={20} color={colorScheme === 'light' ? "var(--input-active-red-light)" : "var(--input-active-red-dark)"} />
                 <h3 className={`storm-controls-title`}>Storm Controls</h3>
             </div>
-
-            {
-                appState.stormInProgress &&
-                <div className={`storm-in-progress-container ${colorScheme}-bordered-container`}>
-                    <Ping />
-                    <span className={`storm-in-progress-text ${colorScheme}-text`}>A Storm is in progress...</span>
-                </div>
-            }
-
-
 
             <div className="storm-controls-btns-container">
                 <div className="row">

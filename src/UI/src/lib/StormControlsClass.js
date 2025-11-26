@@ -29,6 +29,8 @@ class StormControlsClass {
     }
 
     startStorm(formControls, systemInfoControls, appState) {
+        appState.setStormInProgress(true);
+        return;
 
         const dataValid = ValidateStormData(formControls, systemInfoControls);
 
@@ -112,6 +114,33 @@ class StormControlsClass {
             .finally(() => {
                 this.setStopping(false);
                 this.setControlsDisabled(false);
+            });
+
+    }
+
+    stopStorm2(setStormInProgress, setStopping) {
+        setStopping(true);
+
+        fetch(`${this.hostAddress}/storm/stop`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    logEvent(analytics, "storm_stopped_2");
+                }
+
+            })
+            .catch(error => {
+                atatus.notify(error, {}, ['storm_stop_2_error']);
+                logEvent(analytics, "storm_stop_2_error");
+            })
+            .finally(() => {
+                setStopping(false);
             });
 
     }

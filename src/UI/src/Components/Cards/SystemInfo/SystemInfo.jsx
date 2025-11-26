@@ -10,7 +10,7 @@ import "./SystemInfo.css";
 import { useSystemInfo } from "../../../context/SystemInfoContext";
 import { useCustomMUIProps } from "../../../context/CustomMUIPropsContext";
 import SystemInfoChart from "./SystemInfoChart";
-import { useSocket } from "../../../context/Socket";
+import { useSocket } from "../../../context/SocketContext";
 import SystemStatsCard from "./SystemStatsCard";
 import { TIME_INTERVAL_IN_SEC } from "../../../lib/Constants";
 
@@ -50,6 +50,7 @@ const SystemInfo = () => {
     if (!socket || !socket.connected || !socketConnected) return;
 
     socket.on("system_info", (data) => {
+      systemInfoControls.setAvailableRAM(data.free_ram_mb);
       setChartSeries((prev) => {
         const incoming = { ...data };
 
@@ -61,21 +62,25 @@ const SystemInfo = () => {
         }));
       });
     });
+
+    return () => {
+      socket.off("system_info");
+    };
   }, [socket, socketConnected]);
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      await systemInfoControls.fetchRAM(
-        hostAddress,
-        notifications,
-        systemInfoControls
-      );
-    }, 1000);
+  // useEffect(() => {
+  //   const interval = setInterval(async () => {
+  //     await systemInfoControls.fetchRAM(
+  //       hostAddress,
+  //       notifications,
+  //       systemInfoControls
+  //     );
+  //   }, 1000);
 
-    systemInfoControls.setPollingIntervals((prev) => [...prev, interval]);
+  //   systemInfoControls.setPollingIntervals((prev) => [...prev, interval]);
 
-    return () => clearInterval(interval);
-  }, [hostAddress]);
+  //   return () => clearInterval(interval);
+  // }, [hostAddress]);
 
   return (
     <Card

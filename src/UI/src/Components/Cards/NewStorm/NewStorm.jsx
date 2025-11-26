@@ -8,7 +8,8 @@ import { logEvent } from "firebase/analytics";
 import "./NewStorm.css";
 import LeftPanel from "./Panels/Left/LeftPanelForm";
 import LeftPanelDashboard from "./Panels/Left/LeftPanelDashboard";
-import RightPanel from "./Panels/Right/RightPanel";
+import RightPanelForm from "./Panels/Right/RightPanelForm";
+import RightPanelDashboard from "./Panels/Right/RightPanelDashBoard";
 import ManageProfilesModal from "../../Modals/ManageProfiles/ManageProfiles";
 import fetchStatus from "../../../lib/FetchStatus";
 import { useStormData } from "../../../context/StormDataContext";
@@ -79,9 +80,13 @@ const NewStorm = () => {
                 <div className="new-storm-card-content">
                     {
                         appState.stormInProgress ? <LeftPanelDashboard /> : <LeftPanel />
-                    }                    
+                    }  
+
                     <Divider orientation="vertical" />
-                    <RightPanel setManageProfilesOpen={setManageProfilesOpen} />
+                    
+                    {
+                        appState.stormInProgress ? <RightPanelDashboard /> : <RightPanelForm setManageProfilesOpen={setManageProfilesOpen} />
+                    }
                 </div>
             </CardContent>
 
