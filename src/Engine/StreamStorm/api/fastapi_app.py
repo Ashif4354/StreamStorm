@@ -35,7 +35,7 @@ if CONFIG["ENV"] == "development":
     from dotenv import load_dotenv
     load_dotenv()
 
-    from atatus import Client, get_client, set_response_body
+    from atatus import Client, get_client
     from atatus.contrib.starlette import create_client, Atatus
 
     atatus_client: Optional[Client] = get_client()

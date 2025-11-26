@@ -20,7 +20,7 @@ async def handle_disconnect(sid):
     await sio.leave_room(sid, "streamstorm")
 
 @sio.on('ping')
-async def darkglance(sid, data):
+async def ping(sid, data):
     logger.info(f"Client pinged: {sid}")
     return {
         'success': True,
