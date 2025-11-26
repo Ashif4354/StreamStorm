@@ -20,6 +20,9 @@ endif
 help:
 	@echo "StreamStorm Build System"
 	@echo ""
+	@echo "Setup Commands:"
+	@echo "  make deps                     Install all dependencies (npm for UI/Site, uv sync for Engine)"
+	@echo ""
 	@echo "Core Commands:"
 	@echo "  make run                      Start the Engine app (uv run main.py in src/Engine)"
 	@echo "  make ui                   Start the UI (npm start in src/UI)"
@@ -44,6 +47,12 @@ help:
 # ============================================================================
 # CORE COMMANDS
 # ============================================================================
+
+deps:
+	@echo "Installing dependencies..."
+	cd src/UI && npm install
+	cd src/Site && npm install
+	cd src/Engine && uv sync
 
 run:
 	@echo "Starting Engine application..."
