@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createContext, useContext } from 'react';
 
 import { useLocalStorageState } from "@toolpad/core/useLocalStorageState";
@@ -16,11 +16,27 @@ const AppStateProvider = ({ children }) => {
     const [allChannels, setAllChannels] = useState({});
     const [stormInProgress, setStormInProgress] = useState(false);
     const [stormStatus, setStormStatus] = useState("Storming");
+    const [logFilePath, setLogFilePath] = useState("");
 
     const values = {
         hostAddress, logs, setLogs, UIVersion, setUIVersion, engineVersion, setEngineVersion, allChannels, setAllChannels,
-        stormInProgress, setStormInProgress, stormStatus, setStormStatus
+        stormInProgress, setStormInProgress, stormStatus, setStormStatus, logFilePath, setLogFilePath
     };
+
+    useEffect(() => {
+        // setInterval(() => 
+        //     setLogs(prevLogs => [...prevLogs, { message: "App State Provider mounted", time: new Date().toISOString(), level: "INFO" }])
+        // , 2000);
+
+        // for (let i = 0; i < 10; i++) {
+        //     setLogs(prevLogs => [
+        //         ...prevLogs, 
+        //         { message: "App State Provider mounted", time: "14:30:00", level: "INFO" },
+        //         { message: "This is an error log example", time: "14:30:00", level: "ERROR" }
+        //     ]);
+        // }
+         
+    }, []);
 
     return (
         <AppStateContext.Provider value={values}>

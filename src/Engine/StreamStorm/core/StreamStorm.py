@@ -26,7 +26,7 @@ from ..socketio.sio import sio
 
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
-class StreamStorm(Profiles): # removed Selenium inheritance coz its doing nothing
+class StreamStorm(Profiles):
     __slots__: tuple[str, ...] = (
         'url', 'chat_url', 'messages', 'subscribe', 'subscribe_and_wait_time', 
         'slow_mode', 'channels', 'background', 'ready_event', 'pause_event',
@@ -38,6 +38,7 @@ class StreamStorm(Profiles): # removed Selenium inheritance coz its doing nothin
     ss_instance: Optional["StreamStorm"] = None
     message_counter_lock: Lock = Lock()
     message_count: int = 0
+    log_file_path: str = "" # Will be set by CustomLogger during logging setup
 
     def __init__(
         self,

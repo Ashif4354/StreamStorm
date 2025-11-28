@@ -1,12 +1,13 @@
 import * as atatus from "atatus-spa"
 
-const fetchStatus = async (appState) => {
-    fetch(`${appState.hostAddress}/engine-status`, {
+const fetchConfig = async (appState) => {
+    fetch(`${appState.hostAddress}/config`, {
         method: 'GET'
     })
     .then(response => response.json())
     .then(data => {
         appState.setEngineVersion(data.version);
+        appState.setLogFilePath(data.log_file_path);
     })
     .catch((error) => {
         atatus.notify(error, {}, ['status_fetch_error']);
@@ -14,4 +15,4 @@ const fetchStatus = async (appState) => {
 }
 
 
-export default fetchStatus;
+export default fetchConfig;

@@ -25,7 +25,7 @@ def test_get_ram_info(client: TestClient) -> NoReturn:
     
 def test_engine_status(client: TestClient) -> NoReturn:
 
-    response: Response = client.get("/engine-status")
+    response: Response = client.get("/config")
 
     assert response.status_code == 200
 

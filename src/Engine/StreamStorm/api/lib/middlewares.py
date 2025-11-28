@@ -9,7 +9,7 @@ from ...core.StreamStorm import StreamStorm
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
 
-polling_paths: set[str] = {"/engine-status", "/get_ram_info"}
+polling_paths: set[str] = {"/config", "/get_ram_info"}
 
 
 class LogRequestMiddleware(BaseHTTPMiddleware):

@@ -129,10 +129,11 @@ async def get_ram_info() -> JSONResponse:
         }
     )
     
-@app.get("/engine-status")
+@app.get("/config")
 async def status() -> JSONResponse:
     response: dict = {
-        "version": CONFIG["VERSION"]
+        "version": CONFIG["VERSION"],
+        "log_file_path": StreamStorm.log_file_path
     }
 
     return JSONResponse(

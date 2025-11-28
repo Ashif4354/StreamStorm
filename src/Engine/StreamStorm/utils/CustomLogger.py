@@ -12,6 +12,7 @@ from .GetIstTime import get_ist_time
 from ..config import CONFIG
 from ..api.validation import StormData
 from ..socketio.sio import sio
+from ..core.StreamStorm import StreamStorm
 
 _event_loop: AbstractEventLoop | None = None
 
@@ -81,6 +82,7 @@ class CustomLogger:
         # sourcery skip: class-extract-method
         
         log_file: Path = self.__touch_log_file(f"log - {get_ist_time()}.log")
+        StreamStorm.log_file_path = str(log_file)
 
         file_formatter: Formatter = Formatter(
             "%(asctime)s [%(name)s: %(lineno)d] %(levelname)s: %(message)s"
