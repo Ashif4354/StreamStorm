@@ -49,7 +49,7 @@ const SystemInfo = () => {
   useEffect(() => {
     if (!socket || !socket.connected || !socketConnected) return;
 
-    socket.on("system_info", (data) => {
+    socket.on("system_metrics", (data) => {
       systemInfoControls.setAvailableRAM(data.free_ram_mb);
       setChartSeries((prev) => {
         const incoming = { ...data };
@@ -64,7 +64,7 @@ const SystemInfo = () => {
     });
 
     return () => {
-      socket.off("system_info");
+      socket.off("system_metrics");
     };
   }, [socket, socketConnected]);
 

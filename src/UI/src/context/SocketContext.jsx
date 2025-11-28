@@ -31,10 +31,6 @@ const SocketProvider = ({ children }) => {
             console.log("Socket object:", newSocket);
         });
 
-        // newSocket.on("system_info", (data) => {
-        //     console.log("Received system_info:", data);
-        // });
-
         return () => {
             console.log("Disconnecting from Socket.IO server...");
             setSocketConnected(false);

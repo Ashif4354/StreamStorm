@@ -23,7 +23,6 @@ async def emit_system_metrics() -> None:
     while True:
         with suppress(Exception):
             system_metrics: dict[str, Any] = await to_thread(get_system_metrics)
-            print(system_metrics)
-            await sio.emit("system_info", system_metrics, room="streamstorm", callback=lambda: print("@@@"))
+            await sio.emit("system_metrics", system_metrics, room="streamstorm")
             await sleep(2)
             

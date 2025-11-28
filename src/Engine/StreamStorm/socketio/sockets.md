@@ -10,7 +10,7 @@ All events are emitted to the `streamstorm` room. The UI should join this room t
 
 ## Events List
 
-### 1. `system_info`
+### 1. `system_metrics`
 
 **Emitted By:** `SystemInfoEmitter.py`  
 **Frequency:** Every 5 seconds  
@@ -200,7 +200,7 @@ const socket = io('http://localhost:8000', {
 socket.emit('join', 'streamstorm');
 
 // Listen to all events
-socket.on('system_info', (data) => {
+socket.on('system_metrics', (data) => {
   console.log('System Info:', data);
   // Update system metrics UI
 });
@@ -252,7 +252,7 @@ Storm Lifecycle:
 3. instance_status: "1" (Ready) - emitted when instance is ready
 4. instance_status: "2" (Storming) - emitted when all instances start
 5. total_messages & messages_rate - continuous updates every 5s
-6. system_info - continuous updates every 5s
+6. system_metrics - continuous updates every 5s
 7. log - continuous real-time logs
 8. storm_paused (optional) - if user pauses
 9. storm_resumed (optional) - if user resumes
@@ -267,7 +267,7 @@ Storm Lifecycle:
 - All events use the `streamstorm` room for broadcasting
 - Events are emitted asynchronously using `await sio.emit()`
 - The UI should handle connection failures and reconnection gracefully
-- Some events (like `log` and `system_info`) emit continuously and may generate high traffic
+- Some events (like `log` and `system_metrics`) emit continuously and may generate high traffic
 - Consider implementing UI throttling or debouncing for high-frequency events
 
 ---
@@ -275,7 +275,7 @@ Storm Lifecycle:
 ## Source Files
 
 Event emissions can be found in:
-- [`SystemInfoEmitter.py`](file:///d:/PROGRAMMING/PROJECTS/StreamStorm/src/Engine/StreamStorm/utils/SystemInfoEmitter.py) - `system_info`
+- [`SystemInfoEmitter.py`](file:///d:/PROGRAMMING/PROJECTS/StreamStorm/src/Engine/StreamStorm/utils/SystemInfoEmitter.py) - `system_metrics`
 - [`CustomLogger.py`](file:///d:/PROGRAMMING/PROJECTS/StreamStorm/src/Engine/StreamStorm/utils/CustomLogger.py) - `log`
 - [`StreamStorm.py`](file:///d:/PROGRAMMING/PROJECTS/StreamStorm/src/Engine/StreamStorm/core/StreamStorm.py) - `instance_status`, `total_messages`, `messages_rate`
 - [`StormRouter.py`](file:///d:/PROGRAMMING/PROJECTS/StreamStorm/src/Engine/StreamStorm/api/routers/StormRouter.py) - `storm_stopped`, `storm_paused`, `storm_resumed`

@@ -42,8 +42,6 @@ const DeleteAllProfiles = () => {
 
         logEvent(analytics, "delete_all_profiles");
 
-        logEvent(analytics, "delete_all_profiles");
-
         fetch(`${hostAddress}/environment/profiles/delete`, {
             method: "POST",
             headers: {
