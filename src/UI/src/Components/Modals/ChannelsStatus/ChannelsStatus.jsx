@@ -10,7 +10,7 @@ import CloseButton from '../../Elements/CloseButton';
 import { useCustomMUIProps } from '../../../context/CustomMUIPropsContext';
 import CreateChannels from './Sections/CreateChannels';
 
-const ManageProfiles = (props) => {
+const ChannelsStatus = (props) => {
 
     const { open, setOpen } = props;
     const { modalProps } = useCustomMUIProps();
@@ -48,4 +48,4 @@ const ManageProfiles = (props) => {
     );
 };
 
-export default ManageProfiles;
+export default ChannelsStatus;

@@ -48,4 +48,4 @@ const ManageProfiles = (props) => {
     );
 };
 
-export default ManageProfiles;
+export default ChannelsStatus;

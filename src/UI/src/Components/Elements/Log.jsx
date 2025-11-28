@@ -1,5 +1,9 @@
+import { useColorScheme } from "@mui/material";
+
 const Log = ({ log }) => {
-    const color = log.level === 'INFO' ? 'var(--log-info)' : 'var(--log-error)';
+    const { colorScheme } = useColorScheme();
+    const levelColor = log.level === 'INFO' ? 'var(--log-info)' : 'var(--log-error)';
+
 
     return (
         <div
@@ -12,9 +16,19 @@ const Log = ({ log }) => {
                 fontSize: '0.875rem'
             }}
         >
-            <span style={{ color: 'var(--slight-light-text)' }}>[{log.time}]</span>
-            <span style={{ color }}>[{log.level}]</span>
-            <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{log.message}</span>
+            <span style={{
+                color: colorScheme === 'light' ? 'var(--slight-dark-text)' : 'var(--slight-light-text)'
+            }}>
+                [{log.time}]
+            </span>
+            <span style={{ color: levelColor }}>[{log.level}]</span>
+            <span style={{
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+                color: colorScheme === 'light' ? 'var(--dark-text)' : 'var(--light-text)'
+            }}>
+                {log.message}
+            </span>
         </div>
     );
 }

@@ -1,24 +1,11 @@
-import { useEffect, useRef } from 'react';
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import { CardHeader, Card } from "@mui/material";
 import { useColorScheme } from '@mui/material/styles';
 import { Terminal } from "lucide-react";
 
-import { useAppState } from '../../context/AppStateContext';
-import Log from './Log';
+import LogsContainer from './LogsContainer';
 
 const LogsCard = () => {
-    const { logs } = useAppState();
     const { colorScheme } = useColorScheme();
-    const scrollRef = useRef(null);
-
-    useEffect(() => {
-        const element = scrollRef.current;
-        if (element) {
-            element.scrollTop = element.scrollHeight;
-        }
-    }, [logs]);
 
     return (
         <Card
@@ -45,30 +32,9 @@ const LogsCard = () => {
                     }
                 }}
             />
-            <Box
-                ref={scrollRef}
-                sx={{
-                    height: '100%',
-                    overflow: 'scroll',
-                    p: 2,
-                    "&.MuiBox-root": {
-                        padding: "0 1.5rem 1.5rem 1.5rem",
-                    }
-                }}
-            >
-                <Stack
-
-                    sx={{
-                        overflow: 'scroll',
-                    }}
-                >
-                    {
-                        logs.map((log, index) => (
-                            <Log key={index} log={log} />
-                        ))
-                    }
-                </Stack>
-            </Box>
+            <div style={{ padding: "0 1.5rem 1.5rem 1.5rem", overflow: 'scroll', }}>
+                <LogsContainer />
+            </div>
         </Card >
     );
 };

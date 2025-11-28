@@ -4,19 +4,21 @@ import { useColorScheme } from '@mui/material/styles';
 import { Switch, Button, Divider, Tooltip } from "@mui/material";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { RefreshCw, Users, StopCircle } from 'lucide-react';
+import { logEvent } from "firebase/analytics";
 
 import "./RightPanel.css";
-import StormControls from './StormControls/StormControls';
+import { analytics } from "../../../../../config/firebase";
 import ErrorText from '../../../../Elements/ErrorText';
 import StormControlsClass from "../../../../../lib/StormControlsClass";
 import { useStormData } from '../../../../../context/StormDataContext';
 import { useSystemInfo } from '../../../../../context/SystemInfoContext';
 import { useCustomMUIProps } from '../../../../../context/CustomMUIPropsContext';
 import { useAppState } from '../../../../../context/AppStateContext';
+import ManageProfilesModal from "../../../../Modals/ManageProfiles/ManageProfiles";
+import LogsModal from "../../../../Modals/Logs/Logs";
 
-const RightPanel = (props) => {
+const RightPanelForm = () => {
 
-    const { setManageProfilesOpen } = props;
     const { colorScheme } = useColorScheme();
     const { btnProps } = useCustomMUIProps();
     const formControls = useStormData();
@@ -24,6 +26,8 @@ const RightPanel = (props) => {
     const appState = useAppState();
 
     const [stopping, setStopping] = useState(false);
+    const [manageProfilesOpen, setManageProfilesOpen] = useState(false);
+    const [logsOpen, setLogsOpen] = useState(false);
 
 
     const handleSubmit = () => {
@@ -38,6 +42,16 @@ const RightPanel = (props) => {
     useEffect(() => {
         formControls.SC.current = new StormControlsClass(appState.hostAddress);
     }, [appState.hostAddress]);
+
+    useEffect(() => {
+        if(manageProfilesOpen) {
+            logEvent(analytics, "manage_profiles_open");
+        }
+
+        if(logsOpen) {
+            logEvent(analytics, "logs_open");
+        }
+    }, [manageProfilesOpen, logsOpen]);
 
     return (
         <div className="right-panel-container">
@@ -84,7 +98,7 @@ const RightPanel = (props) => {
                     onClick={onStopHandler}
                     sx={{
                         ...btnProps,
-                        backgroundColor: colorScheme === 'light' ? "var(--bright-red-2)" : "var(--input-active-red-dark)",
+                        backgroundColor: colorScheme === 'light' ? "var(--bright-red-2)" : "var(--input-active-red-light)",
                         color: "var(--light-text)",
                     }}
                 >
@@ -93,16 +107,6 @@ const RightPanel = (props) => {
                     }
                 </Button>
             </Tooltip>
-
-            {/* <div id="storm-controls" />
-
-            <Divider
-                sx={{
-                    margin: "calc(16px - 0.5rem) 0",
-                }}
-            />
-
-            <StormControls /> */}
 
             <Divider
                 sx={{
@@ -121,14 +125,16 @@ const RightPanel = (props) => {
             <Button
                 startIcon={<Users size="1rem" />}
                 sx={btnProps}
-                onClick={null}
+                onClick={() => setLogsOpen(true)}
             >
                 Logs
             </Button>
 
+            <ManageProfilesModal open={manageProfilesOpen} setOpen={setManageProfilesOpen} />
+            <LogsModal open={logsOpen} setOpen={setLogsOpen} />
 
         </div>
     );
 }
 
-export default RightPanel;
+export default RightPanelForm;
