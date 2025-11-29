@@ -1,10 +1,10 @@
 import "./Footer.css";
 import { useColorScheme } from '@mui/material/styles';
-import { useStormData } from "../../../context/StormDataContext";
+import { useAppState } from "../../../context/AppStateContext";
 
 const Footer = () => {
     const { colorScheme } = useColorScheme();
-    const formControls = useStormData();
+    const appState = useAppState();
 
     return (
         <footer className={`footer footer-${colorScheme} ${colorScheme}-bordered-container`}>
@@ -13,7 +13,7 @@ const Footer = () => {
                 <p className="footer-text">© 2025 StreamStorm. All rights reserved.</p>
                 <div className="versions-text">
                     <p>UI Version: {import.meta.env.VITE_APP_VERSION}</p>
-                    <p>Engine Version: {formControls.engineVersion}</p>
+                    <p>Engine Version: {appState.engineVersion}</p>
                 </div>
             </div>
 
