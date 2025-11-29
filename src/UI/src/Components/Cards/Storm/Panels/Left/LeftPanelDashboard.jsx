@@ -73,9 +73,8 @@ const LeftPanelDashboard = () => {
                     newChannels[data.instance].status = -1;
                     return newChannels;
                 });
-
                 setActiveInstances(prev => prev - 1);
-                setDeadInstances(prev => prev + 1);
+
             } else if (data.status === "0") {
                 appState.setAllChannels(prev => {
                     const newChannels = { ...prev };
@@ -83,19 +82,23 @@ const LeftPanelDashboard = () => {
                     return newChannels;
                 });
                 setActiveInstances(prev => prev - 1);
+                setDeadInstances(prev => prev + 1);
+
             } else if (data.status === "1") {
                 appState.setAllChannels(prev => {
                     const newChannels = { ...prev };
                     newChannels[data.instance].status = 1;
                     return newChannels;
                 });
+                setActiveInstances(prev => prev + 1);
+
             } else if (data.status === "2") {
                 appState.setAllChannels(prev => {
                     const newChannels = { ...prev };
                     newChannels[data.instance].status = 2;
                     return newChannels;
                 });
-                setActiveInstances(prev => prev + 1);
+
             } else if (data.status === "3") {
                 appState.setAllChannels(prev => {
                     const newChannels = { ...prev };
@@ -105,6 +108,14 @@ const LeftPanelDashboard = () => {
             }
         });
     }, [socket, socketConnected]);
+
+    useEffect(() => {
+        const channels = Object.values(appState.allChannels);
+        const active = channels.filter(channel => channel.status > 0).length;
+        const dead = channels.filter(channel => channel.status === 0).length;
+        setActiveInstances(active);
+        setDeadInstances(dead);
+    }, []);
 
     return (
         <div className="left-panel-dashboard-container">
