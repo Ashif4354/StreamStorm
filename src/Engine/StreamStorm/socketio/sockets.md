@@ -71,11 +71,11 @@ All events are emitted to the `streamstorm` room. The UI should join this room t
 ```
 
 **Status Codes:**
-- `"0"` - **Idle** - Instance is idle (not storming)
+- `"-1"` - **Idle** - Instance is idle (not storming)
+- `"0"` - **Dead** - Instance has failed or been stopped by application
 - `"1"` - **Getting Ready** - Instance is initializing and logging in
 - `"2"` - **Ready** - Instance is ready to start storming (waiting for all instances)
 - `"3"` - **Storming** - Instance is actively sending messages
-- `"-1"` - **Dead** - Instance has failed or been stopped by application
 
 **UI Action:**
 - Update instance/channel status indicators

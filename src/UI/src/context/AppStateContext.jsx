@@ -24,6 +24,10 @@ const AppStateProvider = ({ children }) => {
     };
 
     useEffect(() => {
+
+        // This useEffect is used to inject mock data for testing purposes
+        // It is commented out by default, but can be uncommented to test the UI with mock data
+
         // setInterval(() => 
         //     setLogs(prevLogs => [...prevLogs, { message: "App State Provider mounted", time: new Date().toISOString(), level: "INFO" }])
         // , 2000);
@@ -35,7 +39,20 @@ const AppStateProvider = ({ children }) => {
         //         { message: "This is an error log example", time: "14:30:00", level: "ERROR" }
         //     ]);
         // }
-         
+
+        // const status = [-1, 0, 1, 2, 3];
+
+        // for (let i = 0; i < 20; i++) {
+        //     setAllChannels(prevChannels => ({
+        //         ...prevChannels,
+        //         [i]: {
+        //             name: `Channel ${i}Channel ${i}Channel ${i}`,
+        //             logo: `https://placehold.co/400x400?text=C${i}`,
+        //             status: status[Math.floor(Math.random() * status.length)]
+        //         }
+        //     }));
+        // }
+                    
     }, []);
 
     return (

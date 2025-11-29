@@ -31,3 +31,55 @@
 .modal-header-description-dark {
     color: var(--slight-light-text);
 }
+
+.channel-card-content {
+    display: flex;
+    align-items: center;
+    padding-left: 1rem;
+    height: 100%;
+    gap: 1rem;
+}
+
+.channel-and-chip-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    width: 100%;
+}
+
+.channel-and-chip-grid> :nth-child(2) {
+    margin-left: auto;
+}
+
+@media (max-width: 580px) {
+    .channel-and-chip-grid {
+        grid-template-columns: 1fr;
+        row-gap: 0.5rem;
+        align-items: center;
+        justify-items: center;
+    }
+
+    .channel-and-chip-grid> :nth-child(2) {
+        margin-left: 0;
+    }
+
+}
+
+/* style={{display: 'grid', flexDirection: 'row', flex: 1}} */
+
+.channel-name {
+    flex: 1;
+}
+
+.ashif-chip::after {
+    content: "";
+    animation: loading 3s steps(1, end) infinite
+}
+
+@keyframes loading {
+  0% { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75% { content: "..."; }
+  100% { content: ""; }
+}

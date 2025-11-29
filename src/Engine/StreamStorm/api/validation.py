@@ -220,7 +220,11 @@ class VerifyChannelsDirectoryData(BaseModel):
             raise ValueError("Invalid directory") from e
         
         
-    
+class KillInstanceData(BaseModel):
+    index: StrictInt = Field(... , ge=0, description="Instance index must be a non-negative integer")
+    name: str = Field(... , description="Channel name")
+
+
 __all__ : list[str] = [
     "StormData",
     "ProfileData",
@@ -230,5 +234,6 @@ __all__ : list[str] = [
     "GetChannelsData",
     "CreateChannelsData",
     "VerifyChannelsDirectoryData",
+    "KillInstanceData",
     "Validate"
 ]

@@ -15,7 +15,8 @@ from ..validation import (
     ChangeMessagesData,
     ChangeSlowModeData,
     StartMoreChannelsData,
-    GetChannelsData
+    GetChannelsData,
+    KillInstanceData
 )
 from ...utils.CustomLogger import CustomLogger
 from ...socketio.sio import sio
@@ -295,3 +296,43 @@ async def get_channels_data(data: GetChannelsData) -> JSONResponse:
         status_code=200,
         content=response_data
     )
+
+@router.post("/kill_instance")
+async def kill_instance(data: KillInstanceData) -> JSONResponse:
+    
+    try:
+        for instance in StreamStorm.each_channel_instances:
+            if instance.index == data.index and instance.page:
+                await instance.page.close()
+                
+                StreamStorm.each_channel_instances.remove(instance)
+                await sio.emit('instance_status', {'instance': str(data.index), 'status': '-1'}, room="streamstorm")  # -1 = Idle
+                
+                logger.info(f"Instance {data.index}. {data.name} killed successfully")
+
+                return JSONResponse(
+                    status_code=200,
+                    content={
+                        "success": True,
+                        "message": "Instance killed successfully",
+                    }
+                )
+
+        return JSONResponse(
+            status_code=404,
+            content={
+                "success": False,
+                "message": "Instance not found or not storming",
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error killing instance: {e}")
+
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "message": f"Error killing instance: {str(e)}",
+            }
+        )

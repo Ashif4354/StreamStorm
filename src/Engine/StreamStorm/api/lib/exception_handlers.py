@@ -40,7 +40,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         "background": "Background",
         "count": "Profiles count",
         "mode": "Channels selection mode",
-        "directory": "Logos directory"
+        "directory": "Logos directory",
+        "index": "Index"
     }
     
     message: str = field_map[errors[0]["loc"][1]] + ": " + errors[0]["msg"][6:].capitalize()
