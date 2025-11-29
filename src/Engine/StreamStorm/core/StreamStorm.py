@@ -1,5 +1,4 @@
 from asyncio import Task, sleep, Event, create_task, gather, TimeoutError as AsyncTimeoutError, Lock
-from email import message
 from random import choice
 from os import environ
 from os.path import join
