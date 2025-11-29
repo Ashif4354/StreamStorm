@@ -317,7 +317,9 @@ async def kill_instance(data: KillInstanceData) -> JSONResponse:
                         "message": "Instance killed successfully",
                     }
                 )
-
+              
+        await sio.emit('instance_status', {'instance': str(data.index), 'status': '-1'}, room="streamstorm")  # -1 = Idle
+        
         return JSONResponse(
             status_code=404,
             content={

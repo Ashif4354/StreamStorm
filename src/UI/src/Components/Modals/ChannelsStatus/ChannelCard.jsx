@@ -123,7 +123,7 @@ const ChannelCard = (props) => {
                 <Button
                     variant="outlined"
                     size="small"
-                    disabled={channel.status !== 3}
+                    disabled={channel.status <= 0}
                     onClick={onHandleKillInstance}
 
                     sx={{
