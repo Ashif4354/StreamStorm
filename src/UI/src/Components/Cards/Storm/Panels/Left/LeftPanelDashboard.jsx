@@ -45,6 +45,7 @@ const LeftPanelDashboard = () => {
         socket.on("storm_stopped", () => {
             setStormStatus("Stopped");
             setStatusColor("var(--info-card-red)");
+            appState.setStormInProgress(false);
         });
 
         socket.on("storm_paused", () => {
@@ -69,7 +70,7 @@ const LeftPanelDashboard = () => {
             if (data.status === "-1") {
                 appState.setAllChannels(prev => {
                     const newChannels = { ...prev };
-                    newChannels[data.instance].status = "Dead";
+                    newChannels[data.instance].status = -1;
                     return newChannels;
                 });
 
@@ -78,27 +79,27 @@ const LeftPanelDashboard = () => {
             } else if (data.status === "0") {
                 appState.setAllChannels(prev => {
                     const newChannels = { ...prev };
-                    newChannels[data.instance].status = "Idle";
+                    newChannels[data.instance].status = 0;
                     return newChannels;
                 });
                 setActiveInstances(prev => prev - 1);
             } else if (data.status === "1") {
                 appState.setAllChannels(prev => {
                     const newChannels = { ...prev };
-                    newChannels[data.instance].status = "Getting Ready";
+                    newChannels[data.instance].status = 1;
                     return newChannels;
                 });
             } else if (data.status === "2") {
                 appState.setAllChannels(prev => {
                     const newChannels = { ...prev };
-                    newChannels[data.instance].status = "Ready";
+                    newChannels[data.instance].status = 2;
                     return newChannels;
                 });
                 setActiveInstances(prev => prev + 1);
             } else if (data.status === "3") {
                 appState.setAllChannels(prev => {
                     const newChannels = { ...prev };
-                    newChannels[data.instance].status = "Storming";
+                    newChannels[data.instance].status = 3;
                     return newChannels;
                 });
             }

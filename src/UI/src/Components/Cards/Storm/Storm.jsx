@@ -3,7 +3,7 @@ import Card from '@mui/material/Card';
 import { CardHeader, CardContent, Divider } from "@mui/material";
 import { Settings2 } from 'lucide-react';
 
-import "./NewStorm.css";
+import "./Storm.css";
 import LeftPanel from "./Panels/Left/LeftPanelForm";
 import LeftPanelDashboard from "./Panels/Left/LeftPanelDashboard";
 import RightPanelForm from "./Panels/Right/RightPanelForm";
@@ -12,7 +12,7 @@ import { useCustomMUIProps } from "../../../context/CustomMUIPropsContext";
 import { useAppState } from "../../../context/AppStateContext";
 import Ping from "../../Elements/Ping/Ping";
 
-const NewStorm = () => {
+const Storm = () => {
     const { cardProps } = useCustomMUIProps();
     const { colorScheme } = useColorScheme();
     const appState = useAppState();  
@@ -61,4 +61,4 @@ const NewStorm = () => {
     );
 }
 
-export default NewStorm;
+export default Storm;

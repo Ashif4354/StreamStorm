@@ -1,3 +1,4 @@
+import { useState } from 'react';
 /* eslint-disable react/prop-types */
 import { useColorScheme } from '@mui/material/styles';
 import { Switch, Button, Divider } from "@mui/material";
@@ -6,11 +7,12 @@ import { RefreshCw, Users } from 'lucide-react';
 
 import "./RightPanel.css";
 import StormControls from './StormControls/StormControls';
-import ErrorText from '../../../../Elements/ErrorText';
 import { useStormData } from '../../../../../context/StormDataContext';
 import { useSystemInfo } from '../../../../../context/SystemInfoContext';
 import { useCustomMUIProps } from '../../../../../context/CustomMUIPropsContext';
 import { useAppState } from '../../../../../context/AppStateContext';
+import ChannelsStatus from '../../../../Modals/ChannelsStatus/ChannelsStatus'; 
+import ViewConfig from '../../../../Modals/ViewConfig/ViewConfig';
 
 const RightPanel = () => {
 
@@ -20,11 +22,8 @@ const RightPanel = () => {
     const systemInfoControls = useSystemInfo();
     const appState = useAppState();
 
-
-    const handleSubmit = () => {
-        formControls.setErrorText("");
-        formControls.SC.current.startStorm(formControls, systemInfoControls, appState);
-    }
+    const [channelsStatusOpen, setChannelsStatusOpen] = useState(false);
+    const [viewConfigurationsOpen, setViewConfigurationsOpen] = useState(false);
 
     return (
         <div className="right-panel-container">
@@ -40,7 +39,7 @@ const RightPanel = () => {
             <Button
                 startIcon={<Users size="1rem" />}
                 sx={btnProps}
-                onClick={null}
+                onClick={() => setChannelsStatusOpen(true)}
             >
                 Channels Status
             </Button>
@@ -48,12 +47,13 @@ const RightPanel = () => {
             <Button
                 startIcon={<Users size="1rem" />}
                 sx={btnProps}
-                onClick={null}
+                onClick={() => setViewConfigurationsOpen(true)}
             >
                 View Configurations
             </Button>
 
-
+            <ChannelsStatus open={channelsStatusOpen} setOpen={setChannelsStatusOpen} />
+            <ViewConfig open={viewConfigurationsOpen} setOpen={setViewConfigurationsOpen} />
         </div>
     );
 }
