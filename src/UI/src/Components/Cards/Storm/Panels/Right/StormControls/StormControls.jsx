@@ -34,7 +34,7 @@ const StormControls = () => {
     const [controlsDisabled, setControlsDisabled] = useState(false);
 
     useEffect(() => {
-        formControls.SC.current = new StormControlsClass(appState.hostAddress);
+        // formControls.SC.current = new StormControlsClass(appState.hostAddress);
         formControls.SC.current.setPausing = setPausing;
         formControls.SC.current.stopping = stopping;
         formControls.SC.current.setStopping = setStopping;

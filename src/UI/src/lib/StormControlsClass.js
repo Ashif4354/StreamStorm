@@ -42,7 +42,7 @@ class StormControlsClass {
         this.log_analytics(stormData);
 
         formControls.setLoading(true);
-        this.setControlsDisabled(true);
+        // this.setControlsDisabled(true);
 
         fetch(`${this.hostAddress}/storm/start`, {
             method: 'POST',
@@ -58,7 +58,7 @@ class StormControlsClass {
                         severity: 'success',
                     });
                     appState.setAllChannels(data.channels);
-                    this.setControlsDisabled(false);
+                    // this.setControlsDisabled(false);
                     appState.setStormInProgress(true);
                     appState.setStormStatus("in Progress");
                     logEvent(analytics, "storm_started");
@@ -79,7 +79,7 @@ class StormControlsClass {
             })
             .finally(() => {
                 formControls.setLoading(false);
-                this.setControlsDisabled(false);
+                // this.setControlsDisabled(false);
             });
     }
 

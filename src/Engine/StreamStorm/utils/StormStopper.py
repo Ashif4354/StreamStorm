@@ -30,7 +30,6 @@ async def background_storm_stopper() -> NoReturn:
             if not any(statuses):
                 StreamStorm.ss_instance = None
                 StreamStorm.each_channel_instances.clear()
-                StreamStorm.ss_instance.run_stopper_event.clear()
                 
                 await sio.emit('storm_stopped', room="streamstorm")                
                 

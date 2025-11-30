@@ -41,6 +41,7 @@ const RightPanelForm = () => {
 
     useEffect(() => {
         formControls.SC.current = new StormControlsClass(appState.hostAddress);
+        formControls.SC.current.notifications = formControls.notifications;
     }, [appState.hostAddress]);
 
     useEffect(() => {

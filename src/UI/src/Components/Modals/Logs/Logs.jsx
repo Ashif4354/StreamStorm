@@ -47,7 +47,7 @@ const Logs = (props) => {
                 </div>
 
                 <Divider sx={{ margin: '1rem 0' }} />
-                <div style={{ maxHeight: '500px', overflowY: 'scroll' }}>
+                <div style={{ maxHeight: '400px', overflowY: 'scroll' }}>
                     <LogsContainer />
                 </div>
             </Box>

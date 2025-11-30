@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CirclePlay, ArrowUpToLine, Timer, HeartPulse, HeartCrack, TrendingUp, Terminal } from "lucide-react";
 import { useColorScheme } from "@mui/material/styles";
 
@@ -20,7 +20,8 @@ const LeftPanelDashboard = () => {
     const [stormDuration, setStormDuration] = useState("00:00:00");
     const [deadInstances, setDeadInstances] = useState(0);
     const [messagesRate, setMessagesRate] = useState(0);
-    const [start, setStart] = useState(Date.now());
+    const [startTime, setStartTime] = useState(Date.now());
+    const instanceCountChangedOnceRef = useRef(false);
 
     useEffect(() => {
         if (stormStatus === "Running") {
@@ -35,7 +36,7 @@ const LeftPanelDashboard = () => {
                 if (data.success) {
                     let time = new Date(data.start_time).getTime();
                     console.log("Storm Start Time:", time);
-                    setStart(time);
+                    setStartTime(time);
                 }
             })
             .catch(error => {
@@ -45,7 +46,7 @@ const LeftPanelDashboard = () => {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            const diff = (Date.now() - start) / 1000;
+            const diff = (Date.now() - startTime) / 1000;
 
             const hh = String(Math.floor(diff / 3600)).padStart(2, "0");
             const mm = String(Math.floor((diff % 3600) / 60)).padStart(2, "0");
@@ -57,7 +58,7 @@ const LeftPanelDashboard = () => {
             clearInterval(interval);
         };
 
-    }, [start]);
+    }, [startTime]);
 
     useEffect(() => {
         if (!socket || !socket.connected || !socketConnected) return;
@@ -130,9 +131,34 @@ const LeftPanelDashboard = () => {
                 });
             }
         });
+
+        return () => {
+            socket.off("storm_stopped");
+            socket.off("storm_paused");
+            socket.off("storm_resumed");
+            socket.off("message_rate");
+            socket.off("total_messages");
+            socket.off("instance_status");
+        };
+
     }, [socket, socketConnected]);
 
     useEffect(() => {
+        if (!instanceCountChangedOnceRef.current) {
+            instanceCountChangedOnceRef.current = true;
+            return;
+        }
+
+        if (activeInstances === 0) {
+            setStormStatus("Stopped");
+            setStatusColor("var(--info-card-red)");
+            appState.setStormInProgress(false);
+            appState.setStormStatus("Stopped");
+        }
+    }, [activeInstances]);
+
+
+    useEffect(() => { // Runs once on mount to initialize instance counts
         const channels = Object.values(appState.allChannels);
         const active = channels.filter(channel => channel.status > 0).length;
         const dead = channels.filter(channel => channel.status === 0).length;
