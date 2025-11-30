@@ -306,6 +306,7 @@ async def kill_instance(data: KillInstanceData) -> JSONResponse:
                 await instance.page.close()
                 
                 StreamStorm.each_channel_instances.remove(instance)
+                StreamStorm.ss_instance.total_instances -= 1
                 await sio.emit('instance_status', {'instance': str(data.index), 'status': '-1'}, room="streamstorm")  # -1 = Idle
                 
                 logger.info(f"Instance {data.index}. {data.name} killed successfully")
