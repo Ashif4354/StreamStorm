@@ -84,7 +84,7 @@ const LeftPanelDashboard = () => {
         });
 
         socket.on('messages_rate', (data) => {
-            setMessagesRate(data.message_rate);
+            setMessagesRate(parseFloat(data.message_rate).toFixed(2));
         });
 
         socket.on('total_messages', (data) => {
