@@ -27,7 +27,7 @@ const Storm = () => {
             <div className="card-header-container" id="new-storm">
                 <CardHeader
                     avatar={appState.stormInProgress ? <Ping /> : <Settings2 />}
-                    title={appState.stormStatus === "Storming" ? "Storm In Progress" : appState.stormStatus === "Paused" ? "Storm Paused" : "New Storm"}
+                    title={appState.stormInProgress ? `Storm ${appState.stormStatus}` : "New Storm"}
                     className={`card-header card-header-${colorScheme}`}
                     sx={{
                         padding: 0

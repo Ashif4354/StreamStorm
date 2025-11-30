@@ -20,7 +20,7 @@ const LeftPanelDashboard = () => {
     const [stormDuration, setStormDuration] = useState("00:00:00");
     const [deadInstances, setDeadInstances] = useState(0);
     const [messagesRate, setMessagesRate] = useState(0);
-    const [start] = useState(Date.now());
+    const [start, setStart] = useState(Date.now());
 
     useEffect(() => {
         if (stormStatus === "Running") {
@@ -29,7 +29,22 @@ const LeftPanelDashboard = () => {
     }, [theme]);
 
     useEffect(() => {
-        setInterval(() => {
+        fetch(appState.hostAddress + "/storm/start_time")
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let time = new Date(data.start_time).getTime();
+                    console.log("Storm Start Time:", time);
+                    setStart(time);
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching storm start time:", error);
+            });
+    }, []);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
             const diff = (Date.now() - start) / 1000;
 
             const hh = String(Math.floor(diff / 3600)).padStart(2, "0");
@@ -37,7 +52,12 @@ const LeftPanelDashboard = () => {
             const ss = String(Math.floor(diff % 60)).padStart(2, "0");
             setStormDuration(`${hh}:${mm}:${ss}`);
         }, 1000);
-    }, []);
+
+        return () => {
+            clearInterval(interval);
+        };
+
+    }, [start]);
 
     useEffect(() => {
         if (!socket || !socket.connected || !socketConnected) return;
@@ -46,16 +66,19 @@ const LeftPanelDashboard = () => {
             setStormStatus("Stopped");
             setStatusColor("var(--info-card-red)");
             appState.setStormInProgress(false);
+            appState.setStormStatus("Stopped");
         });
 
         socket.on("storm_paused", () => {
             setStormStatus("Paused");
             setStatusColor("var(--info-card-yellow)");
+            appState.setStormStatus("Paused");
         });
 
         socket.on("storm_resumed", () => {
             setStormStatus("Running");
             setStatusColor(`var(--info-card-${theme}-green)`);
+            appState.setStormStatus("in Progress");
         });
 
         socket.on('message_rate', (data) => {

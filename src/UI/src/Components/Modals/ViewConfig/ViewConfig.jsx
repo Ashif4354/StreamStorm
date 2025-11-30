@@ -6,6 +6,7 @@ import { SlidersHorizontal } from 'lucide-react';
 import '../Modals.css';
 import CloseButton from '../../Elements/CloseButton';
 import { useCustomMUIProps } from '../../../context/CustomMUIPropsContext';
+import ConfigData from './ConfigData';
 
 const ViewConfig = (props) => {
 
@@ -19,12 +20,21 @@ const ViewConfig = (props) => {
 
     return (
         <Modal open={open} onClose={modalCloseHandler}>
-            <Box sx={modalProps}>
+            <Box sx={{
+                ...modalProps,
+                minWidth: '40vw',
+                "@media (max-width: 400px)": {
+                    minWidth: '80vw',
+                    marginTop: '1rem',
+                    maxHeight: '70vh'
+
+                }
+            }}>
                 <div className='modal-header-container'>
                     <CloseButton onClick={modalCloseHandler} />
                     <div className={`modal-heading ${colorScheme}-text`}>
                         <SlidersHorizontal className='profile-icon' />
-                         View Configurations
+                        Storm Configurations
                     </div>
                     <div className="modal-header-description-container">
                         <span className={`modal-header-description modal-header-description-${colorScheme}`}>
@@ -32,7 +42,7 @@ const ViewConfig = (props) => {
                         </span>
                     </div>
                 </div>
-
+                <ConfigData />
             </Box>
         </Modal>
     );

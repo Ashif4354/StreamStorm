@@ -338,3 +338,15 @@ async def kill_instance(data: KillInstanceData) -> JSONResponse:
                 "message": f"Error killing instance: {str(e)}",
             }
         )
+        
+        
+@router.get("/start_time")
+async def get_storm_start_time() -> JSONResponse:
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            "success": True,
+            "start_time": StreamStorm.ss_instance.start_time
+        }
+    )

@@ -56,7 +56,8 @@ storm_controls_endpoints: set[str] = {
     "/storm/start_storm_dont_wait",
     "/storm/change_slow_mode",
     "/storm/start_more_channels",
-    # "/storm/kill_instance"
+    "/storm/kill_instance",
+    "/storm/start_time",
 }
 
 

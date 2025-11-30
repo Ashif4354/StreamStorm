@@ -15,7 +15,7 @@ const AppStateProvider = ({ children }) => {
     const [engineVersion, setEngineVersion] = useState('...');
     const [allChannels, setAllChannels] = useState({});
     const [stormInProgress, setStormInProgress] = useState(false);
-    const [stormStatus, setStormStatus] = useState("Storming");
+    const [stormStatus, setStormStatus] = useState("in Progress");
     const [logFilePath, setLogFilePath] = useState("");
 
     const values = {

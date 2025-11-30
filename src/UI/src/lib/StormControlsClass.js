@@ -29,8 +29,8 @@ class StormControlsClass {
     }
 
     startStorm(formControls, systemInfoControls, appState) {
-        appState.setStormInProgress(true); // Comment this line in production
-        return; // Comment this line in production
+        // appState.setStormInProgress(true); // Comment this line in production
+        // return; // Comment this line in production
 
         const dataValid = ValidateStormData(formControls, systemInfoControls);
 
@@ -60,6 +60,7 @@ class StormControlsClass {
                     appState.setAllChannels(data.channels);
                     this.setControlsDisabled(false);
                     appState.setStormInProgress(true);
+                    appState.setStormStatus("in Progress");
                     logEvent(analytics, "storm_started");
                 } else {
                     formControls.setErrorText(data.message || 'Request failed');

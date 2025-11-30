@@ -9,6 +9,7 @@ from urllib3.exceptions import ProtocolError, ReadTimeoutError
 from aiofiles import open as aio_open
 from logging import getLogger, Logger
 from contextlib import suppress
+from datetime import datetime
 
 
 from playwright.async_api import (
@@ -30,7 +31,7 @@ class StreamStorm(Profiles):
         'url', 'chat_url', 'messages', 'subscribe', 'subscribe_and_wait_time', 
         'slow_mode', 'channels', 'background', 'ready_event', 'pause_event',
         'total_instances', 'ready_to_storm_instances', 'total_channels', 
-        'all_channels', 'assigned_profiles', 'run_stopper_event'
+        'all_channels', 'assigned_profiles', 'run_stopper_event', 'start_time',
     )
     
     each_channel_instances: list[SeparateInstance] = []
@@ -72,6 +73,7 @@ class StreamStorm(Profiles):
         self.all_channels: dict[str, dict[str, str]] = {}
 
         self.assigned_profiles: dict[str, int] = {}
+        self.start_time: str = datetime.now().isoformat()
 
         StreamStorm.ss_instance = self
 
