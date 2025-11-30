@@ -101,6 +101,11 @@ class StormControlsClass {
                         severity: 'success',
                     });
                     logEvent(analytics, "storm_stopped");
+                } else {
+                    this.notifications.show(data.message || 'Failed to stop the storm', {
+                        severity: 'error',
+                    });
+                    logEvent(analytics, "storm_stop_failed");
                 }
 
             })
@@ -132,6 +137,8 @@ class StormControlsClass {
             .then(data => {
                 if (data.success) {
                     logEvent(analytics, "storm_stopped_2");
+                } else {
+                    logEvent(analytics, "storm_stop_2_failed");
                 }
 
             })
@@ -150,7 +157,7 @@ class StormControlsClass {
         this.setControlsDisabled(true);
 
         fetch(`${this.hostAddress}/storm/pause`, {
-            method: 'POST',
+            method: 'POST', 
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -163,6 +170,11 @@ class StormControlsClass {
                         severity: 'success',
                     });
                     logEvent(analytics, "storm_paused");
+                } else {
+                    this.notifications.show(data.message || 'Failed to pause the storm', {
+                        severity: 'error',
+                    });
+                    logEvent(analytics, "storm_pause_failed");
                 }
             })
             .catch(error => {
@@ -197,6 +209,11 @@ class StormControlsClass {
                         severity: 'success',
                     });
                     logEvent(analytics, "storm_resumed");
+                } else {
+                    this.notifications.show(data.message || 'Failed to resume the storm', {
+                        severity: 'error',
+                    });
+                    logEvent(analytics, "storm_resume_failed");
                 }
             })
             .catch(error => {
