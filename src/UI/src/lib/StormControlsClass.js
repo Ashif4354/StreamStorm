@@ -29,8 +29,8 @@ class StormControlsClass {
     }
 
     startStorm(formControls, systemInfoControls, appState) {
-        appState.setStormInProgress(true);
-        return;
+        appState.setStormInProgress(true); // Comment this line in production
+        return; // Comment this line in production
 
         const dataValid = ValidateStormData(formControls, systemInfoControls);
 
