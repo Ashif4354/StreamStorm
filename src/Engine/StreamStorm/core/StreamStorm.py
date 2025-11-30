@@ -31,13 +31,12 @@ class StreamStorm(Profiles):
         'url', 'chat_url', 'messages', 'subscribe', 'subscribe_and_wait_time', 
         'slow_mode', 'channels', 'background', 'ready_event', 'pause_event',
         'total_instances', 'ready_to_storm_instances', 'total_channels', 
-        'all_channels', 'assigned_profiles', 'run_stopper_event', 'start_time',
+        'all_channels', 'assigned_profiles', 'run_stopper_event', 'start_time', 'previous_count',
+        'time_elapsed_since_last_minute', 'message_counter_lock', 'message_count',
     )
     
     each_channel_instances: list[SeparateInstance] = []
     ss_instance: Optional["StreamStorm"] = None
-    message_counter_lock: Lock = Lock()
-    message_count: int = 0
     log_file_path: str = "" # Will be set by CustomLogger during logging setup
 
     def __init__(
@@ -73,6 +72,8 @@ class StreamStorm(Profiles):
         self.all_channels: dict[str, dict[str, str]] = {}
 
         self.assigned_profiles: dict[str, int] = {}
+        self.message_counter_lock: Lock = Lock()
+        self.message_count: int = 0
         self.start_time: str = datetime.now().isoformat()
 
         StreamStorm.ss_instance = self
@@ -207,8 +208,8 @@ class StreamStorm(Profiles):
                 try:
                     await SI.send_message(selected_message)
                     
-                    async with StreamStorm.message_counter_lock:
-                        StreamStorm.message_count += 1
+                    async with self.message_counter_lock:
+                        self.message_count += 1
                         
                     logger.debug(f"[{index}] [{channel_name}] Message sent successfully")
                     
@@ -262,15 +263,15 @@ class StreamStorm(Profiles):
         self.time_elapsed_since_last_minute: int = 0 # in seconds
         message_rate: float = 0.0
         
-        logger.debug("Starting message handler...")
+        logger.debug("#### Starting message handler...")
         await self.ready_event.wait()  # Wait for the ready event to be set before starting the storming    
         
         async def reset_message_count() -> None:
             while StreamStorm.ss_instance is not None:
                 await sleep(60) # asyncio.sleep
                 
-                async with StreamStorm.message_counter_lock:
-                    self.previous_count = StreamStorm.message_count
+                async with self.message_counter_lock:
+                    self.previous_count = self.message_count
                     
                 self.time_elapsed_since_last_minute = 0  # Reset time elapsed every minute
                 
@@ -281,10 +282,14 @@ class StreamStorm(Profiles):
         
         while StreamStorm.ss_instance is not None:
             
-            async with StreamStorm.message_counter_lock:
-                current_count: int = StreamStorm.message_count - self.previous_count            
+            print("waiting for lock")
+            async with self.message_counter_lock:
+                print("lock acquired")
+                current_count: int = self.message_count - self.previous_count            
             
-            await sio.emit('total_messages', {'total_messages': StreamStorm.message_count}, room="streamstorm")
+            print("emitting total messages")
+            await sio.emit('total_messages', {'total_messages': self.message_count}, room="streamstorm")
+            print("total messages emitted")
             
             self.time_elapsed_since_last_minute += time_frame
             
@@ -332,6 +337,7 @@ class StreamStorm(Profiles):
                 self.ready_event.set()  # Set the event to signal that all instances are ready
 
             create_task(wait_for_all_worker_to_be_ready())
+            create_task(self.messages_handler())
             
             tasks: list[Task] = []
             for index in range(len(self.channels)):

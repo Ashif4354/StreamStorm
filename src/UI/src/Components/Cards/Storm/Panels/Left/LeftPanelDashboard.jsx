@@ -21,6 +21,7 @@ const LeftPanelDashboard = () => {
     const [deadInstances, setDeadInstances] = useState(0);
     const [messagesRate, setMessagesRate] = useState(0);
     const [startTime, setStartTime] = useState(Date.now());
+    const [previousActiveInstances, setPreviousActiveInstances] = useState(0);
     const instanceCountChangedOnceRef = useRef(false);
 
     useEffect(() => {
@@ -82,7 +83,7 @@ const LeftPanelDashboard = () => {
             appState.setStormStatus("in Progress");
         });
 
-        socket.on('message_rate', (data) => {
+        socket.on('messages_rate', (data) => {
             setMessagesRate(data.message_rate);
         });
 
@@ -144,17 +145,21 @@ const LeftPanelDashboard = () => {
     }, [socket, socketConnected]);
 
     useEffect(() => {
+        console.log(instanceCountChangedOnceRef.current, activeInstances);
         if (!instanceCountChangedOnceRef.current) {
             instanceCountChangedOnceRef.current = true;
             return;
         }
 
-        if (activeInstances === 0) {
+        if (activeInstances === 0 && previousActiveInstances !== 0) {
+            console.log("All instances are dead or inactive. Stopping storm.");
             setStormStatus("Stopped");
             setStatusColor("var(--info-card-red)");
+            instanceCountChangedOnceRef.current = false;
             appState.setStormInProgress(false);
             appState.setStormStatus("Stopped");
         }
+        setPreviousActiveInstances(activeInstances);
     }, [activeInstances]);
 
 
