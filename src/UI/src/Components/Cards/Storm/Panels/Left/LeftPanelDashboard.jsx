@@ -98,7 +98,7 @@ const LeftPanelDashboard = () => {
                     newChannels[data.instance].status = -1;
                     return newChannels;
                 });
-                setActiveInstances(prev => prev - 1);
+                // setActiveInstances(prev => prev - 1);
 
             } else if (data.status === "0") {
                 appState.setAllChannels(prev => {
@@ -106,8 +106,8 @@ const LeftPanelDashboard = () => {
                     newChannels[data.instance].status = 0;
                     return newChannels;
                 });
-                setActiveInstances(prev => prev - 1);
-                setDeadInstances(prev => prev + 1);
+                // setActiveInstances(prev => prev - 1);
+                // setDeadInstances(prev => prev + 1);
 
             } else if (data.status === "1") {
                 appState.setAllChannels(prev => {
@@ -115,7 +115,7 @@ const LeftPanelDashboard = () => {
                     newChannels[data.instance].status = 1;
                     return newChannels;
                 });
-                setActiveInstances(prev => prev + 1);
+                // setActiveInstances(prev => prev + 1);
 
             } else if (data.status === "2") {
                 appState.setAllChannels(prev => {
@@ -169,7 +169,7 @@ const LeftPanelDashboard = () => {
         const dead = channels.filter(channel => channel.status === 0).length;
         setActiveInstances(active);
         setDeadInstances(dead);
-    }, []);
+    }, [appState.allChannels]);
 
     return (
         <div className="left-panel-dashboard-container">
