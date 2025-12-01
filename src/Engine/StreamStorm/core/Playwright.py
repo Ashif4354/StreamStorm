@@ -162,12 +162,19 @@ class Playwright(BrowserAutomator):
         return element
 
     async def find_and_click_element(
-        self, selector: str, selector_name: str, for_subscribe: bool = False
-    ) -> None:
+        self, selector: str, selector_name: str, for_subscribe: bool = False, check_brand_account: bool = False
+    ) -> bool | None:
         """Find an element and click it."""
-
+        brand_account: bool = False
+        
         try:
             element: Locator = await self.find_element(selector, selector_name)
+            if check_brand_account:
+                item = self.page.locator(selector, has_text="You're an owner")
+                if await item.count() > 0:
+                    brand_account = True
+                    
+            logger.debug(f"[{self.index}] [{self.channel_name}] Element clicked: {selector_name} : {selector}")
             await element.click()
         except ElementNotFound as e:
             if not for_subscribe:
@@ -178,6 +185,10 @@ class Playwright(BrowserAutomator):
                     + selector
                 )
                 raise BrowserClosedError from e
+            
+        finally:
+            if check_brand_account:
+                return brand_account
 
     async def type_and_enter(self, text_field: Locator, message: str) -> None:
         """Type a message into a text field and press enter."""

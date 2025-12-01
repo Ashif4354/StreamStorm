@@ -1,4 +1,3 @@
-from contextlib import suppress
 from asyncio import sleep
 from logging import getLogger, Logger
 from typing import Optional
@@ -88,12 +87,11 @@ class SeparateInstance(Playwright):
 
     async def __click_channel(self, index: int) -> None:
         logger.debug(f"[{self.index}] [{self.channel_name}] Clicking on channel at position {index}")
-        await self.find_and_click_element(
+        brand_account: bool = await self.find_and_click_element(
             f"//*[@id='contents']/ytd-account-item-renderer[{index}]",
             "channel_element"
         )
-        
-        with suppress(Exception):
+        if brand_account:
             await self.find_and_click_element(
                 '//*[@id="confirm-button"]//button',
                 "OK button for brand account",
