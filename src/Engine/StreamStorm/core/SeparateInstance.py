@@ -16,11 +16,13 @@ class SeparateInstance(Playwright):
         self,
         index: int,
         user_data_dir: str = '',
-        background: bool = True
+        background: bool = True,
+        profile_dir: str = '',
     ) -> None:
         super().__init__(user_data_dir, background)
         
         self.index: int = index
+        self.profile_dir: str = profile_dir
         self.__instance_alive: bool = True
         self.__logged_in: Optional[bool] = None
         

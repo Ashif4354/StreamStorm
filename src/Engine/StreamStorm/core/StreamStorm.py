@@ -145,6 +145,7 @@ class StreamStorm(Profiles):
                 index,
                 profile_dir,
                 self.background,
+                profile_dir_name
             )
             
             await self.emit_instance_status(index, 1)  # 1 = Getting Ready
