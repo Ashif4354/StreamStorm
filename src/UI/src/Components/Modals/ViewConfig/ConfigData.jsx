@@ -13,12 +13,21 @@ const ConfigData = () => {
     return (
         <div className='config-data-container'>
             <TextBasedConfig icon={<Link size={16} />} title="Video URL" value={formControls.videoURL} />
-            <TextBasedConfig icon={<Users size={16} />} title="Channels initially" value={`${stormConfig.channels.length} (${formControls.channelSelection})`} />
+            <TextBasedConfig
+                icon={<Users size={16} />}
+                title="Channels initially"
+                value={`${stormConfig.channels.length} ${formControls.channelSelection ? `(${formControls.channelSelection})` : ""}`}
+            />
             <TextBasedConfig icon={<Clock size={16} />} title="Slow Mode" value={`${formControls.slowMode}s`} />
             <ChipBasedConfig icon={<UserCheck size={16} />} title="Subscribe" value="Enabled" disabled={!formControls.subscribe} />
             {
                 formControls.subscribeAndWait && (
-                    <ChipBasedConfig icon={<UserCheck size={16} />} title="Subscribe and Wait" value={`Enabled (${formControls.subscribeWaitTime}s)`} disabled={!stormConfig.subscribeAndWait} />
+                    <ChipBasedConfig
+                        icon={<UserCheck size={16} />}
+                        title="Subscribe and Wait"
+                        value={`Enabled (${formControls.subscribeWaitTime}s)`}
+                        disabled={!stormConfig.subscribeAndWait}
+                    />
                 )
             }
             <ChipBasedConfig icon={<Package size={16} />} title="Load in Background" value="Enabled" disabled={!formControls.loadInBackground} />

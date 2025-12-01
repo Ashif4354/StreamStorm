@@ -82,6 +82,8 @@ class StreamStorm(Profiles):
                     f"messages count: {len(self.messages)}, slow_mode: {self.slow_mode}s, "
                     f"background: {self.background}")        
         
+    async def emit_instance_status(self, index: int, status: str) -> None:
+        await sio.emit("instance_status", {"instance": str(index), "status": status}, room="streamstorm")
         
     async def set_slow_mode(self, slow_mode: int) -> None:
         self.slow_mode = slow_mode
@@ -106,7 +108,14 @@ class StreamStorm(Profiles):
         no_of_channels: int = data.get("no_of_channels", 0)
 
         self.total_channels = no_of_channels
-        self.all_channels = data.get("channels", {})
+        channels: dict = data.get("channels", {})
+        
+        for channel in channels.values():
+            channel["status"] = -1
+        
+        self.all_channels = channels
+        
+        print(self.all_channels)
         
         logger.info(f"Found {no_of_channels} channels in config, required: {len(self.channels)}")
 
@@ -139,7 +148,7 @@ class StreamStorm(Profiles):
                 self.background,
             )
             
-            await sio.emit('instance_status', {'instance': index, 'status': '1'}, room="streamstorm")  # 1 = Getting Ready
+            await self.emit_instance_status(index, "1")  # 1 = Getting Ready
 
             SI.channel_name = channel_name
 
@@ -164,7 +173,7 @@ class StreamStorm(Profiles):
                 StreamStorm.each_channel_instances.remove(SI)
                 
                 logger.error(f"[{index}] [{channel_name}] : Login failed")
-                await sio.emit('instance_status', {'instance': index, 'status': '0'}, room="streamstorm")  # 0 = Dead
+                await self.emit_instance_status(index, "0")  # 0 = Dead
                 
                 return
 
@@ -184,7 +193,7 @@ class StreamStorm(Profiles):
             
             self.ready_to_storm_instances += 1
             logger.info(f"[{index}] [{channel_name}] : Ready To Storm")
-            await sio.emit('instance_status', {'instance': index, 'status': '2'}, room="streamstorm")  # 2 = Ready
+            await self.emit_instance_status(index, "2")  # 2 = Ready
 
             if self.subscribe[1]:
                 logger.info(f"[{index}] [{channel_name}] Waiting {self.subscribe_and_wait_time}s after subscription")
@@ -195,7 +204,8 @@ class StreamStorm(Profiles):
             await self.ready_event.wait() # Wait for the ready event to be set before starting the storming
             
             logger.debug(f"[{index}] [{channel_name}] Starting storm loop with {wait_time}s initial delay")
-            await sio.emit('instance_status', {'instance': index, 'status': '3'}, room="streamstorm")  # 3 = Storming
+            await self.emit_instance_status(index, "3")  # 3 = Storming
+            
             await sleep(wait_time)  # Wait for the initial delay before starting to storm
 
             while True:
@@ -216,7 +226,7 @@ class StreamStorm(Profiles):
                 except (BrowserClosedError, ElementNotFound, TargetClosedError):
                     logger.debug(f"[{index}] [{channel_name}] : ##### Browser/element error - cleaning up instance")
                     logger.error(f"[{index}] [{channel_name}] : Error in finding chat field")
-                    await sio.emit('instance_status', {'instance': index, 'status': '0'}, room="streamstorm")  # 0 = Dead
+                    await self.emit_instance_status(index, "0")  # 0 = Dead
 
                     self.assigned_profiles[profile_dir_name] = None
                     
@@ -234,7 +244,7 @@ class StreamStorm(Profiles):
                     
                 except Exception as e:
                     logger.error(f"[{index}] [{channel_name}] : New Error ({type(e).__name__}): {e}")
-                    await sio.emit('instance_status', {'instance': index, 'status': '0'}, room="streamstorm")  # 0 = Dead
+                    await self.emit_instance_status(index, "0")  # 0 = Dead
                     break
                 
                 logger.debug(f"[{index}] [{channel_name}] Sleeping for {self.slow_mode}s before next message")
@@ -252,7 +262,7 @@ class StreamStorm(Profiles):
             BrowserClosedError
         ) as e:
             logger.error(f"[{index}] [{channel_name}] : Error: {e}")
-            await sio.emit('instance_status', {'instance': index, 'status': '0'}, room="streamstorm")  # 0 = Dead
+            await self.emit_instance_status(index, "0")  # 0 = Dead
         
     def get_start_storm_wait_time(self, index, no_of_profiles, slow_mode) -> float:
         return index * (slow_mode / no_of_profiles)
