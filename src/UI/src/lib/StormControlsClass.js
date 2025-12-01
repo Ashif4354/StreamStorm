@@ -124,7 +124,7 @@ class StormControlsClass {
 
     }
 
-    stopStorm2(setStormInProgress, setStopping) {
+    stopStorm2(setStopping) {
         setStopping(true);
 
         fetch(`${this.hostAddress}/storm/stop`, {

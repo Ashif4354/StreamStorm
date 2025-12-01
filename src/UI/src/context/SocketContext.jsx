@@ -13,7 +13,6 @@ const SocketProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
     const [socketConnected, setSocketConnected] = useState(false);
     const [hostAddress] = useLocalStorageState("hostAddress", DEFAULT_HOST_ADDRESS);
-    console.log("SocketProvider hostAddress:", hostAddress);
 
     useEffect(() => {
 
@@ -27,12 +26,9 @@ const SocketProvider = ({ children }) => {
 
         newSocket.on("connect", () => {
             setSocketConnected(true);
-            console.log("Connected to Socket.IO server with ID:", newSocket.id);
-            console.log("Socket object:", newSocket);
         });
 
         return () => {
-            console.log("Disconnecting from Socket.IO server...");
             setSocketConnected(false);
             newSocket.disconnect();
         };

@@ -36,7 +36,7 @@ const RightPanelForm = () => {
     }
 
     const onStopHandler = async () => {
-        formControls.SC.current.stopStorm2(appState.setStormInProgress, setStopping);
+        formControls.SC.current.stopStorm2(setStopping);
     }
 
     useEffect(() => {

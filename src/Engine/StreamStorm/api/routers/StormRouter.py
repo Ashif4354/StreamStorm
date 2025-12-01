@@ -28,6 +28,27 @@ logger: Logger = getLogger(f"fastapi.{__name__}")
 
 router: APIRouter = APIRouter(prefix="/storm")
 
+@router.get("/")
+async def index() -> JSONResponse:
+    if StreamStorm.ss_instance is None:
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "storm": False,
+                "message": "Storm is not running",
+            }
+        )
+    else:
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "storm": True,
+                "message": "Storm is running",
+            }
+        )
+
 @router.post("/start")
 async def start(data: StormData) -> JSONResponse:
     if StreamStorm.ss_instance is not None:
@@ -118,6 +139,8 @@ async def stop() -> JSONResponse:
 @router.post("/pause")
 async def pause() -> JSONResponse:
     StreamStorm.ss_instance.pause_event.clear()
+    StreamStorm.ss_instance.storm_context["storm_status"] = "Paused"
+    
     logger.info("Storm paused successfully")
     await sio.emit('storm_paused', room="streamstorm")
 
@@ -133,6 +156,8 @@ async def pause() -> JSONResponse:
 @router.post("/resume")
 async def resume() -> JSONResponse:
     StreamStorm.ss_instance.pause_event.set()
+    StreamStorm.ss_instance.storm_context["storm_status"] = "Running"
+    
     logger.info("Storm resumed successfully")
     await sio.emit('storm_resumed', room="streamstorm")
 
@@ -331,14 +356,15 @@ async def kill_instance(data: KillInstanceData) -> JSONResponse:
             }
         )
         
-        
-@router.get("/start_time")
-async def get_storm_start_time() -> JSONResponse:
-
+         
+@router.get("/context")
+async def get_context() -> JSONResponse:
+    
     return JSONResponse(
         status_code=200,
         content={
             "success": True,
-            "start_time": StreamStorm.ss_instance.start_time
+            "context": StreamStorm.ss_instance.storm_context,
+            "message": "Context fetched successfully"
         }
     )

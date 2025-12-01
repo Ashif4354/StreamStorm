@@ -5,13 +5,17 @@ import { useColorScheme } from "@mui/material/styles";
 import InfoCard from "../../../../Elements/InfoCard";
 import { useSocket } from "../../../../../context/SocketContext";
 import { useAppState } from "../../../../../context/AppStateContext";
+import { useStormData } from "../../../../../context/StormDataContext";
 import LogsBox from "../../../../Elements/LogsCard";
+import { useServerContext } from "../../../../../context/ServerContext";
 
 
 const LeftPanelDashboard = () => {
     const { colorScheme: theme } = useColorScheme();
     const { socket, socketConnected } = useSocket();
     const appState = useAppState();
+    const formControls = useStormData();
+    const serverContext = useServerContext();
 
     const [stormStatus, setStormStatus] = useState("Running");
     const [statusColor, setStatusColor] = useState("");
@@ -20,7 +24,7 @@ const LeftPanelDashboard = () => {
     const [stormDuration, setStormDuration] = useState("00:00:00");
     const [deadInstances, setDeadInstances] = useState(0);
     const [messagesRate, setMessagesRate] = useState(0);
-    const [startTime, setStartTime] = useState(Date.now());
+    // const [startTime, setStartTime] = useState(Date.now());
     const [previousActiveInstances, setPreviousActiveInstances] = useState(0);
     const instanceCountChangedOnceRef = useRef(false);
 
@@ -31,23 +35,16 @@ const LeftPanelDashboard = () => {
     }, [theme]);
 
     useEffect(() => {
-        fetch(appState.hostAddress + "/storm/start_time")
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    let time = new Date(data.start_time).getTime();
-                    console.log("Storm Start Time:", time);
-                    setStartTime(time);
-                }
-            })
-            .catch(error => {
-                console.error("Error fetching storm start time:", error);
-            });
-    }, []);
+
+        if (serverContext.serverContextFetched) {
+            setStormStatus(serverContext.stormStatus);
+            appState.setAllChannels(serverContext.channelsStatus);
+        }
+    }, [serverContext.serverContextFetched]);
 
     useEffect(() => {
         const interval = setInterval(() => {
-            const diff = (Date.now() - startTime) / 1000;
+            const diff = (Date.now() - serverContext.startTime) / 1000;
 
             const hh = String(Math.floor(diff / 3600)).padStart(2, "0");
             const mm = String(Math.floor((diff % 3600) / 60)).padStart(2, "0");
@@ -59,7 +56,7 @@ const LeftPanelDashboard = () => {
             clearInterval(interval);
         };
 
-    }, [startTime]);
+    }, [serverContext.startTime]);
 
     useEffect(() => {
         if (!socket || !socket.connected || !socketConnected) return;
@@ -145,7 +142,6 @@ const LeftPanelDashboard = () => {
     }, [socket, socketConnected]);
 
     useEffect(() => {
-        console.log(instanceCountChangedOnceRef.current, activeInstances);
         if (!instanceCountChangedOnceRef.current) {
             instanceCountChangedOnceRef.current = true;
             return;
