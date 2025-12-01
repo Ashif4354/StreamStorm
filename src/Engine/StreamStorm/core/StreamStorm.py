@@ -283,14 +283,10 @@ class StreamStorm(Profiles):
         
         while StreamStorm.ss_instance is not None:
             
-            print("waiting for lock")
             async with self.message_counter_lock:
-                print("lock acquired")
                 current_count: int = self.message_count - self.previous_count            
             
-            print("emitting total messages")
             await sio.emit('total_messages', {'total_messages': self.message_count}, room="streamstorm")
-            print("total messages emitted")
             
             self.time_elapsed_since_last_minute += time_frame
             
