@@ -23,6 +23,7 @@ from .SeparateInstance import SeparateInstance
 from .Profiles import Profiles
 from ..utils.clear_ram import clear_ram
 from ..socketio.sio import sio
+from ..api.validation import StormData
 
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
@@ -39,34 +40,24 @@ class StreamStorm(Profiles):
     ss_instance: Optional["StreamStorm"] = None
     log_file_path: str = "" # Will be set by CustomLogger during logging setup
 
-    def __init__(
-        self,
-        url: str,
-        chat_url: str,
-        messages: list[str],
-        channels: list[int],
-        subscribe: tuple[bool, bool] = (False, False),
-        subscribe_and_wait_time: int = 70,
-        slow_mode: int = 0,
-        background: bool = True
-    ) -> None:
+    def __init__(self, data: StormData) -> None:
         
         super().__init__()
 
-        self.url: str = f"{url}&hl=en-US&persist_hl=1"
-        self.chat_url: str = f"{chat_url}&hl=en-US&persist_hl=1"
-        self.messages: list[str] = messages
-        self.subscribe: tuple[bool, bool] = subscribe
-        self.subscribe_and_wait_time: int = subscribe_and_wait_time
-        self.slow_mode: int = slow_mode
-        self.channels: list[int] = sorted(channels)
-        self.background: bool = background
+        self.url: str = f"{data.video_url}&hl=en-US&persist_hl=1"
+        self.chat_url: str = f"{data.chat_url}&hl=en-US&persist_hl=1"
+        self.messages: list[str] = data.messages
+        self.subscribe: tuple[bool, bool] = (data.subscribe, data.subscribe_and_wait)
+        self.subscribe_and_wait_time: int = data.subscribe_and_wait_time
+        self.slow_mode: int = data.slow_mode
+        self.channels: list[int] = sorted(data.channels)
+        self.background: bool = data.background
 
         self.ready_event: Event = Event()
         self.pause_event: Event = Event()
         self.run_stopper_event: Event = Event()
 
-        self.total_instances: int = len(channels)
+        self.total_instances: int = len(data.channels)
         self.ready_to_storm_instances: int = 0
         self.total_channels: int = 0
         self.all_channels: dict[str, dict[str, str]] = {}

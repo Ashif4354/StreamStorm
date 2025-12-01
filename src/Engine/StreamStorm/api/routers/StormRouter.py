@@ -44,16 +44,7 @@ async def start(data: StormData) -> JSONResponse:
 
     StreamStorm.each_channel_instances = []
 
-    StreamStormObj: StreamStorm = StreamStorm(
-        data.video_url,
-        data.chat_url,
-        data.messages,
-        data.channels,
-        (data.subscribe, data.subscribe_and_wait),
-        data.subscribe_and_wait_time,
-        data.slow_mode,
-        data.background
-    )
+    StreamStormObj: StreamStorm = StreamStorm(data)
 
     StreamStormObj.ready_event.clear()  # Clear the ready event to ensure it will be only set when all instances are ready
     StreamStormObj.pause_event.set()  # Set the pause event to allow storming to start immediately

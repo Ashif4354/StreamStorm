@@ -3,6 +3,7 @@ from pytest import MonkeyPatch, fixture
 from pytest_mock import MockerFixture
 
 from StreamStorm.core.StreamStorm import StreamStorm
+from StreamStorm.api.validation import StormData
 
 
 @fixture(autouse=True)
@@ -16,7 +17,19 @@ def path_storm_endpoint(mocker: MockerFixture, monkeypatch: MonkeyPatch  ):
     
 @fixture
 def ss_instance():
-    StreamStorm("", "", [], (False, False), 0, 0, [], False)
+    data = StormData(
+        video_url="https://www.youtube.com/watch?v=PpQxArPYr0E",
+        chat_url="https://www.youtube.com/live_chat?v=PpQxArPYr0E",
+        messages=["hello", "world"],
+        subscribe=False,
+        subscribe_and_wait=False,
+        subscribe_and_wait_time=0,
+        slow_mode=5,
+        channels=[1, 2],
+        background=False
+    )
+    
+    StreamStorm(data)
     
     return StreamStorm.ss_instance
     
