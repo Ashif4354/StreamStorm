@@ -175,7 +175,7 @@ const LeftPanelDashboard = () => {
                 <InfoCard title="Messages Sent" icon={<ArrowUpToLine size={20} />} text={messagesSent} color="" />
                 <InfoCard title="Storm Duration" icon={<Timer size={20} />} text={stormDuration} color="" />
                 <InfoCard title="Dead Instances" icon={<HeartCrack size={20} />} text={deadInstances} color="var(--info-card-red)" />
-                <InfoCard title="Messages Rate" icon={<TrendingUp size={20} />} text={messagesRate} color="" />
+                <InfoCard title="Messages Rate" icon={<TrendingUp size={20} />} text={`${messagesRate} / min`} color="" />
             </div>
             <div className="logs-box-container">
                 <LogsBox />
