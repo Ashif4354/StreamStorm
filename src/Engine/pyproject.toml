@@ -19,6 +19,7 @@ dependencies = [
     "dgupdater>=1.2.1",
     "pyautogui>=0.9.54",
     "python-socketio>=5.14.3",
+    "yt-dlp>=2025.11.12",
 ]
 
 [dependency-groups]

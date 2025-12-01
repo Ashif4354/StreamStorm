@@ -100,9 +100,9 @@ class SeparateInstance(Playwright):
                 True
             )
 
-    async def subscribe_to_channel(self) -> None:
+    async def subscribe_to_channel(self, channel_fetched: bool) -> None:
         await self.find_and_click_element(
-            "//div[@id='subscribe-button']/*//button[.//span[text()='Subscribe']]",
+            "//button[.//div[text()='Subscribe']]" if channel_fetched else "//button[.//span[text()='Subscribe']]",
             "subscribe_button",
             True
         )           

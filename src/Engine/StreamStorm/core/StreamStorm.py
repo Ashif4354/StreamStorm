@@ -17,6 +17,7 @@ from playwright.async_api import (
     TimeoutError as PlaywrightTimeoutError,
 )
 from playwright._impl._errors import TargetClosedError
+from yt_dlp import YoutubeDL
 
 from ..utils.exceptions import BrowserClosedError, ElementNotFound
 from .SeparateInstance import SeparateInstance
@@ -34,7 +35,7 @@ class StreamStorm(Profiles):
         'total_instances', 'ready_to_storm_instances', 'total_channels', 
         'all_channels', 'assigned_profiles', 'run_stopper_event', 'previous_count',
         'time_elapsed_since_last_minute', 'message_counter_lock', 'message_count',
-        'storm_context', 'storm_data'
+        'storm_context', 'storm_data', 'target_channel'
     )
     
     each_channel_instances: list[SeparateInstance] = []
@@ -54,6 +55,7 @@ class StreamStorm(Profiles):
         self.slow_mode: int = data.slow_mode
         self.channels: list[int] = sorted(data.channels)
         self.background: bool = data.background
+        self.target_channel: tuple[str, bool] = self.get_channel_url() # channel_url if fetched else video_url. True if channel_url else False
 
         self.ready_event: Event = Event()
         self.pause_event: Event = Event()
@@ -85,6 +87,31 @@ class StreamStorm(Profiles):
         self.storm_context["channels_status"] = self.all_channels
         self.storm_context["storm_status"] = "Running"
         self.storm_context["start_time"] = datetime.now().isoformat()
+        
+    # def set_video_url(self, url: str) -> None:
+    #     video_id: str = url.split("https://www.youtube.com/watch?v=")[1]
+    #     video_id = video_id.split("&")[0]
+    #     video_id = video_id.strip("/")
+
+    #     self.url = f"https://streamstorm.darkglance.in/r/{video_id}?hl=en-US&persist_hl=1"
+        
+    def get_channel_url(self):
+        ytdlp_options: dict = {
+            "quiet": True,
+            # "dump_single_json": True,
+            "extract_flat": True
+        }
+        
+        try:
+            with YoutubeDL(ytdlp_options) as ytdlp:
+                info_dict: dict = ytdlp.extract_info(self.url, download=False)
+                return (info_dict.get("channel_url") or info_dict.get("uploader_url")) + "/search" , True
+                
+        except Exception as e:
+            logger.error(f"Failed to fetch channel url: {e}")
+            return self.url, False
+        
+        
         
     async def set_slow_mode(self, slow_mode: int) -> None:
         self.slow_mode = slow_mode
@@ -182,8 +209,8 @@ class StreamStorm(Profiles):
             if self.subscribe[0]:
                 logger.debug(f"[{index}] [{channel_name}] Navigating to subscribe URL: {self.url}")
                 
-                await SI.go_to_page(self.url)
-                await SI.subscribe_to_channel()
+                await SI.go_to_page(self.target_channel[0])
+                await SI.subscribe_to_channel(self.target_channel[1])
                 
                 logger.info(f"[{index}] [{channel_name}] Subscription attempt completed")
 

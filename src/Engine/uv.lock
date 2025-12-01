@@ -1269,6 +1269,7 @@ dependencies = [
     { name = "setuptools" },
     { name = "undetected-chromedriver" },
     { name = "uvicorn" },
+    { name = "yt-dlp" },
 ]
 
 [package.dev-dependencies]
@@ -1299,6 +1300,7 @@ requires-dist = [
     { name = "setuptools", specifier = ">=80.9.0" },
     { name = "undetected-chromedriver", specifier = ">=3.5.5" },
     { name = "uvicorn", specifier = ">=0.35.0" },
+    { name = "yt-dlp", specifier = ">=2025.11.12" },
 ]
 
 [package.metadata.requires-dev]
@@ -1582,6 +1584,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c9/4a/44d3c295350d776427904d73c189e10aeae66d7f555bb2feee16d1e4ba5a/wsproto-1.2.0.tar.gz", hash = "sha256:ad565f26ecb92588a3e43bc3d96164de84cd9902482b130d0ddbaa9664a85065", size = 53425, upload-time = "2022-08-23T19:58:21.447Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/78/58/e860788190eba3bcce367f74d29c4675466ce8dddfba85f7827588416f01/wsproto-1.2.0-py3-none-any.whl", hash = "sha256:b9acddd652b585d75b20477888c56642fdade28bdfd3579aa24a4d2c037dd736", size = 24226, upload-time = "2022-08-23T19:58:19.96Z" },
+]
+
+[[package]]
+name = "yt-dlp"
+version = "2025.11.12"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/cf/41/53ad8c6e74d6627bd598dfbb8ad7c19d5405e438210ad0bbaf1b288387e7/yt_dlp-2025.11.12.tar.gz", hash = "sha256:5f0795a6b8fc57a5c23332d67d6c6acf819a0b46b91a6324bae29414fa97f052", size = 3076928, upload-time = "2025-11-12T01:00:38.43Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5f/16/fdebbee6473473a1c0576bd165a50e4a70762484d638c1d59fa9074e175b/yt_dlp-2025.11.12-py3-none-any.whl", hash = "sha256:b47af37bbb16b08efebb36825a280ea25a507c051f93bf413a6e4a0e586c6e79", size = 3279151, upload-time = "2025-11-12T01:00:35.813Z" },
 ]
 
 [[package]]
