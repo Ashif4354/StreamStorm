@@ -21,10 +21,71 @@
     margin-right: 12px;
 }
 
+@media (max-width: 400px) {
+    .header-logo {
+        width: 24px;
+        height: 24px;
+        margin-right: 8px;
+    }
+
+    .header-logo-text {
+        font-size: 1.5rem;
+    }
+}
+
 .theme-toggle {
     position: absolute;
     right: 20px;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
+}
+
+.menu-button-container {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.header-heading-container {
+    display: flex;
+    align-items: center;
+}
+
+.navbar-item {
+    display: flex;
+    color: var(--slight-light-text);
+    text-decoration: none;
+    margin-right: 2rem;
+    /* font-weight:600; */
+    cursor: pointer;
+    /* font-size: 1.2rem; */
+    /* margin-top: 1rem; */
+    transition: color 0.2s ease-in-out;
+    font-size: 1.5rem;
+    margin-top: 1rem;
+    justify-content: center;
+    align-items: center;
+    gap: .5rem;
+}
+
+.navbar-item:hover {
+    color: var(--light-text);
+}
+
+.navbar {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    /* height: 3rem; */
+    /* padding: 0.5rem 3rem; */
+    /* margin-left: 4rem; */
+}
+
+.drawer-title {
+    color: var(--white);
+    font-size: 2rem;
+    margin-bottom: 1rem;
 }
