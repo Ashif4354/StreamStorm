@@ -258,10 +258,10 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
             expanded={expanded}
             onChange={() => onExpand(provider.id)}
             sx={{
-                backgroundColor: colorScheme === 'light' ? 'var(--white)' : 'var(--dark-gray)',
+                backgroundColor: colorScheme === 'light' ? 'var(--light-card-bg)' : 'var(--dark-gray)',
                 boxShadow: 'none',
                 '&:before': { display: 'none' },
-                borderBottom: colorScheme === 'light' ? '1px solid #e5e7eb' : '1px solid #333333',
+                borderBottom: colorScheme === 'light' ? '1px solid var(--light-border)' : '1px solid #333333',
             }}
         >
             <AccordionSummary
@@ -286,8 +286,8 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
                         sx={{
                             height: '20px',
                             fontSize: '0.7rem',
-                            backgroundColor: colorScheme === 'light' ? 'var(--very-light-red)' : 'var(--bright-red)',
-                            color: colorScheme === 'light' ? 'var(--dark-text)' : 'var(--light-text)',
+                            backgroundColor: colorScheme === 'light' ? 'var(--light-primary-light)' : 'var(--bright-red)',
+                            color: colorScheme === 'light' ? 'var(--light-primary)' : 'var(--light-text)',
                             '& .MuiChip-icon': {
                                 color: 'inherit',
                                 fontSize: '12px',
@@ -325,7 +325,7 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
                                             sx={{
                                                 color: colorScheme === 'light' ? 'var(--dark-text)' : 'var(--light-text)',
                                                 '&:hover': {
-                                                    backgroundColor: colorScheme === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.08)',
+                                                    backgroundColor: colorScheme === 'light' ? 'var(--light-surface-hover)' : 'rgba(255,255,255,0.08)',
                                                 },
                                             }}
                                         >
@@ -438,7 +438,7 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
                             disabled={saveLoading || setDefaultLoading}
                             sx={{
                                 ...btnProps,
-                                backgroundColor: colorScheme === 'light' ? "var(--input-active-red-light)" : "var(--input-active-red-dark)",
+                                backgroundColor: colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)",
                                 color: "var(--light-text)",
                             }}
                         >
@@ -453,12 +453,12 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
                             sx={{
                                 ...btnProps,
                                 backgroundColor: isDefault
-                                    ? (colorScheme === 'light' ? 'var(--very-light-red)' : 'var(--dark-gray)')
-                                    : (colorScheme === 'light' ? 'var(--bright-red)' : 'var(--bright-red)'),
+                                    ? (colorScheme === 'light' ? 'var(--light-surface)' : 'var(--dark-gray)')
+                                    : (colorScheme === 'light' ? 'var(--light-primary)' : 'var(--bright-red)'),
                                 color: "var(--light-text)",
                                 '&:disabled': {
-                                    backgroundColor: colorScheme === 'light' ? '#e5e7eb' : '#333333',
-                                    color: colorScheme === 'light' ? '#9ca3af' : '#666666',
+                                    backgroundColor: colorScheme === 'light' ? 'var(--light-border)' : '#333333',
+                                    color: colorScheme === 'light' ? 'var(--slight-dark-text)' : '#666666',
                                 }
                             }}
                         >

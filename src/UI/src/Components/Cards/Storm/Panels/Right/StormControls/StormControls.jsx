@@ -75,7 +75,7 @@ const StormControls = () => {
         });
 
         if (!messages) {
-          return;
+            return;
         }
 
         formControls.SC.current.changeMessages(messages, formControls.setMessages, formControls.setMessagesString);
@@ -98,7 +98,7 @@ const StormControls = () => {
         });
 
         if (!slowModeValue) {
-          return;
+            return;
         }
 
         formControls.SC.current.changeSlowMode(slowModeValue, formControls.setSlowMode);
@@ -113,7 +113,7 @@ const StormControls = () => {
         });
 
         if (!channels || channels.length === 0) {
-          return;
+            return;
         }
 
         formControls.SC.current.startMoreChannels(channels);
@@ -122,7 +122,7 @@ const StormControls = () => {
     return (
         <div className="storm-controls-container">
             <div className='storm-controls-heading-container'>
-                <Zap className='zap-icon' size={20} color={colorScheme === 'light' ? "var(--input-active-red-light)" : "var(--input-active-red-dark)"} />
+                <Zap className='zap-icon' size={20} color={colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)"} />
                 <h3 className={`storm-controls-title`}>Storm Controls</h3>
             </div>
 
@@ -239,7 +239,7 @@ const StormControls = () => {
                             onClick={onStopHandler}
                             sx={{
                                 ...btnProps,
-                                backgroundColor: colorScheme === 'light' ? "var(--bright-red-2)" : "var(--input-active-red-dark)",
+                                backgroundColor: colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)",
                                 color: "var(--light-text)",
                             }}
                             disabled={controlsDisabled}

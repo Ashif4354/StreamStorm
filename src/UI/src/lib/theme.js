@@ -5,9 +5,12 @@ export const theme = createTheme({
         light: {
             palette: {
                 primary: {
-                    main: '#b41d1d',
+                    main: '#6366f1',
                 },
-                // ...other tokens
+                background: {
+                    default: '#f8fafc',
+                    paper: '#ffffff',
+                },
             },
         },
         dark: {

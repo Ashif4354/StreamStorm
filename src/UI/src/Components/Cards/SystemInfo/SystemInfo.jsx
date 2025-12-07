@@ -93,7 +93,7 @@ const SystemInfo = () => {
                 }}
             >
                 <div className="system-info-container">
-                    <SystemInfoChart series={chartSeries} />
+                    <SystemInfoChart series={chartSeries} colorScheme={colorScheme} />
                     <Divider sx={{ marginY: "20px" }} />
                     <SystemStatsCard
                         stats={chartSeries[chartSeries.length - 1]}

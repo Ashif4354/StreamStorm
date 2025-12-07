@@ -45,11 +45,11 @@ const RightPanelForm = () => {
     }, [appState.hostAddress]);
 
     useEffect(() => {
-        if(manageProfilesOpen) {
+        if (manageProfilesOpen) {
             logEvent(analytics, "manage_profiles_open");
         }
 
-        if(logsOpen) {
+        if (logsOpen) {
             logEvent(analytics, "logs_open");
         }
     }, [manageProfilesOpen, logsOpen]);
@@ -76,11 +76,11 @@ const RightPanelForm = () => {
                 sx={{
                     ...btnProps,
                     marginTop: "16px",
-                    backgroundColor: colorScheme === 'light' ? "var(--input-active-red-light)" : "var(--input-active-red-dark)",
+                    backgroundColor: colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)",
                     borderRadius: "var(--border-radius)",
                     border: "none",
                     '&:hover': {
-                        backgroundColor: colorScheme === 'light' ? "var(--input-active-red-light-hover)" : "var(--input-active-red-dark-hover)",
+                        backgroundColor: colorScheme === 'light' ? "var(--light-primary-hover)" : "var(--input-active-red-dark-hover)",
                     },
                     height: "40px",
                     color: "var(--light-text)",
@@ -99,7 +99,7 @@ const RightPanelForm = () => {
                     onClick={onStopHandler}
                     sx={{
                         ...btnProps,
-                        backgroundColor: colorScheme === 'light' ? "var(--bright-red-2)" : "var(--input-active-red-light)",
+                        backgroundColor: colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-light)",
                         color: "var(--light-text)",
                     }}
                 >

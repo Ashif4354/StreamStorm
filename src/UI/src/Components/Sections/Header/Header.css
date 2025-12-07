@@ -8,9 +8,11 @@
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
 
 }
+
 .header-light {
-    background-color: var(--dark-red);
+    background-color: var(--light-header-bg);
 }
+
 .header-dark {
     background-color: var(--light-gray);
 }
@@ -85,7 +87,14 @@
 }
 
 .drawer-title {
-    color: var(--white);
     font-size: 2rem;
     margin-bottom: 1rem;
+}
+
+.drawer-title-light {
+    color: var(--dark-text);
+}
+
+.drawer-title-dark {
+    color: var(--white);
 }

@@ -48,19 +48,19 @@ const ChannelCard = (props) => {
                 },
                 body: JSON.stringify({ index: parseInt(id), name: channel.name })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    notifications.show('Instance Killed', { severity: 'success' });
-                } else {
-                    notifications.show(data.message, { severity: 'error' });
-                }
-            })
-            .catch((error) => {
-                notifications.show(error.message || 'An error occurred while starting the storm', {
-                    severity: 'error',
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        notifications.show('Instance Killed', { severity: 'success' });
+                    } else {
+                        notifications.show(data.message, { severity: 'error' });
+                    }
+                })
+                .catch((error) => {
+                    notifications.show(error.message || 'An error occurred while starting the storm', {
+                        severity: 'error',
+                    });
                 });
-            });
         }
 
     }
@@ -74,10 +74,11 @@ const ChannelCard = (props) => {
                 display: 'flex',
                 flexDirection: 'column',
                 borderRadius: "var(--border-radius)",
-                backgroundColor: colorScheme === 'light' ? "var(--white)" : "var(--gray)",
+                backgroundColor: colorScheme === 'light' ? "var(--light-card-bg)" : "var(--gray)",
                 backgroundImage: "none",
                 "&.MuiCard-root": {
                     overflow: 'hidden',
+                    boxShadow: "none",
                     // borderRight: 0,
                     // marginRight: '10px',
                 },
@@ -133,8 +134,8 @@ const ChannelCard = (props) => {
                         // backgroundColor: colorScheme === 'light' ? "var(--input-active-red-light)" : "var(--input-active-red-dark)",
                         borderRadius: "0 var(--border-radius) var(--border-radius) 0",
                         "&:hover": {
-                            backgroundColor: colorScheme === 'light' ? "var(--input-active-red-light)" : "var(--input-active-red-dark)",
-                            borderColor: colorScheme === 'light' ? "var(--input-active-red-light)" : "var(--input-active-red-dark)",
+                            backgroundColor: colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)",
+                            borderColor: colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)",
                             color: "var(--light-text)",
                         },
                         // marginRight: "2px",

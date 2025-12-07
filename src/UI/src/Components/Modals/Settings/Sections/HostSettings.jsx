@@ -120,7 +120,7 @@ const HostSettings = () => {
                         onClick={handleSave}
                         sx={{
                             ...btnProps,
-                            backgroundColor: colorScheme === 'light' ? "var(--input-active-red-light)" : "var(--input-active-red-dark)",
+                            backgroundColor: colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)",
                             color: "var(--light-text)",
                         }}
                     >

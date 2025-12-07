@@ -46,7 +46,7 @@ const CreateProfiles = () => {
         const data = {
             count: profiles,
         }
-        
+
         logEvent(analytics, "create_profiles", { count: profiles });
 
         fetch(`${hostAddress}/environment/profiles/create`, {
@@ -88,11 +88,11 @@ const CreateProfiles = () => {
     return (
         <div className="create-profiles-container">
             <div className="section-header">
-                <UserPlus className="section-logo" size={20} color={"var(--input-active-red-dark)"} />
+                <UserPlus className="section-logo" size={20} color={colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)"} />
                 <h3 className={`section-title ${colorScheme}-text`}>Create / Fix Profiles</h3>
             </div>
 
-            <div className="section-content-grid">                
+            <div className="section-content-grid">
 
                 <TextField
                     fullWidth

@@ -42,14 +42,14 @@ const Header = () => {
                 <Box
                     role="presentation"
                     sx={{
-                        backgroundColor: 'var(--dark-gray)',
+                        backgroundColor: colorScheme === 'light' ? 'var(--light-card-bg)' : 'var(--dark-gray)',
                         width: 150,
                         height: '100%',
                         padding: '2.5rem'
                     }}
                 >
-                    <span className="drawer-title">Menu</span>
-                    <NavBar />
+                    <span className={`drawer-title drawer-title-${colorScheme}`}>Menu</span>
+                    <NavBar colorScheme={colorScheme} />
 
 
                 </Box>

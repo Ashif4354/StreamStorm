@@ -39,7 +39,10 @@ const MUILegend = (props) => {
 	);
 };
 
-const SystemInfoChart = ({ series }) => {
+const SystemInfoChart = ({ series, colorScheme }) => {
+	// Light theme uses indigo/purple, dark theme uses orange/red
+	const cpuColor = colorScheme === 'light' ? '#8b5cf6' : '#e88c30'; // Violet for light, orange for dark
+	const ramColor = colorScheme === 'light' ? '#6366f1' : '#dc2828'; // Indigo for light, red for dark
 
 	return (
 		<ResponsiveContainer width="100%" aspect={1.618} maxHeight={175}>
@@ -80,16 +83,16 @@ const SystemInfoChart = ({ series }) => {
 				<Area
 					type="basis"
 					dataKey="cpu_percent"
-					stroke="#e88c30"
-					fill="#e88c30"
+					stroke={cpuColor}
+					fill={cpuColor}
 					isAnimationActive={false}
 				/>
 
 				<Area
 					type="basis"
 					dataKey="ram_percent"
-					stroke="#dc2828"
-					fill="#dc2828"
+					stroke={ramColor}
+					fill={ramColor}
 					isAnimationActive={false}
 				/>
 
@@ -109,3 +112,4 @@ const SystemInfoChart = ({ series }) => {
 };
 
 export default SystemInfoChart;
+

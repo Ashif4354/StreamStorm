@@ -168,7 +168,7 @@ const CreateChannels = () => {
                     });
                 } else {
                     setErrorText(data.message);
-                    
+
                     logEvent(analytics, 'create_channels_failed');
                     notifications.show(data.message, {
                         severity: 'error'
@@ -194,7 +194,7 @@ const CreateChannels = () => {
     return (
         <div className={`create-channels-container ${colorScheme}-text`}>
             <div className="section-header">
-                <Tv className="section-logo" size={20} color={"var(--input-active-red-dark)"} />
+                <Tv className="section-logo" size={20} color={colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)"} />
                 <h3 className={`section-title ${colorScheme}-text`}>Create Channels</h3>
             </div>
             <div className='create-channels-grid'>
@@ -256,7 +256,7 @@ const CreateChannels = () => {
                                         marginTop: "1rem",
                                         '.MuiInputBase-root.MuiOutlinedInput-root': {
                                             paddingRight: ".4rem",
-                                            backgroundColor: colorScheme === 'light' ? "var(--very-light-red)" : "var(--dark-gray)",
+                                            backgroundColor: colorScheme === 'light' ? "var(--light-surface)" : "var(--dark-gray)",
                                             borderRadius: "var(--border-radius)",
                                         }
                                     }}
@@ -275,7 +275,7 @@ const CreateChannels = () => {
                                                             ...btnProps,
                                                             marginTop: "0",
                                                             // height: "3.5rem",
-                                                            backgroundColor: colorScheme === 'light' ? "var(--bright-red-2)" : "var(--input-active-red-dark)"
+                                                            backgroundColor: colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)"
                                                         }}
                                                         disabled={creatingChannels || validatingPath}
                                                         onClick={onValidatePathHandler}
@@ -326,7 +326,7 @@ const CreateChannels = () => {
                     marginTop: "1rem",
                 }}
                 disabled={creatingChannels}
-                startIcon={creatingChannels ? <RefreshCw size={20} className="spin"/> : null}
+                startIcon={creatingChannels ? <RefreshCw size={20} className="spin" /> : null}
                 onClick={onStartHandler}
             >
                 {

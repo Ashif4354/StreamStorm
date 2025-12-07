@@ -1,7 +1,6 @@
 import { useColorScheme } from '@mui/material/styles';
 
 import "./Main.css";
-import HostConfig from "../../Cards/HostConfig/HostConfig";
 import Storm from "../../Cards/Storm/Storm";
 import SystemInfo from "../../Cards/SystemInfo/SystemInfo";
 

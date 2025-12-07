@@ -28,15 +28,15 @@ const DeleteAllProfiles = () => {
     const [loading, setLoading] = useState(false);
 
     const handleDeleteAllProfiles = async () => {
-        
+
         const confirmed = await dialogs.open(AreYouSure, {
             text: <span>Are you sure you want to <strong style={{ color: "var(--input-active-red-dark)" }}>DELETE</strong> all profiles</span>
         });
-        
-        if(!confirmed) {
+
+        if (!confirmed) {
             return
         }
-        
+
         setErrorText("");
         setLoading(true);
 
@@ -81,12 +81,12 @@ const DeleteAllProfiles = () => {
     return (
         <div className="fix-profiles-container">
             <div className="section-header">
-                <Trash2 className="section-logo" size={20} color={"var(--input-active-red-dark)"} />
+                <Trash2 className="section-logo" size={20} color={colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)"} />
                 <h3 className={`section-title ${colorScheme}-text`}>Delete All Profiles</h3>
             </div>
 
             <div className="section-content">
-                
+
             </div>
 
             <div className="section-action">
@@ -96,7 +96,7 @@ const DeleteAllProfiles = () => {
                     sx={{
                         ...btnProps,
                         marginTop: "1rem",
-                        backgroundColor: colorScheme === 'light' ? "var(--bright-red-2)" : "var(--input-active-red-dark)",
+                        backgroundColor: colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)",
                         color: "var(--light-text)",
                     }}
                     onClick={handleDeleteAllProfiles}

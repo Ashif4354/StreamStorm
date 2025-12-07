@@ -77,7 +77,7 @@ const AddChannels = ({ payload, open, onClose }) => {
         onClose(selectedChannels.map((channel) => parseInt(channel)));
     };
 
-    
+
     useEffect(() => {
         if (open) {
             getChannelData();
@@ -104,7 +104,7 @@ const AddChannels = ({ payload, open, onClose }) => {
             onClose={() => onClose(null)}
             sx={{
                 "& .MuiDialog-paper": {
-                    backgroundColor: colorScheme === 'light' ? "var(--white)" : "var(--light-gray)",
+                    backgroundColor: colorScheme === 'light' ? "var(--light-card-bg)" : "var(--light-gray)",
                     backgroundImage: "none",
                     borderRadius: "var(--border-radius)",
                 },
@@ -212,9 +212,9 @@ const AddChannels = ({ payload, open, onClose }) => {
                     disabled={channelsDataLoading || selectedChannels.length === 0}
                     sx={{
                         ...btnProps,
-                        backgroundColor: "var(--input-active-red-dark)",
+                        backgroundColor: colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)",
                         '&:hover': {
-                            backgroundColor: colorScheme === 'light' ? "var(--input-active-red-light-hover)" : "var(--input-active-red-dark-hover)",
+                            backgroundColor: colorScheme === 'light' ? "var(--light-primary-hover)" : "var(--input-active-red-dark-hover)",
                         },
                     }}
                 >

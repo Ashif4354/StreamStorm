@@ -25,7 +25,7 @@ const Logs = (props) => {
             <Box sx={{
                 ...modalProps,
                 minWidth: '200px',
-                maxHeight: '50vh',
+                maxHeight: '55vh',
                 "&.MuiBox-root": {
                     overflow: "hidden",
                 }

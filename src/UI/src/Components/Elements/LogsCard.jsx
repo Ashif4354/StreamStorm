@@ -14,7 +14,7 @@ const LogsCard = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 borderRadius: "var(--border-radius)",
-                backgroundColor: colorScheme === 'light' ? "var(--white)" : "var(--gray)",
+                backgroundColor: colorScheme === 'light' ? "var(--light-card-bg)" : "var(--gray)",
                 backgroundImage: "none",
                 overflow: 'hidden',
             }}
