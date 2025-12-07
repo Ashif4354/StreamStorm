@@ -110,7 +110,8 @@
     border: 1px solid var(--slight-dark-text);
     background-color: var(--dark-gray);
     max-height: 200px;
-    overflow: scroll;;
+    overflow: scroll;
+    ;
 }
 
 .settings-tabs-container {
@@ -126,4 +127,244 @@
     max-width: 100px;
     flex: 1;
     white-space: nowrap;
+}
+
+/* Settings Content Styles */
+.settings-content-container {
+    padding: 1rem 0;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+}
+
+.settings-tabs-container {
+    display: flex;
+    overflow: hidden;
+}
+
+.settings-tab-content-container {
+    flex: 1;
+    overflow: scroll;
+    padding-right: 0.5rem;
+}
+
+/* Settings Section Styles */
+.settings-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-section-title {
+    font-size: 1.125rem;
+    font-weight: 500;
+    margin: 0 0 0.25rem 0;
+}
+
+.settings-section-description {
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.settings-section-description-light {
+    color: var(--slight-dark-text);
+}
+
+.settings-section-description-dark {
+    color: var(--slight-light-text);
+}
+
+.settings-section-content {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.settings-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.settings-button-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.settings-button-group button {
+    flex: 1;
+}
+
+/* Theme Cards Styles */
+.theme-cards-container {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.theme-card {
+    flex: 1;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    padding: 0.75rem;
+    border: 2px solid transparent;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.theme-card:hover {
+    transform: translateY(-2px);
+}
+
+.theme-card-light {
+    background-color: #f5f5f5;
+    border-color: #e5e7eb;
+}
+
+.theme-card-dark {
+    background-color: #1a1a1a;
+    border-color: #333333;
+}
+
+.theme-card-active {
+    border-color: var(--bright-red) !important;
+}
+
+.theme-card-preview {
+    border-radius: calc(var(--border-radius) - 4px);
+    height: 80px;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.theme-card-preview-light {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+}
+
+.theme-card-preview-dark {
+    background-color: #0d0d0d;
+    border: 1px solid #333333;
+}
+
+.theme-preview-header {
+    height: 8px;
+    border-radius: 4px;
+}
+
+.theme-card-preview-light .theme-preview-header {
+    background: linear-gradient(90deg, #ef4444, #f97316);
+}
+
+.theme-card-preview-dark .theme-preview-header {
+    background: linear-gradient(90deg, #ef4444, #f97316);
+}
+
+.theme-preview-content {
+    flex: 1;
+    display: flex;
+    gap: 0.25rem;
+}
+
+.theme-preview-sidebar {
+    width: 20%;
+    border-radius: 2px;
+}
+
+.theme-card-preview-light .theme-preview-sidebar {
+    background-color: #f3f4f6;
+}
+
+.theme-card-preview-dark .theme-preview-sidebar {
+    background-color: #1f1f1f;
+}
+
+.theme-preview-main {
+    flex: 1;
+    border-radius: 2px;
+}
+
+.theme-card-preview-light .theme-preview-main {
+    background-color: #fafafa;
+}
+
+.theme-card-preview-dark .theme-preview-main {
+    background-color: #262626;
+}
+
+.theme-card-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.theme-card-light .theme-card-label {
+    color: #374151;
+}
+
+.theme-card-dark .theme-card-label {
+    color: #d1d5db;
+}
+
+/* API Keys Accordion Styles */
+.api-keys-accordion-container {
+    margin-top: 0.5rem;
+}
+
+.accordion-title {
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.api-key-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 0.5rem;
+}
+
+.api-key-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.helper-text {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    margin-left: 0.875rem;
+}
+
+.helper-text.error {
+    color: #d32f2f;
+}
+
+/* Responsive adjustments */
+@media (max-width: 650px) {
+    .theme-cards-container {
+        flex-direction: column;
+    }
+
+    .settings-button-group {
+        flex-direction: column;
+    }
+
+    .settings-button-group button {
+        width: 100%;
+    }
+}
+
+/* Loading state */
+.settings-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem;
+    color: var(--slight-dark-text);
 }

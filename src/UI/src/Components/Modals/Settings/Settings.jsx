@@ -1,26 +1,107 @@
 /* eslint-disable react/prop-types */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useColorScheme } from '@mui/material/styles';
 import { Divider, Modal, Box, useMediaQuery } from '@mui/material';
 import { Settings as SettingsIcon, Cog, Server, Palette, KeyRound } from 'lucide-react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import CloseIcon from '@mui/icons-material/Close';
 import '../Modals.css';
 import CloseButton from '../../Elements/CloseButton';
 import { useCustomMUIProps } from '../../../context/CustomMUIPropsContext';
 import { useAppState } from '../../../context/AppStateContext';
+
+import GeneralSettings from './Sections/GeneralSettings';
+import HostSettings from './Sections/HostSettings';
+import AppearanceSettings from './Sections/AppearanceSettings';
+import ApiKeysSettings from './Sections/ApiKeysSettings';
+
+const STORAGE_KEY_DEFAULT_PROVIDER = 'defaultAIProvider';
 
 const Settings = (props) => {
 
     const { open, setOpen } = props;
     const { modalProps } = useCustomMUIProps();
     const { colorScheme } = useColorScheme();
-    const appState = useAppState();
+    const { hostAddress } = useAppState();
     const verticalTab = useMediaQuery('(min-width: 900px)')
     const isVerySmallScreen = useMediaQuery('(max-width: 650px)')
 
     const [tabValue, setTabValue] = useState(0);
+
+    // API Keys state - fetched once when modal opens
+    const [apiKeysData, setApiKeysData] = useState({});
+    const [apiKeysLoading, setApiKeysLoading] = useState(false);
+
+    // Default provider state
+    const [defaultProvider, setDefaultProvider] = useState(() => {
+        // Initialize from localStorage if available
+        return localStorage.getItem(STORAGE_KEY_DEFAULT_PROVIDER) || null;
+    });
+
+    // Fetch all API keys and default provider when modal opens
+    useEffect(() => {
+        const fetchAllApiKeys = async () => {
+            if (!open) return;
+
+            setApiKeysLoading(true);
+            try {
+                const response = await fetch(`${hostAddress}/settings/ai/keys`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Expected format: { openai: {...}, anthropic: {...}, google: {...}, defaultProvider: 'openai' }
+                    const { defaultProvider: fetchedDefault, ...providers } = data;
+                    setApiKeysData(providers);
+
+                    // Update default provider if fetched from backend
+                    if (fetchedDefault) {
+                        setDefaultProvider(fetchedDefault);
+                        localStorage.setItem(STORAGE_KEY_DEFAULT_PROVIDER, fetchedDefault);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch API keys:', error);
+            } finally {
+                setApiKeysLoading(false);
+            }
+        };
+
+        fetchAllApiKeys();
+    }, [open, hostAddress]);
+
+    const handleUpdateApiKey = (providerId, data) => {
+        setApiKeysData(prev => ({
+            ...prev,
+            [providerId]: data
+        }));
+    };
+
+    const handleSetDefaultProvider = async (providerId) => {
+        try {
+            const response = await fetch(`${hostAddress}/settings/ai/default`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ provider: providerId }),
+            });
+
+            if (response.ok) {
+                setDefaultProvider(providerId);
+                localStorage.setItem(STORAGE_KEY_DEFAULT_PROVIDER, providerId);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Failed to set default provider:', error);
+            return false;
+        }
+    };
 
     const modalCloseHandler = () => {
         setOpen(false);
@@ -35,7 +116,11 @@ const Settings = (props) => {
             <Box sx={{
                 ...modalProps,
                 minWidth: '200px',
-                maxHeight: '50vh',
+                maxWidth: '700px',
+                width: verticalTab ? '70%' : '90%',
+                height: '60vh',
+                display: 'flex',
+                flexDirection: 'column',
                 "&.MuiBox-root": {
                     overflow: "hidden",
                 }
@@ -51,6 +136,9 @@ const Settings = (props) => {
                 <Divider sx={{ margin: '1rem 0 0 0' }} />
                 <div
                     className='settings-content-container'
+                    style={{
+                        flexDirection: verticalTab ? 'row' : 'column'
+                    }}
                 >
                     <div
                         className='settings-tabs-container'
@@ -61,8 +149,11 @@ const Settings = (props) => {
                         <Tabs
                             value={tabValue}
                             onChange={handleTabChange}
-                            // variant='fullWidth'
                             orientation={verticalTab ? 'vertical' : 'horizontal'}
+                            sx={{
+                                minWidth: verticalTab ? '140px' : 'auto',
+                                flexShrink: 0,
+                            }}
                         >
                             <Tab
                                 label={
@@ -78,10 +169,8 @@ const Settings = (props) => {
                                         }
                                     </span>
                                 }
-                                // icon={<Cog size={16} />}
                                 iconPosition='start'
                                 sx={{
-                                    // alignItems: 'flex-start',
                                     textTransform: 'none',
                                     flex: 1,
                                     minWidth: 0
@@ -98,10 +187,8 @@ const Settings = (props) => {
                                         {isVerySmallScreen ? '' : 'Host'}
                                     </span>
                                 }
-                                // icon={<Server size={16} />}
                                 iconPosition='start'
                                 sx={{
-                                    // alignItems: 'flex-start',
                                     textTransform: 'none',
                                     flex: 1,
                                     minWidth: 0
@@ -118,10 +205,8 @@ const Settings = (props) => {
                                         {isVerySmallScreen ? '' : 'Appearance'}
                                     </span>
                                 }
-                                // icon={<Palette size={16} />}
                                 iconPosition='start'
                                 sx={{
-                                    // alignItems: 'flex-start',
                                     textTransform: 'none',
                                     flex: 1,
                                     minWidth: 0
@@ -138,10 +223,8 @@ const Settings = (props) => {
                                         <KeyRound size={16} /> {isVerySmallScreen ? '' : 'API Keys'}
                                     </span>
                                 }
-                                // icon={<KeyRound size={16} />}
                                 iconPosition='start'
                                 sx={{
-                                    // alignItems: 'flex-start',
                                     textTransform: 'none',
                                     flex: 1,
                                     minWidth: 0
@@ -155,28 +238,27 @@ const Settings = (props) => {
                             orientation={verticalTab ? 'vertical' : 'horizontal'}
                             flexItem
                         />
-                        <div className='settings-tab-content-container'>
-                            {
-                                tabValue === 0 ? (
-                                    <div>
-                                        General Settings Content
-                                    </div>
-                                ) : tabValue === 1 ? (
-                                    <div>
-                                        Host Settings Content
-                                    </div>
-                                ) : tabValue === 2 ? (
-                                    <div>
-                                        Appearance Settings Content
-                                    </div>
-                                ) : tabValue === 3 ? (
-                                    <div>
-                                        API Keys Settings Content
-                                    </div>
-                                ) : null
-                            }
 
-                        </div>
+                    </div>
+                    <div className='settings-tab-content-container'>
+                        {
+                            tabValue === 0 ? (
+                                <GeneralSettings />
+                            ) : tabValue === 1 ? (
+                                <HostSettings />
+                            ) : tabValue === 2 ? (
+                                <AppearanceSettings />
+                            ) : tabValue === 3 ? (
+                                <ApiKeysSettings
+                                    apiKeysData={apiKeysData}
+                                    onUpdateApiKey={handleUpdateApiKey}
+                                    isLoading={apiKeysLoading}
+                                    defaultProvider={defaultProvider}
+                                    onSetDefault={handleSetDefaultProvider}
+                                />
+                            ) : null
+                        }
+
                     </div>
                 </div>
             </Box>
@@ -185,3 +267,4 @@ const Settings = (props) => {
 };
 
 export default Settings;
+
