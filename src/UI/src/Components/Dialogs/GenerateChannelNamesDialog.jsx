@@ -11,9 +11,12 @@ import {
     useColorScheme
 } from "@mui/material";
 import { useNotifications } from "@toolpad/core/useNotifications";
+import { logEvent } from "firebase/analytics";
+import * as atatus from "atatus-spa";
 
 import { useCustomMUIProps } from "../../context/CustomMUIPropsContext";
 import { useAppState } from "../../context/AppStateContext";
+import { analytics } from "../../config/firebase";
 
 const GenerateChannelNamesDialog = ({ open, onClose }) => {
     const { btnProps, inputProps } = useCustomMUIProps();
@@ -53,16 +56,19 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
             if (!data.success) {
                 setError(true);
                 setHelperText(data.message || "Failed to generate channel names.");
+                logEvent(analytics, "ai_generate_channel_names_failed");
                 return;
             }
 
             if (!data.channelNames || data.channelNames.length === 0) {
                 setError(true);
                 setHelperText("No channel names were generated. Try a different prompt.");
+                logEvent(analytics, "ai_generate_channel_names_empty");
                 return;
             }
 
             // Return the generated channel names
+            logEvent(analytics, "ai_generate_channel_names_success", { count: data.channelNames.length });
             onClose(data.channelNames);
             setPrompt("");
         } catch (err) {
@@ -72,6 +78,8 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
                 severity: "error",
                 autoHideDuration: 3000,
             });
+            atatus.notify(err, {}, ['ai_generate_channel_names_error']);
+            logEvent(analytics, "ai_generate_channel_names_error");
         } finally {
             setLoading(false);
         }

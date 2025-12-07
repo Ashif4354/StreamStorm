@@ -12,9 +12,12 @@ import {
 } from "@mui/material";
 import { useLocalStorageState } from "@toolpad/core/useLocalStorageState";
 import { useNotifications } from "@toolpad/core/useNotifications";
+import { logEvent } from "firebase/analytics";
+import * as atatus from "atatus-spa";
 
 import { useCustomMUIProps } from "../../context/CustomMUIPropsContext";
 import { useAppState } from "../../context/AppStateContext";
+import { analytics } from "../../config/firebase";
 
 const GenerateMessagesDialog = ({ open, onClose }) => {
     const { btnProps, inputProps } = useCustomMUIProps();
@@ -55,16 +58,19 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
             if (!data.success) {
                 setError(true);
                 setHelperText(data.message || "Failed to generate messages.");
+                logEvent(analytics, "ai_generate_messages_failed");
                 return;
             }
 
             if (!data.messages || data.messages.length === 0) {
                 setError(true);
                 setHelperText("No messages were generated. Try a different prompt.");
+                logEvent(analytics, "ai_generate_messages_empty");
                 return;
             }
 
             // Return the generated messages
+            logEvent(analytics, "ai_generate_messages_success", { count: data.messages.length });
             onClose(data.messages);
             setPrompt("");
         } catch (err) {
@@ -74,6 +80,8 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
                 severity: "error",
                 autoHideDuration: 3000,
             });
+            atatus.notify(err, {}, ['ai_generate_messages_error']);
+            logEvent(analytics, "ai_generate_messages_error");
         } finally {
             setLoading(false);
         }

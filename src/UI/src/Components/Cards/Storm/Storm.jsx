@@ -4,6 +4,7 @@ import Card from '@mui/material/Card';
 import { CardHeader, CardContent, Divider } from "@mui/material";
 import { Settings2 } from 'lucide-react';
 import { useDialogs } from '@toolpad/core/useDialogs';
+import * as atatus from "atatus-spa";
 
 import "./Storm.css";
 import LeftPanel from "./Panels/Left/LeftPanelForm";
@@ -50,6 +51,7 @@ const Storm = () => {
                 }
             } catch (error) {
                 console.error("Error fetching storm status:", error);
+                atatus.notify(error, {}, ['storm_status_check_error']);
             }
         };
 

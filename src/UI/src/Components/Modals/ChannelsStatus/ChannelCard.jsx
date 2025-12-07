@@ -1,8 +1,12 @@
 import { Card, Avatar, Chip, Button } from "@mui/material";
 import { useColorScheme } from '@mui/material/styles';
+import { logEvent } from "firebase/analytics";
+import * as atatus from "atatus-spa";
+
 import { useAppState } from "../../../context/AppStateContext";
 import { useNotifications } from "@toolpad/core/useNotifications";
 import { useDialogs } from "@toolpad/core/useDialogs";
+import { analytics } from "../../../config/firebase";
 import AreYouSure from "../../Dialogs/AreYouSure";
 
 const ChannelCard = (props) => {
@@ -52,14 +56,18 @@ const ChannelCard = (props) => {
                 .then(data => {
                     if (data.success) {
                         notifications.show('Instance Killed', { severity: 'success' });
+                        logEvent(analytics, "kill_instance_success", { instance: id });
                     } else {
                         notifications.show(data.message, { severity: 'error' });
+                        logEvent(analytics, "kill_instance_failed", { instance: id });
                     }
                 })
                 .catch((error) => {
                     notifications.show(error.message || 'An error occurred while starting the storm', {
                         severity: 'error',
                     });
+                    atatus.notify(error, {}, ['kill_instance_error']);
+                    logEvent(analytics, "kill_instance_error", { instance: id });
                 });
         }
 

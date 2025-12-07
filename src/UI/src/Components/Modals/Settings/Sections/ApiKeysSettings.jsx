@@ -18,9 +18,12 @@ import {
 } from '@mui/material';
 import { ChevronDown, Save, RotateCcw, Info, Check, Pin, Eye, EyeOff } from 'lucide-react';
 import { useNotifications } from "@toolpad/core/useNotifications";
+import { logEvent } from "firebase/analytics";
+import * as atatus from "atatus-spa";
 
 import { useCustomMUIProps } from '../../../../context/CustomMUIPropsContext';
 import { useAppState } from '../../../../context/AppStateContext';
+import { analytics } from '../../../../config/firebase';
 
 const DEFAULT_OPENAI_URL = 'https://api.openai.com/v1';
 
@@ -200,6 +203,7 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
                 notifications.show(`${provider.name} settings saved successfully!`, {
                     severity: "success",
                 });
+                logEvent(analytics, "ai_api_key_save_success", { provider: provider.id });
             } else {
                 throw new Error('Failed to save');
             }
@@ -208,6 +212,8 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
             notifications.show(`Failed to save ${provider.name} settings.`, {
                 severity: "error",
             });
+            atatus.notify(error, {}, ['ai_api_key_save_error']);
+            logEvent(analytics, "ai_api_key_save_error", { provider: provider.id });
         } finally {
             setSaveLoading(false);
         }
@@ -234,6 +240,7 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
         notifications.show(`${provider.name} settings reset to default!`, {
             severity: "info",
         });
+        logEvent(analytics, "ai_api_key_reset", { provider: provider.id });
     };
 
     const handleSetAsDefault = async () => {
@@ -246,10 +253,12 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
             notifications.show(`${provider.name} set as default provider!`, {
                 severity: "success",
             });
+            logEvent(analytics, "ai_set_default_provider_success", { provider: provider.id });
         } else {
             notifications.show(`Failed to set ${provider.name} as default.`, {
                 severity: "error",
             });
+            logEvent(analytics, "ai_set_default_provider_failed", { provider: provider.id });
         }
     };
 

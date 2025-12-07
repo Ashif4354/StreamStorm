@@ -9,6 +9,7 @@ import '../Modals.css';
 import CloseButton from '../../Elements/CloseButton';
 import { useCustomMUIProps } from '../../../context/CustomMUIPropsContext';
 import { useAppState } from '../../../context/AppStateContext';
+import * as atatus from 'atatus-spa';
 
 import GeneralSettings from './Sections/GeneralSettings';
 import HostSettings from './Sections/HostSettings';
@@ -62,6 +63,7 @@ const Settings = (props) => {
                 }
             } catch (error) {
                 console.error('Failed to fetch API keys:', error);
+                atatus.notify(error, {}, ['settings_api_keys_fetch_error']);
             } finally {
                 setApiKeysLoading(false);
             }
@@ -101,6 +103,7 @@ const Settings = (props) => {
             return false;
         } catch (error) {
             console.error('Failed to set default provider:', error);
+            atatus.notify(error, {}, ['settings_set_default_provider_error']);
             return false;
         }
     };
