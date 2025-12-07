@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import { useColorScheme } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import Switch from '@mui/material/Switch';
-import { Button, Radio, RadioGroup } from "@mui/material";
+import { Button, IconButton, InputAdornment, Radio, RadioGroup, Tooltip } from "@mui/material";
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useDialogs } from "@toolpad/core/useDialogs";
 
 import "./LeftPanel.css";
 import AddChannels from "../../../../Dialogs/AddChannels";
+import GenerateMessagesDialog from "../../../../Dialogs/GenerateMessagesDialog";
 import ErrorText from "../../../../Elements/ErrorText";
 import { useStormData } from "../../../../../context/StormDataContext";
 import { useCustomMUIProps } from "../../../../../context/CustomMUIPropsContext";
@@ -20,6 +23,7 @@ const LeftPanelForm = () => {
     const systemInfoControls = useSystemInfo();
     const dialogs = useDialogs();
     const appState = useAppState();
+    const [aiDialogOpen, setAiDialogOpen] = useState(false);
 
     const messagesChangeHandler = (e) => {
         // sourcery skip: use-object-destructuring
@@ -67,8 +71,15 @@ const LeftPanelForm = () => {
 
     }
 
-
-
+    const handleAiDialogClose = (generatedMessages) => {
+        setAiDialogOpen(false);
+        if (generatedMessages && generatedMessages.length > 0) {
+            formControls.setMessages(generatedMessages);
+            formControls.setMessagesString(generatedMessages.join('\n'));
+            formControls.setMessagesError(false);
+            formControls.setMessagesHelperText("");
+        }
+    };
 
 
     return (
@@ -89,12 +100,56 @@ const LeftPanelForm = () => {
                 rows={4}
                 variant="outlined"
                 label="Messages"
-                sx={inputProps}
+                fullWidth
+                sx={{
+                    ...inputProps,
+                    '& .MuiInputBase-root': {
+                        alignItems: 'flex-start',
+                    },
+                }}
                 value={formControls.messagesString}
                 onChange={messagesChangeHandler}
                 error={formControls.messagesError}
                 helperText={formControls.messagesHelperText}
                 disabled={appState.stormInProgress || formControls.loading}
+                InputProps={{
+                    endAdornment: (
+                        <InputAdornment
+                            position="end"
+                            sx={{
+                                alignSelf: 'flex-start',
+                                marginTop: '-8px',
+                                marginRight: '-8px',
+                            }}
+                        >
+                            <Tooltip title="Generate messages with AI">
+                                <IconButton
+                                    size="small"
+                                    onClick={() => setAiDialogOpen(true)}
+                                    disabled={appState.stormInProgress || formControls.loading}
+                                    sx={{
+                                        backgroundColor: 'transparent',
+                                        color: colorScheme === 'light' ? 'var(--dark-text)' : 'var(--light-text)',
+                                        padding: '4px',
+                                        '&:hover': {
+                                            backgroundColor: colorScheme === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.08)',
+                                        },
+                                        '&.Mui-disabled': {
+                                            color: colorScheme === 'light' ? 'var(--slight-dark-text)' : '#666666',
+                                        },
+                                    }}
+                                >
+                                    <AutoAwesomeIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                        </InputAdornment>
+                    ),
+                }}
+            />
+
+            <GenerateMessagesDialog
+                open={aiDialogOpen}
+                onClose={handleAiDialogClose}
             />
 
             <div className="left-panel-switches-container">

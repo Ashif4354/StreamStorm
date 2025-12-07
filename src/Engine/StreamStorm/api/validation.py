@@ -286,6 +286,17 @@ class SetDefaultProviderData(BaseModel):
         return value.strip()
 
 
+class GenerateMessagesRequest(BaseModel):
+    """Model for AI message generation request"""
+    prompt: str = Field(..., min_length=1, description="Prompt for AI to generate messages")
+    
+    @field_validator("prompt")
+    def validate_prompt(cls, value: str) -> str:
+        if not value or value.strip() == "":
+            raise ValueError("Prompt cannot be empty")
+        return value.strip()
+
+
 __all__ : list[str] = [
     "StormData",
     "ProfileData",
@@ -298,5 +309,6 @@ __all__ : list[str] = [
     "KillInstanceData",
     "AIProviderKeyData",
     "SetDefaultProviderData",
+    "GenerateMessagesRequest",
     "Validate"
 ]

@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, useColorScheme } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, InputAdornment, TextField, Tooltip, useColorScheme } from "@mui/material";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
 import { useCustomMUIProps } from "../../context/CustomMUIPropsContext";
+import GenerateMessagesDialog from "./GenerateMessagesDialog";
 
 const ChangeMessages = ({ payload, open, onClose }) => {
     const { btnProps, inputProps } = useCustomMUIProps();
@@ -17,6 +19,7 @@ const ChangeMessages = ({ payload, open, onClose }) => {
     const [messages, setMessages] = useState([]);
     const [messagesError, setMessagesError] = useState(false);
     const [messagesHelperText, setMessagesHelperText] = useState("");
+    const [aiDialogOpen, setAiDialogOpen] = useState(false);
 
     const messagesChangeHandler = (e) => {
         // sourcery skip: use-object-destructuring
@@ -50,6 +53,16 @@ const ChangeMessages = ({ payload, open, onClose }) => {
         onClose(messages);
     }
 
+    const handleAiDialogClose = (generatedMessages) => {
+        setAiDialogOpen(false);
+        if (generatedMessages && generatedMessages.length > 0) {
+            setMessages(generatedMessages);
+            setMessagesString(generatedMessages.join('\n'));
+            setMessagesError(false);
+            setMessagesHelperText("");
+        }
+    };
+
     return (
         <Dialog
             open={open}
@@ -81,7 +94,46 @@ const ChangeMessages = ({ payload, open, onClose }) => {
                     error={messagesError}
                     helperText={messagesHelperText}
                     margin="normal"
-                    sx={inputProps}
+                    sx={{
+                        ...inputProps,
+                        '& .MuiInputBase-root': {
+                            alignItems: 'flex-start',
+                        },
+                    }}
+                    InputProps={{
+                        endAdornment: (
+                            <InputAdornment
+                                position="end"
+                                sx={{
+                                    alignSelf: 'flex-start',
+                                    marginTop: '-8px',
+                                    marginRight: '-8px',
+                                }}
+                            >
+                                <Tooltip title="Generate messages with AI">
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => setAiDialogOpen(true)}
+                                        sx={{
+                                            backgroundColor: 'transparent',
+                                            color: colorScheme === 'light' ? 'var(--dark-text)' : 'var(--light-text)',
+                                            padding: '4px',
+                                            '&:hover': {
+                                                backgroundColor: colorScheme === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.08)',
+                                            },
+                                        }}
+                                    >
+                                        <AutoAwesomeIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            </InputAdornment>
+                        ),
+                    }}
+                />
+
+                <GenerateMessagesDialog
+                    open={aiDialogOpen}
+                    onClose={handleAiDialogClose}
                 />
 
             </DialogContent>
