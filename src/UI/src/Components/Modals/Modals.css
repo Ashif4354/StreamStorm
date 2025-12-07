@@ -112,3 +112,18 @@
     max-height: 200px;
     overflow: scroll;;
 }
+
+.settings-tabs-container {
+    display: flex;
+    /* flex-direction: column; */
+}
+
+.tab-label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: .5rem;
+    max-width: 100px;
+    flex: 1;
+    white-space: nowrap;
+}
