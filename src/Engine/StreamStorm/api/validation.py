@@ -259,8 +259,10 @@ class AIProviderKeyData(BaseModel):
 
 
 class SetDefaultProviderData(BaseModel):
-    """Model for setting the default AI provider"""
+    """Model for setting the default AI provider with model and optional baseUrl."""
     provider: str = Field(..., description="Provider ID to set as default")
+    model: str = Field(..., min_length=1, description="Model name to set as default")
+    baseUrl: str | None = Field(None, description="Optional base URL for custom providers", validation_alias=AliasChoices("baseUrl", "base_url"))
     
     @field_validator("provider")
     def validate_provider(cls, value: str) -> str:
@@ -268,6 +270,20 @@ class SetDefaultProviderData(BaseModel):
         if value not in valid_providers:
             raise ValueError(f"Provider must be one of: {', '.join(valid_providers)}")
         return value
+    
+    @field_validator("model")
+    def validate_model(cls, value: str) -> str:
+        if not value or value.strip() == "":
+            raise ValueError("Model cannot be empty")
+        return value.strip()
+    
+    @field_validator("baseUrl")
+    def validate_base_url(cls, value: str | None) -> str | None:
+        if value is None or value.strip() == "":
+            return None
+        if not value.startswith(("http://", "https://")):
+            raise ValueError("Base URL must start with http:// or https://")
+        return value.strip()
 
 
 __all__ : list[str] = [

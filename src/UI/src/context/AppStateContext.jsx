@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { createContext, useContext } from 'react';
 
 import { useLocalStorageState } from "@toolpad/core/useLocalStorageState";
@@ -18,42 +18,19 @@ const AppStateProvider = ({ children }) => {
     const [stormStatus, setStormStatus] = useState("in Progress");
     const [logFilePath, setLogFilePath] = useState("");
 
+    // Default AI provider settings (stored in app state, not localStorage)
+    const [defaultAIProvider, setDefaultAIProvider] = useState(null);
+    const [defaultAIModel, setDefaultAIModel] = useState(null);
+    const [defaultAIBaseUrl, setDefaultAIBaseUrl] = useState(null);
+
     const values = {
         hostAddress, logs, setLogs, UIVersion, setUIVersion, engineVersion, setEngineVersion, allChannels, setAllChannels,
-        stormInProgress, setStormInProgress, stormStatus, setStormStatus, logFilePath, setLogFilePath
+        stormInProgress, setStormInProgress, stormStatus, setStormStatus, logFilePath, setLogFilePath,
+        // AI Settings
+        defaultAIProvider, setDefaultAIProvider,
+        defaultAIModel, setDefaultAIModel,
+        defaultAIBaseUrl, setDefaultAIBaseUrl
     };
-
-    useEffect(() => {
-
-        // This useEffect is used to inject mock data for testing purposes
-        // It is commented out by default, but can be uncommented to test the UI with mock data
-
-        // setInterval(() => 
-        //     setLogs(prevLogs => [...prevLogs, { message: "App State Provider mounted", time: new Date().toISOString(), level: "INFO" }])
-        // , 2000);
-
-        // for (let i = 0; i < 10; i++) {
-        //     setLogs(prevLogs => [
-        //         ...prevLogs, 
-        //         { message: "App State Provider mounted", time: "14:30:00", level: "INFO" },
-        //         { message: "This is an error log example", time: "14:30:00", level: "ERROR" }
-        //     ]);
-        // }
-
-        // const status = [-1, 0, 1, 2, 3];
-
-        // for (let i = 0; i < 20; i++) {
-        //     setAllChannels(prevChannels => ({
-        //         ...prevChannels,
-        //         [i]: {
-        //             name: `Channel ${i}Channel ${i}Channel ${i}`,
-        //             logo: `https://placehold.co/400x400?text=C${i}`,
-        //             status: status[Math.floor(Math.random() * status.length)]
-        //         }
-        //     }));
-        // }
-                    
-    }, []);
 
     return (
         <AppStateContext.Provider value={values}>

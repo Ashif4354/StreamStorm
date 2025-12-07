@@ -15,14 +15,17 @@ import HostSettings from './Sections/HostSettings';
 import AppearanceSettings from './Sections/AppearanceSettings';
 import ApiKeysSettings from './Sections/ApiKeysSettings';
 
-const STORAGE_KEY_DEFAULT_PROVIDER = 'defaultAIProvider';
-
 const Settings = (props) => {
 
     const { open, setOpen } = props;
     const { modalProps } = useCustomMUIProps();
     const { colorScheme } = useColorScheme();
-    const { hostAddress } = useAppState();
+    const {
+        hostAddress,
+        defaultAIProvider, setDefaultAIProvider,
+        defaultAIModel, setDefaultAIModel,
+        defaultAIBaseUrl, setDefaultAIBaseUrl
+    } = useAppState();
     const verticalTab = useMediaQuery('(min-width: 900px)')
     const isVerySmallScreen = useMediaQuery('(max-width: 650px)')
 
@@ -31,15 +34,6 @@ const Settings = (props) => {
     // API Keys state - fetched once when modal opens
     const [apiKeysData, setApiKeysData] = useState({});
     const [apiKeysLoading, setApiKeysLoading] = useState(false);
-
-    // Default provider state
-    const [defaultProvider, setDefaultProvider] = useState(() => {
-        // Initialize from localStorage if available
-        return localStorage.getItem(STORAGE_KEY_DEFAULT_PROVIDER) || null;
-    });
-    const [defaultModel, setDefaultModel] = useState(() => {
-        return localStorage.getItem('defaultAIModel') || null;
-    });
 
     // Fetch all API keys and default provider when modal opens
     useEffect(() => {
@@ -57,19 +51,14 @@ const Settings = (props) => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    // Expected format: { openai: {...}, anthropic: {...}, google: {...}, defaultProvider: 'openai', defaultModel: 'gpt-4' }
-                    const { defaultProvider: fetchedDefault, defaultModel: fetchedModel, ...providers } = data;
+                    // Expected format: { openai: {...}, anthropic: {...}, google: {...}, defaultProvider, defaultModel, defaultBaseUrl }
+                    const { defaultProvider: fetchedDefault, defaultModel: fetchedModel, defaultBaseUrl: fetchedBaseUrl, ...providers } = data;
                     setApiKeysData(providers);
 
-                    // Update default provider and model if fetched from backend
-                    if (fetchedDefault) {
-                        setDefaultProvider(fetchedDefault);
-                        localStorage.setItem(STORAGE_KEY_DEFAULT_PROVIDER, fetchedDefault);
-                    }
-                    if (fetchedModel) {
-                        setDefaultModel(fetchedModel);
-                        localStorage.setItem('defaultAIModel', fetchedModel);
-                    }
+                    // Update app state with fetched default settings (handle nulls)
+                    setDefaultAIProvider(fetchedDefault ?? null);
+                    setDefaultAIModel(fetchedModel ?? null);
+                    setDefaultAIBaseUrl(fetchedBaseUrl ?? null);
                 }
             } catch (error) {
                 console.error('Failed to fetch API keys:', error);
@@ -79,7 +68,7 @@ const Settings = (props) => {
         };
 
         fetchAllApiKeys();
-    }, [open, hostAddress]);
+    }, [open, hostAddress, setDefaultAIProvider, setDefaultAIModel, setDefaultAIBaseUrl]);
 
     const handleUpdateApiKey = (providerId, data) => {
         setApiKeysData(prev => ({
@@ -88,24 +77,25 @@ const Settings = (props) => {
         }));
     };
 
-    const handleSetDefaultProvider = async (providerId) => {
+    const handleSetDefaultProvider = async (providerId, model, baseUrl) => {
         try {
             const response = await fetch(`${hostAddress}/settings/ai/default`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ provider: providerId }),
+                body: JSON.stringify({
+                    provider: providerId,
+                    model: model,
+                    baseUrl: baseUrl
+                }),
             });
 
             if (response.ok) {
                 const data = await response.json();
-                setDefaultProvider(providerId);
-                localStorage.setItem(STORAGE_KEY_DEFAULT_PROVIDER, providerId);
-                if (data.defaultModel) {
-                    setDefaultModel(data.defaultModel);
-                    localStorage.setItem('defaultAIModel', data.defaultModel);
-                }
+                setDefaultAIProvider(data.defaultProvider);
+                setDefaultAIModel(data.defaultModel);
+                setDefaultAIBaseUrl(data.defaultBaseUrl ?? null);
                 return true;
             }
             return false;
@@ -265,11 +255,10 @@ const Settings = (props) => {
                                     apiKeysData={apiKeysData}
                                     onUpdateApiKey={handleUpdateApiKey}
                                     isLoading={apiKeysLoading}
-                                    defaultProvider={defaultProvider}
+                                    defaultProvider={defaultAIProvider}
                                     onSetDefault={handleSetDefaultProvider}
                                     onDefaultModelUpdated={(modelName) => {
-                                        setDefaultModel(modelName);
-                                        localStorage.setItem('defaultAIModel', modelName);
+                                        setDefaultAIModel(modelName);
                                     }}
                                 />
                             ) : null

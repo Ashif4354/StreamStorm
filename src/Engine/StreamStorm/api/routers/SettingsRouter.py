@@ -39,7 +39,8 @@ DEFAULT_SETTINGS: dict = {
             }
         },
         "defaultProvider": None,
-        "defaultModel": None
+        "defaultModel": None,
+        "defaultBaseUrl": None
     }
 }
 
@@ -109,6 +110,7 @@ async def get_ai_keys() -> JSONResponse:
         
         response_data["defaultProvider"] = default_provider
         response_data["defaultModel"] = ai_settings.get("defaultModel", None)
+        response_data["defaultBaseUrl"] = ai_settings.get("defaultBaseUrl", None)
         
         logger.info("AI provider keys fetched successfully")
         
@@ -184,8 +186,8 @@ async def save_ai_key(provider_id: Literal["openai", "anthropic", "google"], dat
 
 @router.post("/ai/default")
 async def set_default_provider(data: SetDefaultProviderData) -> JSONResponse:
-    """Set the default AI provider"""
-    logger.info(f"Setting default AI provider to: {data.provider}")
+    """Set the default AI provider with model and optional baseUrl"""
+    logger.info(f"Setting default AI provider to: {data.provider} with model: {data.model}")
     
     try:
         settings = await read_settings()
@@ -207,29 +209,23 @@ async def set_default_provider(data: SetDefaultProviderData) -> JSONResponse:
                 }
             )
         
-        if not provider_config.get("model"):
-            return JSONResponse(
-                status_code=400,
-                content={
-                    "success": False,
-                    "message": f"Cannot set {data.provider} as default: Model not selected"
-                }
-            )
-        
-        # Set default provider and model
+        # Set default provider, model, and baseUrl from request data
         settings["ai"]["defaultProvider"] = data.provider
-        settings["ai"]["defaultModel"] = provider_config.get("model", "")
+        settings["ai"]["defaultModel"] = data.model
+        settings["ai"]["defaultBaseUrl"] = data.baseUrl
         
         await write_settings(settings)
         
-        logger.info(f"Default AI provider set to: {data.provider} with model: {provider_config.get('model')}")
+        logger.info(f"Default AI provider set to: {data.provider} with model: {data.model}")
         
         return JSONResponse(
             status_code=200,
             content={
                 "success": True,
                 "message": f"{data.provider.capitalize()} set as default provider",
-                "defaultModel": provider_config.get("model", "")
+                "defaultProvider": data.provider,
+                "defaultModel": data.model,
+                "defaultBaseUrl": data.baseUrl
             }
         )
         
@@ -246,20 +242,20 @@ async def set_default_provider(data: SetDefaultProviderData) -> JSONResponse:
 
 @router.get("/ai/default")
 async def get_default_provider() -> JSONResponse:
-    """Get the current default AI provider"""
+    """Get the current default AI provider with model and baseUrl"""
     logger.debug("Fetching default AI provider")
     
     try:
         settings = await read_settings()
-        default_provider = settings.get("ai", {}).get("defaultProvider", None)
-        default_model = settings.get("ai", {}).get("defaultModel", None)
+        ai_settings = settings.get("ai", {})
         
         return JSONResponse(
             status_code=200,
             content={
                 "success": True,
-                "defaultProvider": default_provider,
-                "defaultModel": default_model
+                "defaultProvider": ai_settings.get("defaultProvider", None),
+                "defaultModel": ai_settings.get("defaultModel", None),
+                "defaultBaseUrl": ai_settings.get("defaultBaseUrl", None)
             }
         )
         
