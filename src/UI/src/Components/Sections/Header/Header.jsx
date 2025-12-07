@@ -43,9 +43,13 @@ const Header = () => {
                     role="presentation"
                     sx={{
                         backgroundColor: colorScheme === 'light' ? 'var(--light-card-bg)' : 'var(--dark-gray)',
-                        width: 150,
+                        width: 170,
                         height: '100%',
-                        padding: '2.5rem'
+                        padding: '2.5rem',
+                        "&.MuiBox-root": {
+                            width: "200px",
+                            paddingLeft: "1rem",
+                        }
                     }}
                 >
                     <span className={`drawer-title drawer-title-${colorScheme}`}>Menu</span>

@@ -60,17 +60,17 @@
     display: flex;
     color: var(--slight-light-text);
     text-decoration: none;
-    margin-right: 2rem;
+    /* margin-right: 2rem; */
     /* font-weight:600; */
     cursor: pointer;
     /* font-size: 1.2rem; */
     /* margin-top: 1rem; */
     transition: color 0.2s ease-in-out;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     margin-top: 1rem;
-    justify-content: center;
     align-items: center;
     gap: .5rem;
+    width: 200px;
 }
 
 .navbar-item:hover {
@@ -80,7 +80,8 @@
 .navbar {
     display: flex;
     align-items: center;
-    flex-direction: row;
+    flex-direction: column;
+    margin-left: 1rem;
     /* height: 3rem; */
     /* padding: 0.5rem 3rem; */
     /* margin-left: 4rem; */
@@ -88,6 +89,8 @@
 
 .drawer-title {
     font-size: 2rem;
+    display: flex;
+    justify-content: center;
     margin-bottom: 1rem;
 }
 

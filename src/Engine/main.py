@@ -62,7 +62,7 @@ def main() -> None:
         create_window(
             title="StreamStorm",
             url=ui_url,
-            width=1300,
+            width=1400,
             height=900,
             confirm_close=True,
         )
