@@ -27,4 +27,20 @@ async def generate_messages(data: GenerateMessagesRequest) -> JSONResponse:
     )
 
 
+@router.post("/generate/channel-names")
+async def generate_channel_names(data: GenerateMessagesRequest) -> JSONResponse:
+    logger.info(f"Generating channel names with prompt: {data.prompt[:50]}...")
+    
+    # TODO: Fill in AI generation logic here
+    channel_names: list[str] = []  # Placeholder - replace with AI-generated channel names
+    
+    return JSONResponse(
+        status_code=200,
+        content={
+            "success": True,
+            "channelNames": channel_names
+        }
+    )
+
+
 __all__: list[str] = ["router"]

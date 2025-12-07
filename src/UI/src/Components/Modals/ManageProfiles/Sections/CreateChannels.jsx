@@ -7,6 +7,9 @@ import RadioGroup from '@mui/material/RadioGroup';
 import Radio from '@mui/material/Radio';
 import Button from '@mui/material/Button';
 import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useNotifications } from '@toolpad/core/useNotifications';
 import { Tv, RefreshCw } from 'lucide-react';
 import { logEvent } from 'firebase/analytics';
@@ -15,6 +18,7 @@ import * as atatus from 'atatus-spa';
 
 import "./Sections.css";
 import ErrorText from '../../../Elements/ErrorText';
+import GenerateChannelNamesDialog from '../../../Dialogs/GenerateChannelNamesDialog';
 import { useCustomMUIProps } from '../../../../context/CustomMUIPropsContext';
 import { useStormData } from '../../../../context/StormDataContext';
 import { useAppState } from '../../../../context/AppStateContext';
@@ -43,6 +47,7 @@ const CreateChannels = () => {
     const [errorText, setErrorText] = useState("");
     const [validated, setValidated] = useState(false);
     const [totalChannels, setTotalChannels] = useState({});
+    const [aiDialogOpen, setAiDialogOpen] = useState(false);
 
     const channelsChangeHandler = (value) => {
         setErrorText('');
@@ -52,6 +57,16 @@ const CreateChannels = () => {
 
         const channels = value.split('\n').map(channel => channel.trim()).filter(channel => channel !== '');
         setChannels(channels);
+    };
+
+    const handleAiDialogClose = (generatedNames) => {
+        setAiDialogOpen(false);
+        if (generatedNames && generatedNames.length > 0) {
+            setChannels(generatedNames);
+            setChannelsString(generatedNames.join('\n'));
+            setChannelsError(false);
+            setChannelsHelperText('');
+        }
     };
 
     const onLogosPathChangeHandler = (value) => {
@@ -298,22 +313,61 @@ const CreateChannels = () => {
                             </div>
 
                         ) : (
-                            <TextField
-                                multiline
-                                fullWidth
-                                rows={4}
-                                variant="outlined"
-                                label="Channel names"
-                                sx={{
-                                    ...inputProps,
-                                    marginTop: "1rem"
-                                }}
-                                value={channelsString}
-                                onChange={e => channelsChangeHandler(e.target.value)}
-                                error={channelsError}
-                                helperText={channelsHelperText}
-                                disabled={creatingChannels}
-                            />
+                            <>
+                                <TextField
+                                    multiline
+                                    fullWidth
+                                    rows={4}
+                                    variant="outlined"
+                                    label="Channel names"
+                                    sx={{
+                                        ...inputProps,
+                                        marginTop: "1rem",
+                                        '& .MuiInputBase-root': {
+                                            alignItems: 'flex-start',
+                                        },
+                                    }}
+                                    value={channelsString}
+                                    onChange={e => channelsChangeHandler(e.target.value)}
+                                    error={channelsError}
+                                    helperText={channelsHelperText}
+                                    disabled={creatingChannels}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment
+                                                position="end"
+                                                sx={{
+                                                    alignSelf: 'flex-start',
+                                                    marginTop: '-8px',
+                                                    marginRight: '-8px',
+                                                }}
+                                            >
+                                                <Tooltip title="Generate channel names with AI">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => setAiDialogOpen(true)}
+                                                        disabled={creatingChannels}
+                                                        sx={{
+                                                            backgroundColor: 'transparent',
+                                                            color: colorScheme === 'light' ? 'var(--dark-text)' : 'var(--light-text)',
+                                                            padding: '4px',
+                                                            '&:hover': {
+                                                                backgroundColor: colorScheme === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.08)',
+                                                            },
+                                                        }}
+                                                    >
+                                                        <AutoAwesomeIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                                <GenerateChannelNamesDialog
+                                    open={aiDialogOpen}
+                                    onClose={handleAiDialogClose}
+                                />
+                            </>
                         )
                     }
                 </div>
