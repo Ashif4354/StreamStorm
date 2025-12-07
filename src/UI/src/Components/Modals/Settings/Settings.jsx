@@ -37,6 +37,9 @@ const Settings = (props) => {
         // Initialize from localStorage if available
         return localStorage.getItem(STORAGE_KEY_DEFAULT_PROVIDER) || null;
     });
+    const [defaultModel, setDefaultModel] = useState(() => {
+        return localStorage.getItem('defaultAIModel') || null;
+    });
 
     // Fetch all API keys and default provider when modal opens
     useEffect(() => {
@@ -54,14 +57,18 @@ const Settings = (props) => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    // Expected format: { openai: {...}, anthropic: {...}, google: {...}, defaultProvider: 'openai' }
-                    const { defaultProvider: fetchedDefault, ...providers } = data;
+                    // Expected format: { openai: {...}, anthropic: {...}, google: {...}, defaultProvider: 'openai', defaultModel: 'gpt-4' }
+                    const { defaultProvider: fetchedDefault, defaultModel: fetchedModel, ...providers } = data;
                     setApiKeysData(providers);
 
-                    // Update default provider if fetched from backend
+                    // Update default provider and model if fetched from backend
                     if (fetchedDefault) {
                         setDefaultProvider(fetchedDefault);
                         localStorage.setItem(STORAGE_KEY_DEFAULT_PROVIDER, fetchedDefault);
+                    }
+                    if (fetchedModel) {
+                        setDefaultModel(fetchedModel);
+                        localStorage.setItem('defaultAIModel', fetchedModel);
                     }
                 }
             } catch (error) {
@@ -92,8 +99,13 @@ const Settings = (props) => {
             });
 
             if (response.ok) {
+                const data = await response.json();
                 setDefaultProvider(providerId);
                 localStorage.setItem(STORAGE_KEY_DEFAULT_PROVIDER, providerId);
+                if (data.defaultModel) {
+                    setDefaultModel(data.defaultModel);
+                    localStorage.setItem('defaultAIModel', data.defaultModel);
+                }
                 return true;
             }
             return false;
@@ -255,6 +267,10 @@ const Settings = (props) => {
                                     isLoading={apiKeysLoading}
                                     defaultProvider={defaultProvider}
                                     onSetDefault={handleSetDefaultProvider}
+                                    onDefaultModelUpdated={(modelName) => {
+                                        setDefaultModel(modelName);
+                                        localStorage.setItem('defaultAIModel', modelName);
+                                    }}
                                 />
                             ) : null
                         }

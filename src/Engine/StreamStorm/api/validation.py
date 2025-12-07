@@ -225,6 +225,51 @@ class KillInstanceData(BaseModel):
     name: str = Field(... , description="Channel name")
 
 
+# Settings Models
+class AIProviderKeyData(BaseModel):
+    """Model for saving a single AI provider's configuration"""
+    model_config = ConfigDict(strict=True)
+    
+    apiKey: str = Field(..., min_length=10, description="API key for the provider", validation_alias=AliasChoices("apiKey", "api_key"))
+    model: str = Field(..., min_length=1, description="Model name")
+    baseUrl: str | None = Field(None, description="Optional base URL for custom providers", validation_alias=AliasChoices("baseUrl", "base_url"))
+    
+    @field_validator("apiKey")
+    def validate_api_key(cls, value: str) -> str:
+        if not value or value.strip() == "":
+            raise ValueError("API key cannot be empty")
+        if len(value.strip()) < 10:
+            raise ValueError("API key must be at least 10 characters")
+        return value.strip()
+    
+    @field_validator("model")
+    def validate_model(cls, value: str) -> str:
+        if not value or value.strip() == "":
+            raise ValueError("Model cannot be empty")
+        return value.strip()
+    
+    @field_validator("baseUrl")
+    def validate_base_url(cls, value: str | None) -> str | None:
+        if value is None or value.strip() == "":
+            return None
+        # Basic URL validation
+        if not value.startswith(("http://", "https://")):
+            raise ValueError("Base URL must start with http:// or https://")
+        return value.strip()
+
+
+class SetDefaultProviderData(BaseModel):
+    """Model for setting the default AI provider"""
+    provider: str = Field(..., description="Provider ID to set as default")
+    
+    @field_validator("provider")
+    def validate_provider(cls, value: str) -> str:
+        valid_providers = {"openai", "anthropic", "google"}
+        if value not in valid_providers:
+            raise ValueError(f"Provider must be one of: {', '.join(valid_providers)}")
+        return value
+
+
 __all__ : list[str] = [
     "StormData",
     "ProfileData",
@@ -235,5 +280,7 @@ __all__ : list[str] = [
     "CreateChannelsData",
     "VerifyChannelsDirectoryData",
     "KillInstanceData",
+    "AIProviderKeyData",
+    "SetDefaultProviderData",
     "Validate"
 ]

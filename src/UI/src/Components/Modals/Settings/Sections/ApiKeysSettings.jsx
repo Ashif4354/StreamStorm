@@ -12,9 +12,11 @@ import {
     InputLabel,
     Select,
     MenuItem,
-    Chip
+    Chip,
+    InputAdornment,
+    IconButton
 } from '@mui/material';
-import { ChevronDown, Save, RotateCcw, Info, Check, Pin } from 'lucide-react';
+import { ChevronDown, Save, RotateCcw, Info, Check, Pin, Eye, EyeOff } from 'lucide-react';
 import { useNotifications } from "@toolpad/core/useNotifications";
 
 import { useCustomMUIProps } from '../../../../context/CustomMUIPropsContext';
@@ -65,7 +67,7 @@ const isValidApiKey = (apiKey) => {
     return apiKey.trim().length >= 10;
 };
 
-const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiKey, isDefault, onSetDefault }) => {
+const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiKey, isDefault, onSetDefault, onDefaultModelUpdated }) => {
     const { colorScheme } = useColorScheme();
     const { btnProps, inputProps } = useCustomMUIProps();
     const { hostAddress } = useAppState();
@@ -77,6 +79,7 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
     const [customModel, setCustomModel] = useState('');
     const [saveLoading, setSaveLoading] = useState(false);
     const [setDefaultLoading, setSetDefaultLoading] = useState(false);
+    const [showApiKey, setShowApiKey] = useState(false);
 
     // Validation states
     const [apiKeyError, setApiKeyError] = useState(false);
@@ -183,11 +186,17 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
             });
 
             if (response.ok) {
+                const responseData = await response.json();
+                const savedModel = isCustomUrl ? customModel : finalModel;
                 onUpdateApiKey(provider.id, {
                     apiKey,
                     baseUrl,
-                    model: isCustomUrl ? customModel : finalModel
+                    model: savedModel
                 });
+                // If this is the default provider, update the default model in parent
+                if (responseData.defaultModelUpdated && onDefaultModelUpdated) {
+                    onDefaultModelUpdated(savedModel);
+                }
                 notifications.show(`${provider.name} settings saved successfully!`, {
                     severity: "success",
                 });
@@ -294,7 +303,7 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
                             variant="outlined"
                             label="API Key"
                             placeholder="Enter your API key"
-                            type="password"
+                            type={showApiKey ? "text" : "password"}
                             sx={inputProps}
                             value={apiKey}
                             error={apiKeyError}
@@ -303,6 +312,26 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
                                 setApiKey(e.target.value);
                                 setApiKeyError(false);
                                 setApiKeyHelperText('');
+                            }}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label={showApiKey ? "Hide API key" : "Show API key"}
+                                            onClick={() => setShowApiKey(!showApiKey)}
+                                            edge="end"
+                                            size="small"
+                                            sx={{
+                                                color: colorScheme === 'light' ? 'var(--dark-text)' : 'var(--light-text)',
+                                                '&:hover': {
+                                                    backgroundColor: colorScheme === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.08)',
+                                                },
+                                            }}
+                                        >
+                                            {showApiKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
                             }}
                         />
                     </div>
@@ -441,7 +470,7 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
     );
 };
 
-const ApiKeysSettings = ({ apiKeysData, onUpdateApiKey, isLoading, defaultProvider, onSetDefault }) => {
+const ApiKeysSettings = ({ apiKeysData, onUpdateApiKey, isLoading, defaultProvider, onSetDefault, onDefaultModelUpdated }) => {
     const { colorScheme } = useColorScheme();
     const [expandedPanel, setExpandedPanel] = useState(null);
 
@@ -487,6 +516,7 @@ const ApiKeysSettings = ({ apiKeysData, onUpdateApiKey, isLoading, defaultProvid
                             onUpdateApiKey={onUpdateApiKey}
                             isDefault={defaultProvider === provider.id}
                             onSetDefault={onSetDefault}
+                            onDefaultModelUpdated={onDefaultModelUpdated}
                         />
                     ))}
                 </div>

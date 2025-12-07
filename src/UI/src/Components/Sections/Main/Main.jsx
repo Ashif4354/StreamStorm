@@ -14,7 +14,6 @@ const Main = () => {
             <Storm />
             <div className="left-cards-container">
                 <SystemInfo />
-                <HostConfig />
             </div>
         </main>
     )

@@ -22,6 +22,7 @@ from .lib.middlewares import LogRequestMiddleware, RequestValidationMiddleware
 from ..utils.CustomLogger import CustomLogger
 from .routers.StormRouter import router as storm_router
 from .routers.EnvironmentRouter import router as environment_router
+from .routers.SettingsRouter import router as settings_router
 
 
 CustomLogger().setup_fastapi_logging()
@@ -106,6 +107,7 @@ if CONFIG["ENV"] == "development":
 
 app.include_router(storm_router)
 app.include_router(environment_router)
+app.include_router(settings_router)
 
 @app.get("/")
 async def root() -> JSONResponse:
