@@ -1,4 +1,4 @@
-.PHONY: help run run-ui run-site build-ui build-site deb artifacts update-versions executable firebase-deploy dgupdater-commit-publish generate-setup-windows build-and-release
+.PHONY: help run run-ui run-site build-ui build-site deb artifacts update-versions executable firebase-deploy dgupdater-commit-publish generate-setup-windows trigger-cross-os-build build-and-release
 
 # Variables
 PY_SCRIPTS_DIR := build/scripts
@@ -40,6 +40,7 @@ help:
 	@echo "  make firebase-deploy          Deploy to Firebase"
 	@echo "  make dgupdater-commit-publish Commit and publish with dgupdater"
 	@echo "  make generate-setup-windows   Generate Windows setup file (Windows only)"
+	@echo "  make trigger-cross-os-build   Trigger cross-OS build workflow on GitHub"
 	@echo "  make build-and-release        Run full build and release process"
 	@echo ""
 	@echo "Detected OS: $(DETECTED_OS)"
@@ -130,6 +131,10 @@ else
 	@echo "Error: 'make generate-setup-windows' is only available on Windows"
 	@exit 1
 endif
+
+trigger-cross-os-build:
+	@echo "Triggering cross-os-build GitHub Actions workflow..."
+	$(PYTHON) $(PY_SCRIPTS_DIR)/trigger_cross_os_build.py
 
 build-and-release:
 	@echo "Running full build and release process..."
