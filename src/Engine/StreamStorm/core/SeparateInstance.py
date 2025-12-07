@@ -10,7 +10,7 @@ from .Playwright import Playwright
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 class SeparateInstance(Playwright):
-    __slots__: tuple[str, ...] = ('channel_name', 'index')
+    __slots__: tuple[str, ...] = ('channel_name', 'index', 'wait_time', 'should_wait')
 
     def __init__(
         self,
@@ -18,6 +18,7 @@ class SeparateInstance(Playwright):
         user_data_dir: str = '',
         background: bool = True,
         profile_dir: str = '',
+        wait_time: float = 0
     ) -> None:
         super().__init__(user_data_dir, background)
         
@@ -25,6 +26,8 @@ class SeparateInstance(Playwright):
         self.profile_dir: str = profile_dir
         self.__instance_alive: bool = True
         self.__logged_in: Optional[bool] = None
+        self.wait_time: float = wait_time
+        self.should_wait: bool = True
         
         
     async def change_language(self):

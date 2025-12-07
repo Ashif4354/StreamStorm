@@ -10,6 +10,7 @@ from platformdirs import user_data_dir
 from aiofiles import open as aio_open
 
 from ...core.StreamStorm import StreamStorm
+from ...core.SeparateInstance import SeparateInstance
 from ..validation import (
     StormData,
     ChangeMessagesData,
@@ -140,6 +141,13 @@ async def stop() -> JSONResponse:
 async def pause() -> JSONResponse:
     StreamStorm.ss_instance.pause_event.clear()
     StreamStorm.ss_instance.storm_context["storm_status"] = "Paused"
+
+    current_channels: list[SeparateInstance] = StreamStorm.each_channel_instances
+    available_profiles: int = len(StreamStorm.ss_instance.get_available_temp_profiles())
+    
+    for index, channel in enumerate(current_channels):
+        channel.should_wait = True
+        channel.wait_time = index * (StreamStorm.ss_instance.slow_mode / available_profiles)
     
     logger.info("Storm paused successfully")
     await sio.emit('storm_paused', room="streamstorm")

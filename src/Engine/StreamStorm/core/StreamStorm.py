@@ -172,7 +172,8 @@ class StreamStorm(Profiles):
                 index,
                 profile_dir,
                 self.background,
-                profile_dir_name
+                profile_dir_name,
+                wait_time
             )
             
             await self.emit_instance_status(index, 1)  # 1 = Getting Ready
@@ -232,11 +233,12 @@ class StreamStorm(Profiles):
             
             logger.debug(f"[{index}] [{channel_name}] Starting storm loop with {wait_time}s initial delay")
             await self.emit_instance_status(index, 3)  # 3 = Storming
-            
-            await sleep(wait_time)  # Wait for the initial delay before starting to storm
 
             while True:
                 await self.pause_event.wait()
+                if SI.should_wait:
+                    await sleep(SI.wait_time)
+                    SI.should_wait = False
         
                 # input()
                 selected_message = choice(self.messages)
@@ -421,7 +423,7 @@ class StreamStorm(Profiles):
             tasks: list[Task] = []   
             for index in range(len(channels)):
                 profile_dir: str = join(self.profiles_dir, available_profiles[index])
-                wait_time: float = self.get_start_storm_wait_time(index, len(available_profiles), self.slow_mode)
+                wait_time: float = self.get_start_storm_wait_time(index, len(self.get_available_temp_profiles()), self.slow_mode)
 
                 task: Task = create_task(self.EachChannel(channels[index], profile_dir, wait_time))
                 tasks.append(task)
