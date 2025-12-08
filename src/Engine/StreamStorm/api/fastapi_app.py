@@ -9,17 +9,18 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from selenium.common.exceptions import SessionNotCreatedException
 
 from ..core.StreamStorm import StreamStorm
 from .lib.exception_handlers import (
     common_exception_handler,
     validation_exception_handler,
+    session_not_created_exception_handler
 )
 from .lib.LifeSpan import lifespan
 from .lib.middlewares import LogRequestMiddleware, RequestValidationMiddleware
 from ..utils.CustomLogger import CustomLogger
 from .routers.StormRouter import router as storm_router
-from .routers.ProfileRouter import router as profile_router
 from .routers.EnvironmentRouter import router as environment_router
 
 
@@ -34,7 +35,7 @@ if CONFIG["ENV"] == "development":
     from dotenv import load_dotenv
     load_dotenv()
 
-    from atatus import Client, get_client
+    from atatus import Client, get_client, set_response_body
     from atatus.contrib.starlette import create_client, Atatus
 
     atatus_client: Optional[Client] = get_client()
@@ -44,6 +45,7 @@ if CONFIG["ENV"] == "development":
             {
                 'APP_NAME': environ.get('ATATUS_APP_NAME'),
                 'LICENSE_KEY': environ.get('ATATUS_LICENSE_KEY'),
+                'APP_VERSION': CONFIG["VERSION"],
                 'TRACING': True,
                 'ANALYTICS': True,
                 'ANALYTICS_CAPTURE_OUTGOING': True,
@@ -66,6 +68,7 @@ app.exception_handlers = {
     SystemError: common_exception_handler,
     RuntimeError: common_exception_handler,
     RequestValidationError: validation_exception_handler,
+    SessionNotCreatedException: session_not_created_exception_handler
 }
 
 app.add_middleware(
@@ -86,11 +89,22 @@ async def add_cors_headers(request: Request, call_next: Callable):
     return response
 
 if CONFIG["ENV"] == "development":
+    
+    # @app.middleware("http")
+    # async def add_atatus_set_response_body_middleware(request: Request, call_next: Callable):
+    #     response: Response = await call_next(request)
+        
+    #     if request.method == "POST":
+    #         set_response_body(response.body)
+            
+    #     return response
+    
+    # logger.debug("Atatus set_response_body middleware added to FastAPI app")    
+    
     app.add_middleware(Atatus, client=atatus_client)
     logger.debug("Atatus middleware added to FastAPI app")
 
 app.include_router(storm_router)
-# app.include_router(profile_router)
 app.include_router(environment_router)
 
 @app.get("/")
@@ -118,7 +132,8 @@ async def get_ram_info() -> JSONResponse:
 @app.get("/engine-status")
 async def status() -> JSONResponse:
     response: dict = {
-        "storm_in_progress": False
+        "storm_in_progress": False,
+        "version": CONFIG["VERSION"]
     }
 
     if StreamStorm.ss_instance is not None:

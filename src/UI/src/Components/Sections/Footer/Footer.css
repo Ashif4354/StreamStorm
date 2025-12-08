@@ -1,6 +1,7 @@
 .footer {
     height: 7.3vh;
     display: flex;
+    position: relative;
     align-items: center;
     justify-content: center;
     color: var(--slight-light-text);
@@ -9,6 +10,34 @@
 .footer-light {
     background-color: var(--very-light-red);
 }
+
 .footer-dark {
     background-color: var(--dark-gray);
+}
+
+.versions-text {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    margin: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.versions-text p {
+    margin: 0;
+    font-size: .75rem;
+    color: var(--slight-light-text);
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.footer-text {
+    margin: 0;
+    color: var(--slight-light-text);
 }

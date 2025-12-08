@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useColorScheme } from '@mui/material/styles';
 import { Divider, Modal, Box } from '@mui/material';
 import { Users } from 'lucide-react';
@@ -7,6 +8,7 @@ import CreateProfiles from './Sections/CreateProfiles';
 import DeleteAllProfiles from './Sections/DeleteAllProfiles';
 import CloseButton from '../../Elements/CloseButton';
 import { useCustomMUIProps } from '../../../context/CustomMUIPropsContext';
+import CreateChannels from './Sections/CreateChannels';
 
 const ManageProfiles = (props) => {
 
@@ -23,23 +25,19 @@ const ManageProfiles = (props) => {
             <Box sx={modalProps}>
                 <div className='modal-header-container'>
                     <CloseButton onClick={modalCloseHandler} />
-                    <div className={`modal-heading ${colorScheme}-text`}
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            color: colorScheme === 'light' ? 'var(--dark-text)' : 'var(--light-text)',
-                            padding: 0,
-                        }}
-                    >
+                    <div className={`modal-heading ${colorScheme}-text`}>
                         <Users className='profile-icon' />
-                        Profile Management
+                         Manage Environment
                     </div>
                     <div className="modal-header-description-container">
                         <span className={`modal-header-description modal-header-description-${colorScheme}`}>
-                            Manage your temp browser profiles for the Storm
+                            Create Youtube channels and manage your temp browser profiles for the Storm
                         </span>
                     </div>
                 </div>
+
+                <CreateChannels />
+                <Divider sx={{ margin: '2rem 0' }} />
                 <CreateProfiles />
 
                 <Divider sx={{ margin: '2rem 0' }} />

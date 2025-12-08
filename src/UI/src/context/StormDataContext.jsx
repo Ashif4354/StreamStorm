@@ -57,7 +57,8 @@ const StormDataProvider = ({ children }) => {
     const [advancedChannelsErrorText, setAdvancedChannelsErrorText] = useState("");
 
     const [loadInBackground, setLoadInBackground] = useState(false);
-    const [errorText, setErrorText] = useState("");    
+    const [errorText, setErrorText] = useState("");  
+    const [engineVersion, setEngineVersion] = useState('...');  
 
     const getChannels = () => {
         const getRange = (start, end) => {
@@ -92,7 +93,7 @@ const StormDataProvider = ({ children }) => {
         endChannelIndex, setEndChannelIndex, endChannelIndexError, setEndChannelIndexError, endChannelIndexHelperText, setEndChannelIndexHelperText,
         advancedSelectedChannels, setAdvancedSelectedChannels, advancedChannelsErrorText, setAdvancedChannelsErrorText,
         loadInBackground, setLoadInBackground, errorText, setErrorText,
-        hostAddress, SC,
+        hostAddress, SC, engineVersion, setEngineVersion,
 
         getStormData: () => {
             return {

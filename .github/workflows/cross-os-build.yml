@@ -1,0 +1,87 @@
+name: Linux build & artifacts
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  linux-build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Check GLIBC version
+        run: ldd --version
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+
+      - name: Cache pip and uv venv
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            src/Engine/.venv
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}-engine
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Upgrade pip & install uv
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install uv
+
+      - name: Make executable (project root)
+        run: |
+          set -eux
+          chmod +x ./export/linux/DEBIAN/postinst
+          make executable
+
+      - name: Build .deb (project root)
+        run: |
+          set -eux
+          make deb
+
+      - name: Show generated files (debug)
+        run: |
+          echo "=== export/installers ==="
+          ls -la export/installers || true
+          echo "=== export/linux/opt ==="
+          ls -la export/linux/opt || true
+
+      - name: Upload streamstorm.deb artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: streamstorm-deb
+          path: export/installers/streamstorm.deb
+
+      - name: Create StreamStorm tar.gz from export/linux/opt
+        run: |
+          set -eux
+          # ensure dir exists
+          if [ ! -d export/linux/opt/StreamStorm ]; then
+            echo "Directory export/linux/opt/StreamStorm not found"
+            ls -la export/linux/opt || true
+            exit 1
+          fi
+          cd export/linux/opt
+          # create reproducible archive where possible
+          tar -czvf StreamStorm.tar.gz StreamStorm
+          cd -
+
+      - name: Show tarball (debug)
+        run: |
+          ls -la export/linux/opt/StreamStorm.tar.gz || true
+
+      - name: Upload StreamStorm tar.gz artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: StreamStorm-tar
+          path: export/linux/opt/StreamStorm.tar.gz

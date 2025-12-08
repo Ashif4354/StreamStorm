@@ -1,11 +1,8 @@
 Package: streamstorm
-Version: 3.4.7
+Version: 3.5.2
 Section: utils
 Priority: optional
 Architecture: amd64
 Maintainer: Ashif (DarkGlance) <darkglance.developer@gmail.com>
-Depends: python3, python3-pyqt5, python3-pyqt5.qtwebengine, python3-pyqt5.qtwebchannel, libqt5webkit5
+Depends: python3-pyqt5, python3-pyqt5.qtwebengine, python3-pyqt5.qtwebchannel, libqt5webkit5-dev, python3-xlib, scrot, python3-tk, python3-dev
 Description: StreamStorm - Bot to Spam messages on YouTube Live Stream Chat
- StreamStorm is a lightweight desktop application built specifically to automate mass messaging (aka spamming) in YouTube live stream chats. With support for multiple browser instances and persistent Google login, StreamStorm can blast messages into live chats across multiple streams — on repeat, on schedule, or at full throttle.
-
- There’s no coding, no fancy setup — just plug in your message, set your intervals, and let the chaos unfold. Whether you're trying to flood, disrupt, or annoy, StreamStorm gives you the power to do it all with a click.

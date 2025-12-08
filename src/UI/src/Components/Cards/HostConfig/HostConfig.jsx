@@ -11,36 +11,47 @@ import { DEFAULT_HOST_ADDRESS } from "../../../lib/Constants";
 import { analytics } from "../../../config/firebase";
 import { useCustomMUIProps } from "../../../context/CustomMUIPropsContext";
 
+const isValidURL = (url) => {
+  if (!url || url.trim() === "") return false;
+
+  try {
+    new URL(url);
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
 const HostConfig = () => {
     const { colorScheme } = useColorScheme();
     const { btnProps, inputProps } = useCustomMUIProps();
     const [savedHostAddress, setSavedHostAddress] = useLocalStorageState("hostAddress");
     const notifications = useNotifications();
 
-    const [hostAddress, setHostAddress] = useState(savedHostAddress);
+    const [hostAddress, setHostAddress] = useState("");
     const [hostAddressError, setHostAddressError] = useState(false);
     const [hostAddressHelperText, setHostAddressHelperText] = useState("");
 
-
     const handleSave = () => {
-        if (hostAddress.trim() == "") {
+        const trimmed = hostAddress.trim();
+        
+        if (trimmed === "") {
             setHostAddressError(true);
             setHostAddressHelperText("Host address cannot be empty.");
             return;
         }
 
-        try {
-            new URL(hostAddress);
-        } catch (error) {
+        if (!isValidURL(trimmed)) {
             setHostAddressError(true);
-            setHostAddressHelperText("Invalid URL format.");
+            setHostAddressHelperText("Invalid URL format, Enter a valid URL.");
             return;
         }
+
         logEvent(analytics, "host_address_change");
 
         setHostAddressError(false);
         setHostAddressHelperText("");
-        setSavedHostAddress(hostAddress.trim());
+        setSavedHostAddress(trimmed);
         
         notifications.show("Host address saved successfully!", {
             severity: "success",
@@ -63,11 +74,12 @@ const HostConfig = () => {
     }
 
     useEffect(() => {
-        if (!savedHostAddress) {
+        if (!savedHostAddress || !isValidURL(savedHostAddress)) {
             setSavedHostAddress(DEFAULT_HOST_ADDRESS);
             setHostAddress(DEFAULT_HOST_ADDRESS);            
+        } else {
+            setHostAddress(savedHostAddress);
         }
-
     }, [savedHostAddress, setSavedHostAddress]);
 
     return (

@@ -1,10 +1,12 @@
 import Script from "next/script";
+import { ThemeProvider } from '@mui/material/styles';
+import { GoogleTagManager } from '@next/third-parties/google'
 import { DownloadCountProvider } from "@/context/DownloadCountContext";
 import { VisitCountProvider } from "@/context/VisitCountContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { atatusScript } from "@/config/atatus";
 import "./globals.css";
+import { theme } from "../config/theme";
 
 export const metadata = {
     title: 'StreamStorm - Spam YouTube live chat',
@@ -44,21 +46,40 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (
         <html lang="en">
+            <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
             <head>
-                <Script id="atatus-init">
-                    {atatusScript}
-                </Script>
                 <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
                 <link rel="author" href="https://github.com/Ashif4354" />
+                <Script
+                    id="website-schema"
+                    type="application/ld+json"
+                    strategy="beforeInteractive"
+
+                >
+                    {
+                        JSON.stringify({
+                            "@context": "https://schema.org",
+                            "@type": "WebSite",
+                            "name": "StreamStorm",
+                            "url": "https://streamstorm.darkglance.in"
+                        })
+                    }
+                </Script>
             </head>
             <body>
-                <DownloadCountProvider>
-                    <VisitCountProvider>
-                        <Header />
-                        {children}
-                        <Footer />
-                    </VisitCountProvider>
-                </DownloadCountProvider>
+                <noscript>
+                    <iframe src={`https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}`}
+                        height="0" width="0" style={{ display: 'none', visibility: 'hidden' }}></iframe>
+                </noscript>
+                <ThemeProvider theme={theme}>
+                    <DownloadCountProvider>
+                        <VisitCountProvider>
+                            <Header />
+                            {children}
+                            <Footer />
+                        </VisitCountProvider>
+                    </DownloadCountProvider>
+                </ThemeProvider>
             </body>
         </html>
     );

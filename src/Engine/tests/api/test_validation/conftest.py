@@ -12,7 +12,6 @@ def path_storm_endpoint(mocker: MockerFixture, monkeypatch: MonkeyPatch  ):
     mocker.patch("StreamStorm.api.routers.StormRouter.StreamStorm.start", new=AsyncMock())
     mocker.patch("StreamStorm.api.routers.StormRouter.StreamStorm.start_more_channels", new=AsyncMock())
     
-    monkeypatch.setenv("rammap_path", "mock/path")
     monkeypatch.setenv("BUSY", "0")
     
 @fixture

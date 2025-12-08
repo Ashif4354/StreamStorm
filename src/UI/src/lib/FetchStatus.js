@@ -7,6 +7,7 @@ const fetchStatus = async (formControls) => {
     .then(response => response.json())
     .then(data => {
         formControls.setStormInProgress(data.storm_in_progress);
+        formControls.setEngineVersion(data.version);
     })
     .catch((error) => {
         atatus.notify(error, {}, ['status_fetch_error']);

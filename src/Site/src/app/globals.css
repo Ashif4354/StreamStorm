@@ -9,6 +9,7 @@
     --light-red-hover: #d43f3f;
     --gray-text: #a3a3a3;
     --border-radius: 0.5rem;
+    --header-height: 4rem;
 }
 
 body {
@@ -21,6 +22,10 @@ h2 {
     margin: 0;
 }
 
+h1, h2, h3 {
+    scroll-margin-top: var(--header-height);
+}
+
 .header {
     display: flex;
     position: fixed;
@@ -30,13 +35,17 @@ h2 {
     background-color: #0000004d;
     height: 4rem;
     width: 100vw;
-    padding: 0rem 1rem 0rem 3rem;
+    /* padding: 0rem 0rem 0rem 3rem; */
     backdrop-filter: blur(12px);
     z-index: 100;
 }
 
 .only-title-header {
     justify-content: center;
+}
+
+.title-heading {
+    padding: 0rem 0rem 0rem 3rem;
 }
 
 .header-small {
@@ -178,7 +187,7 @@ h2 {
     margin-bottom: 1rem;
 }
 
-@media (max-width: 360px) {
+@media (max-width: 500px) {
     .overview-buttons-container {
         flex-direction: column;
         align-items: center;
@@ -196,13 +205,24 @@ button {
 
 }
 
-.overview-download-button {
+.get-started-button {
     font-weight: 700;
     background-color: var(--light-red);
     color: var(--white);
 }
 
-.overview-download-button:hover {
+.get-started-button:hover {
+    background-color: var(--light-red-hover);
+}
+
+.download-button {
+    font-weight: 700;
+    background-color: var(--light-red);
+    color: var(--white);
+    margin: 1rem auto;
+}
+
+.download-button:hover {
     background-color: var(--light-red-hover);
 }
 
@@ -782,3 +802,400 @@ button {
         padding-left: 1rem;
     }
 }
+
+.download-page {
+    background-color: var(--dark-gray);
+    min-height: 100vh;
+    padding: 6rem 1rem 3rem 1rem;
+}
+
+.download-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 700px;
+    margin: 0 auto 0 auto;
+    padding: 2rem;
+    background-color: var(--light-gray);
+    border-radius: var(--border-radius);
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+    color: var(--white);
+    /* height: 200px; */
+}
+
+.download-title {
+    font-size: 2.25rem;
+    margin-bottom: 0;
+    color: var(--light-white);
+    text-align: center;
+}
+
+.download-description {
+    display: block;
+    font-size: 1rem;
+    text-align: center;
+    align-self: center;
+    color: var(--gray-text);
+    line-height: 1.75rem;
+    max-width: 42rem;
+}
+
+.download-sections {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.download-section {
+    display: flex;
+    /* justify-content: center; */
+    align-items: center;
+    flex-direction: column;
+}
+
+.download-section-title-container {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.download-section-title {
+    align-self: center;
+    color: var(--light-white);
+    margin-bottom: 0;
+}
+
+/* Linux Installation Styles */
+.linux-install-method {
+    width: 90%;
+    margin: 0;
+    padding: 1.5rem;
+    background-color: var(--dark-gray);
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--accent-color);
+}
+
+.linux-method-title {
+    color: var(--light-white);
+    font-size: 1.1rem;
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.linux-install-list {
+    list-style: decimal;
+    padding-left: 1.5rem;
+    color: var(--gray-text);
+    line-height: 1.8;
+}
+
+.linux-install-list li {
+    margin-bottom: 1.5rem;
+    color: var(--gray-text);
+}
+
+.linux-step-label {
+    display: block;
+    color: var(--light-white);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.linux-code-block-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 0.75rem;
+    border-radius: 0.4rem;
+    margin: 0.75rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.linux-code-block {
+    flex: 1;
+    font-family: 'Menlo', 'Consolas', 'Monaco', monospace;
+    color: var(--light-white);
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+    padding: 0;
+}
+
+.linux-copy-button {
+    background-color: var(--accent-color);
+    color: var(--white);
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.3rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background-color 0.3s ease;
+}
+
+.linux-copy-button:hover {
+    background-color: var(--accent-color-hover);
+    opacity: 0.8;
+}
+
+.linux-copy-button:active {
+    transform: scale(0.98);
+}
+
+.download-note {
+    color: var(--gray-text);
+    font-style: italic;
+    margin: 1rem 0;
+}
+
+/* Responsive Design for Linux Installation */
+@media (min-width: 769px) {
+    .linux-install-method {
+        margin: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .linux-install-method {
+        padding: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    .linux-method-title {
+        font-size: 1rem;
+    }
+
+    .linux-code-block-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .linux-copy-button {
+        width: 100%;
+    }
+
+    .linux-install-list {
+        padding-left: 1.2rem;
+    }
+}
+
+/* Mac Coming Soon Styles */
+.mac-coming-soon {
+    width: 100%;
+    margin: 0rem 2rem;
+    padding: 3rem 2rem;
+    background-color: var(--dark-gray);
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--accent-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.coming-soon-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.coming-soon-title {
+    color: var(--light-white);
+    font-size: 1.5rem;
+    margin: 0 0 1rem 0;
+}
+
+.coming-soon-description {
+    color: var(--gray-text);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0 0 1.5rem 0;
+    max-width: 500px;
+}
+
+.coming-soon-note {
+    color: var(--gray-text);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0;
+    max-width: 500px;
+}
+
+.coming-soon-link {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+}
+
+.coming-soon-link:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+/* Responsive Design for Mac Coming Soon */
+@media (max-width: 768px) {
+    .mac-coming-soon {
+        margin: 2rem 0;
+        padding: 2rem 1rem;
+    }
+
+    .coming-soon-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .coming-soon-title {
+        font-size: 1.25rem;
+    }
+
+    .coming-soon-description {
+        font-size: 0.95rem;
+    }
+}
+
+/* Windows Download Styles */
+.windows-download-container {
+    width: 100%;
+    margin: 0rem 2rem;
+    padding: 2rem;
+    background-color: var(--dark-gray);
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--accent-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.windows-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.windows-description {
+    color: var(--gray-text);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0 0 1.5rem 0;
+    max-width: 400px;
+}
+
+.windows-download-button {
+    background-color: var(--accent-color);
+    color: var(--white);
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 0.3rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+.windows-download-button:hover:not(:disabled) {
+    background-color: var(--accent-color-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.windows-download-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.windows-download-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.windows-download-count {
+    color: var(--gray-text);
+    font-style: italic;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.windows-info-box {
+    width: 100%;
+    margin: 2rem 2rem 0 2rem;
+    padding: 1.5rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--accent-color);
+}
+
+.windows-info-title {
+    color: var(--light-white);
+    font-size: 1rem;
+    margin: 0 0 1rem 0;
+    font-weight: 600;
+}
+
+.windows-info-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    color: var(--gray-text);
+}
+
+.windows-info-list li {
+    padding: 0.5rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.windows-info-list li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+/* Responsive Design for Windows Download */
+@media (max-width: 768px) {
+    .windows-download-container {
+        margin: 2rem 0;
+        padding: 1.5rem;
+    }
+
+    .windows-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .windows-description {
+        font-size: 0.95rem;
+    }
+
+    .windows-download-button {
+        padding: 0.6rem 1.5rem;
+        font-size: 0.95rem;
+        min-width: auto;
+    }
+
+    .windows-info-box {
+        margin: 1.5rem 0 0 0;
+        padding: 1rem;
+    }
+
+    .windows-info-title {
+        font-size: 0.95rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .windows-info-list li {
+        padding: 0.4rem 0;
+        padding-left: 1.25rem;
+        font-size: 0.9rem;
+    }
+}
+

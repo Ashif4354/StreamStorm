@@ -13,6 +13,7 @@ There’s no coding, no fancy setup — just plug in your message, set your inte
 StreamStorm's core functionality revolves around its ability to automate the sending of messages in YouTube live chats. Key features include:
 
 * **Multi-Account Management**: Seamlessly operate multiple YouTube channels using separate, isolated browser profiles.
+* **Custom Channel Creation**: Effortlessly create multiple YouTube accounts directly from the app.
 * **Custom Message Scheduling**: Control message timing with flexible intervals, supporting both rapid-fire and delayed delivery.
 * **One-Click Profile System**:
   * Automatically generate and configure browser profiles per channel.
@@ -36,7 +37,7 @@ StreamStorm's core functionality revolves around its ability to automate the sen
 * **Advanced Tuning Options**: Fine-tune performance parameters to match your use case or system limits — no coding required.
 
 # Instructions to use The Application
-###### [INSTRUCTIONS](./INSTRUCTIONS.md)
+###### [INSTRUCTIONS](https://streamstorm.darkglance.in/instructions)
 
 
 # 👨‍💻 **Development Setup**
@@ -58,7 +59,7 @@ git clone https://github.com/Ashif4354/StreamStorm.git
 The backend is a FastAPI server that handles all the browser automation logic.
 
 ```bash
-cd Engine
+cd src/Engine
 uv sync
 uv run main.py
 ```
@@ -71,7 +72,7 @@ uv run main.py
 The frontend is a React application built with Vite.
 
 ```bash
-cd UI
+cd src/UI
 npm install
 vite --host
 ```

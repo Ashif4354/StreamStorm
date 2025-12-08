@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useColorScheme } from '@mui/material/styles';
 import { Switch, Button, Divider } from "@mui/material";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -84,7 +85,7 @@ const RightPanel = (props) => {
                 sx={btnProps}
                 onClick={() => setManageProfilesOpen(true)}
             >
-                Manage Profiles
+                Manage Environment
             </Button>
 
 

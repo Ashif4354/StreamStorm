@@ -5,6 +5,7 @@ import { NotificationsProvider, } from '@toolpad/core/useNotifications';
 import { StormDataProvider } from "../context/StormDataContext";
 import { SystemInfoProvider } from "../context/SystemInfoContext";
 import { CustomMUIPropsProvider } from "../context/CustomMUIPropsContext";
+import { SocketProvider } from '../context/Socket';
 
 
 const AppProviders = ({ children }) => {
@@ -18,11 +19,13 @@ const AppProviders = ({ children }) => {
                         autoHideDuration: 2500,
                     },
                 }}>
-                    <StormDataProvider>
-                        <SystemInfoProvider>
-                            {children}
-                        </SystemInfoProvider>
-                    </StormDataProvider>
+                    <SocketProvider>
+                        <StormDataProvider>
+                            <SystemInfoProvider>
+                                {children}
+                            </SystemInfoProvider>
+                        </StormDataProvider>
+                    </SocketProvider>
                 </NotificationsProvider>
             </DialogsProvider>
         </CustomMUIPropsProvider>

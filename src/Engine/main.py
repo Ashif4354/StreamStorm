@@ -4,26 +4,30 @@
 # See LICENSE file or visit: https://github.com/Ashif4354/StreamStorm
 # Unauthorized Redistribution or Commercial Use is Prohibited
 
-from os import kill, getpid, environ
+from os import kill, getpid
 from signal import SIGTERM
-from os.path import dirname, abspath, join
 from threading import Thread
 from logging import Logger, getLogger
 
 from dgupdater import check_update
 from uvicorn import run as run_uvicorn
 from webview import create_window, start
+from socketio import ASGIApp
 
-from StreamStorm import app
+from StreamStorm.api.fastapi_app import app as fastapi_app
 from StreamStorm.utils.CustomLogger import CustomLogger
-from StreamStorm.config.config import CONFIG 
+from StreamStorm.config.config import CONFIG
+from StreamStorm.socketio.sio import sio
 
 CustomLogger().setup_streamstorm_logging()
 
 logger: Logger = getLogger(f"streamstorm.{__name__}") 
 
 def serve_api() -> None:
-    logger.debug("Starting API Server") 
+    logger.debug("Starting API-SocketIO Server") 
+    
+    app: ASGIApp = ASGIApp(sio, fastapi_app)
+    
     run_uvicorn(
         app, 
         host="0.0.0.0", 
@@ -31,18 +35,18 @@ def serve_api() -> None:
         log_level="warning"
     ) 
 
-def set_rammap_path() -> None:
-    environ.update({"rammap_path": join(dirname(abspath(__file__)), "RAMMap.exe")})
-    logger.info(f"RAMMap path set to: {environ['rammap_path']}")
-
 def main() -> None:
     
-    check_update(parallel=True)   
-
-    set_rammap_path()
+    if CONFIG["OS"] == "Windows":
+        check_update(parallel=True)
 
     Thread(target=serve_api, daemon=True).start()
     logger.info("API server started.")
+    
+    # Comment this below two line after testing
+    # if CONFIG["ENV"] == "development":
+    #     input()
+    #     return
 
     try:
 
@@ -59,7 +63,13 @@ def main() -> None:
             confirm_close=True,
         )
         logger.info("Webview created.")
-        start()
+        
+        if CONFIG["OS"] == "Linux":
+            start(gui='qt')
+        else:
+            start()
+            
+        logger.info("Webview started.")
     finally:
         # Ensure the API is stopped when the webview is closed
         logger.info("Webview closed, stopping API server.")

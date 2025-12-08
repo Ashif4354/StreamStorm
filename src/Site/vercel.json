@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/r/:id",
+      "destination": "https://www.youtube.com/watch?v=:id",
+      "permanent": false
+    }
+  ]
+}

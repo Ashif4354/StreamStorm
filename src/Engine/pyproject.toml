@@ -1,6 +1,6 @@
 [project]
 name = "streamstorm"
-version = "3.4.8"
+version = "3.5.2"
 description = "Spam chats on YouTube live streams"
 requires-python = ">=3.13"
 dependencies = [
@@ -10,7 +10,8 @@ dependencies = [
     "platformdirs>=4.3.8",
     "undetected-chromedriver>=3.5.5",
     "setuptools>=80.9.0",
-    "pywebview>=5.4",
+    "pywebview[qt]>=5.4 ; sys_platform == 'linux'",
+    "pywebview>=5.4 ; sys_platform != 'linux'",
     "fastapi[standard]>=0.115.14",
     "uvicorn>=0.35.0",
     "playwright>=1.53.0",
@@ -20,6 +21,8 @@ dependencies = [
     "langchain-openai>=1.0.1",
     "langchain-ollama>=1.0.0",
     "langchain-community>=0.4.1",
+    "pyautogui>=0.9.54",
+    "python-socketio>=5.14.3",
 ]
 
 [dependency-groups]

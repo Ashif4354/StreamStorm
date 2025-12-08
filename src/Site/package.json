@@ -1,6 +1,6 @@
 {
     "name": "streamstorm",
-    "version": "3.4.8",
+    "version": "3.5.2",
     "private": true,
     "scripts": {
         "dev": "next dev --turbopack",
@@ -11,8 +11,9 @@
     "dependencies": {
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.1",
-        "@mui/icons-material": "^7.3.1",
+        "@mui/icons-material": "^7.3.4",
         "@mui/material": "^7.3.1",
+        "@next/third-parties": "^16.0.1",
         "atatus-spa": "^4.6.5",
         "firebase": "^12.1.0",
         "lucide-react": "^0.541.0",

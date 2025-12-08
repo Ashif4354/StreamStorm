@@ -3,11 +3,13 @@ import Features from '../components/Features';
 import Disclaimer from '../components/Disclaimer';
 
 const HomePage = () => {
-    return (        
+    return (
         <main className="main-content-container">
-            <OverView />
-            <Features />
-            <Disclaimer />    
+            <article>
+                <OverView />
+                <Features />
+                <Disclaimer />
+            </article>
         </main>
     );
 };

@@ -9,15 +9,29 @@ import { useNotifications } from '@toolpad/core/useNotifications';
 import "./SystemInfo.css"
 import { useSystemInfo } from '../../../context/SystemInfoContext';
 import { useCustomMUIProps } from '../../../context/CustomMUIPropsContext';
+import { useSocket } from '../../../context/Socket';
 
 const SystemInfo = () => {
-    const {btnProps, cardProps} = useCustomMUIProps();
+    const { btnProps, cardProps } = useCustomMUIProps();
     const systemInfoControls = useSystemInfo();
     const { colorScheme } = useColorScheme();
     const notifications = useNotifications();
 
     const [fetchingRAM, setFetchingRAM] = useState(false);
     const [hostAddress] = useLocalStorageState('hostAddress');
+
+    const { socket, socketConnected } = useSocket();
+    
+    useEffect(() => {
+        if (!socket || !socket.connected || !socketConnected) return;
+
+        socket.on("system_info", (data) => {
+            console.log("Received system_info:", data);
+
+            // Use the data received to plot the graph
+        });
+
+    }, [socket, socketConnected]);
 
     const refreshRAM = async () => {
         setFetchingRAM(true);
@@ -28,7 +42,7 @@ const SystemInfo = () => {
     const onIconClick = () => {
         systemInfoControls.setDebugList(prev => [...prev, 0])
     }
-    
+
     useEffect(() => {
         const interval = setInterval(async () => {
             await systemInfoControls.fetchRAM(hostAddress, notifications, systemInfoControls);
@@ -38,7 +52,7 @@ const SystemInfo = () => {
 
         return () => clearInterval(interval);
     }, [hostAddress]);
-    
+
     return (
         <Card
             className={`system-info-card ${colorScheme}-bordered-container`}
@@ -74,7 +88,8 @@ const SystemInfo = () => {
                         <Button
                             startIcon={<RefreshCw size={15} className={fetchingRAM ? "spin" : ""} />}
                             variant="contained"
-                            sx={{ ...btnProps,
+                            sx={{
+                                ...btnProps,
                                 marginTop: "1rem"
                             }}
                             onClick={refreshRAM}
@@ -83,7 +98,7 @@ const SystemInfo = () => {
                         </Button>
                         <span className='ram-note'>
                             To operate one channel you need approximately {systemInfoControls.RAM_PER_PROFILE}MB of Free RAM.
-                            
+
                         </span>
                         <span className='ram-note'>
                             {

@@ -8,12 +8,18 @@ import LockOpenOutlinedIcon from '@mui/icons-material/LockOpenOutlined';
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import StyleOutlinedIcon from '@mui/icons-material/StyleOutlined';
 import AccountBoxOutlinedIcon from '@mui/icons-material/AccountBoxOutlined';
+import OndemandVideoIcon from '@mui/icons-material/OndemandVideo';
 
 const FEATURES = [
     {
         title: "Multi-Account Management",
         description: "Operate multiple YouTube channels in separate, isolated browser profiles to avoid detection.",
         icon: <GroupsOutlinedIcon sx={{ fontSize: '2rem', color: 'var(--light-red)' }} />,
+    },
+    {
+        title: "Custom Channel Creation",
+        description: "Create channels with custom names, and logos",
+        icon: <OndemandVideoIcon sx={{ fontSize: '2rem', color: 'var(--light-red)' }} />,
     },
     {
         title: "Custom Message Scheduling",

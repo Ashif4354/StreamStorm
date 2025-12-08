@@ -1,11 +1,13 @@
 from os.path import dirname, normpath, join
 from json import dump
+from random import randint
 from time import sleep
 from warnings import deprecated
 from undetected_chromedriver import Chrome
 from logging import getLogger, Logger
 from contextlib import suppress
-
+with suppress(KeyError): # 
+    from pyautogui import write as pyautogui_write, press as pyautogui_press
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException, NoSuchWindowException, ElementNotInteractableException
 from selenium.webdriver.support.ui import WebDriverWait
@@ -21,6 +23,8 @@ class UndetectedDrivers(Selenium):
     
     def __init__(self, base_profile_dir: str) -> None:
         self.base_profile_dir: str = base_profile_dir
+        logger.debug(f"Base profile directory: {self.base_profile_dir}")
+        
         self.youtube_login_url: str = "https://accounts.google.com/ServiceLogin?service=youtube"
         self.config_json_path: str = join(dirname(normpath(self.base_profile_dir)), "data.json")
         
@@ -50,7 +54,7 @@ class UndetectedDrivers(Selenium):
 
 
     def initiate_base_profile(self) -> None:
-
+        
         self.driver = Chrome(
             user_data_dir=self.base_profile_dir,
         )
@@ -62,16 +66,11 @@ class UndetectedDrivers(Selenium):
         
         with suppress(NoSuchElementException, ElementNotInteractableException):
             # select first channel if popup appears
-            self.find_and_click_element(By.XPATH, "//ytd-popup-container//*[@id='contents']/ytd-account-item-renderer[1]", for_profiles_init=True)
-            
-        english: bool = self.check_language_english()
+            self.find_and_click_element(By.XPATH, "//ytd-popup-container//*[@id='contents']/ytd-account-item-renderer[1]", element_name="First channel in popup", for_profiles_init=True)
         
-        if not english: 
-            self.driver.get("https://www.youtube.com/account?hl=en-US&persist_hl=1")
+        self.find_and_click_element(By.XPATH, '//*[@id="avatar-btn"]', element_name="Avatar button")
         
-        self.find_and_click_element(By.XPATH, '//*[@id="avatar-btn"]')
-        
-        self.find_and_click_element(By.XPATH, "//*[text()='Switch account']")
+        self.find_and_click_element(By.XPATH, "//*[text()='Switch account']", element_name="Switch account button")
 
         WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//*[@id='submenu']//*[@id='container']//*[@id='contents']//*[@id='contents']/ytd-account-item-renderer")))
 
@@ -105,8 +104,71 @@ class UndetectedDrivers(Selenium):
             raise SystemError("No YouTube channels found. Add at least one channel to your YouTube Account.")
         
         self.initiate_config_json(total_channels, channels)
+        
+        
+    def create_channel(self, name: str, logo: bool = True, random_logo: bool = False, logo_uri: str = None) -> bool:
+        # sourcery skip: extract-method
+        logger.info(f"Creating channel: {name}")
+        self.go_to_page("https://www.youtube.com/account")
 
-    def youtube_login(self) -> None:
+        self.find_and_click_element(By.XPATH, '//*[@id="options"]//*/a[text()="Add or manage your channel(s)"]', element_name="Add or manage your channel(s) button")
+        self.find_and_click_element(By.XPATH, '//*[@id="contents"]/ytd-button-renderer/yt-button-shape/a[contains(., "Create a channel")]', element_name="Create a channel button", scroll=False)
+
+        try:
+            self.type_and_enter(By.XPATH, '//*[@id="input-2"]/input', name, enter=False)
+        except ElementNotInteractableException:
+            try:
+                self.type_and_enter(By.XPATH, '//*[@id="input-1"]/input', name, enter=False)
+            except ElementNotInteractableException:
+                return False
+
+
+        if logo:
+            self.find_and_click_element(By.XPATH, '//button[@aria-label="Select picture"]', element_name="Select picture button")
+
+            last_iframe: WebElement = self.find_element(By.XPATH, '//iframe[@aria-modal="true"]')
+
+            self.switch_to_frame(last_iframe, name="Select picture iframe")
+
+            if random_logo:
+                rand_num: int= randint(1, 3)
+                self.find_and_click_element(By.XPATH, f'//div[@aria-label="Choose picture"]//c-wiz[2]//button[{rand_num}]/img', element_name="Random picture", just_available=True)
+
+                self.find_and_click_element(By.XPATH, '(//button[contains(., "Done")])[1]', element_name="Done button")  
+
+            else:                
+                self.find_and_click_element(By.XPATH, '(//button[contains(., "From computer")])[last()]', element_name="From computer button")
+
+                self.find_and_click_element(By.XPATH, '(//button[contains(., "Upload from computer")])[last()]', element_name="Upload from computer button")
+                sleep(1)
+
+                pyautogui_write(logo_uri)
+                sleep(3)
+                pyautogui_press("enter")               
+
+                self.find_and_click_element(By.XPATH, '(//button[contains(., "Done")])[last()]', element_name="Done button")   
+
+            self.switch_to_frame(default=True)         
+
+        self.find_and_click_element(By.XPATH, '//button[@aria-label="Create channel"]', element_name="Create channel button")       
+
+        count: int = 0
+        while self.driver.current_url == "https://www.youtube.com/account":
+            sleep(1)
+
+            with suppress(Exception):
+                logger.debug(f"FInding failed to create channel error text count: {count}")
+                self.find_element(By.XPATH, '//yt-formatted-string[contains(text(), "Failed to create channel.")]', just_available=True, wait_time=2)
+                return False
+            
+            count += 1
+            if count == 30:
+                return False
+
+        return True
+        
+
+    def youtube_login(self, for_create_channels: bool = False) -> None:
         self.go_to_page(self.youtube_login_url)
         logged_in: bool = False
 
@@ -129,14 +191,21 @@ class UndetectedDrivers(Selenium):
                         WebDriverWait(self.driver, 10).until(
                             EC.presence_of_element_located((By.ID, "avatar-btn"))
                         )
-                        logger.info("Youtube login successful")
-
-                        self.get_total_channels()
                         
-                        self.driver.close()
-                        sleep(2)
-
+                        english: bool = self.check_language_english()  
+                              
+                        if not english: 
+                            self.driver.get("https://www.youtube.com/account?hl=en-US&persist_hl=1")
+                            
+                        logger.info("Youtube login successful")
                         logged_in = True
+                        
+                        if not for_create_channels:
+                            self.get_total_channels()                            
+                            self.driver.close()
+                            
+                            sleep(2)
+
                         
                     except NoSuchElementException:
                         

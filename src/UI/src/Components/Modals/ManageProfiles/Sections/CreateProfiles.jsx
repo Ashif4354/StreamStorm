@@ -32,7 +32,7 @@ const CreateProfiles = () => {
 
         setErrorText("");
 
-        if (profiles < 1) {
+        if (isNaN(profiles) || profiles < 1) {
             setProfilesError(true);
             setProfilesHelperText("Enter a valid number of profiles");
             return;

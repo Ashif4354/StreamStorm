@@ -1,3 +1,4 @@
+from contextlib import suppress
 from asyncio import sleep
 from logging import getLogger, Logger
 from typing import Optional
@@ -91,6 +92,13 @@ class SeparateInstance(Playwright):
             f"//*[@id='contents']/ytd-account-item-renderer[{index}]",
             "channel_element"
         )
+        
+        with suppress(Exception):
+            await self.find_and_click_element(
+                '//*[@id="confirm-button"]//button',
+                "OK button for brand account",
+                True
+            )
 
     async def subscribe_to_channel(self) -> None:
         await self.find_and_click_element(
