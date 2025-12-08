@@ -1,5 +1,6 @@
 from langchain_openai.chat_models import ChatOpenAI
-from langchain_ollama.chat_models import ChatOllama
+from langchain_google_genai.chat_models import ChatGoogleGenerativeAI
+from langchain_anthropic.chat_models import ChatAnthropic
 from .Base import ModelBase
 
 
@@ -9,9 +10,15 @@ class OpenAIModel(ModelBase):
         return model
     
     
-class OllamaModel(ModelBase):
+class GoogleModel(ModelBase):
     def create_model(self, model_name: str):
-        model = ChatOllama(model=model_name)
+        model = ChatGoogleGenerativeAI(model=model_name, api_key=api_key)
+        return model
+    
+
+class AnthropicModel(ModelBase):
+    def create_model(self, model_name: str, api_key: str):
+        model = ChatAnthropic(model=model_name, api_key=api_key)
         return model
 
 
@@ -19,7 +26,8 @@ class ModelFactory:
     
     factories = {
         "openai": OpenAIModel(),
-        "ollama": OllamaModel()
+        "google": GoogleModel(),
+        "anthropic": AnthropicModel()
     }
     
     

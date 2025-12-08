@@ -1,33 +1,37 @@
-# src/Engine/StreamStorm/ai/Base.py
+from abc import ABC, abstractmethod
 
-class AIBase:
+class AIBase(ABC):
     """
     Abstract base class for an AI provider.
     """
+    @abstractmethod
     def generate(self):
         """
         Main generation method to be implemented by concrete providers.
         """
-        raise NotImplementedError
-
+        pass
+    
+    @abstractmethod
     def generate_messages(self):
         """
         Generates a list of random messages.
         """
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def generate_channels(self):
         """
         Generates a list of random channel names.
         """
-        raise NotImplementedError
+        pass
 
-class ModelBase:
+class ModelBase(ABC):
     """
     Abstract interface for creating AI models.
     """
+    @abstractmethod
     def create_model(self):
         """
         Model method to be implemented by concrete factories.
         """
-        raise NotImplementedError
+        pass
