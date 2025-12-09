@@ -289,11 +289,24 @@ class SetDefaultProviderData(BaseModel):
 class GenerateMessagesRequest(BaseModel):
     """Model for AI message generation request"""
     prompt: str = Field(..., min_length=1, description="Prompt for AI to generate messages")
+    count: int = Field(default=10, ge=1, le=50, description="Number of messages to generate")
     
     @field_validator("prompt")
     def validate_prompt(cls, value: str) -> str:
         if not value or value.strip() == "":
             raise ValueError("Prompt cannot be empty")
+        return value.strip()
+
+
+class GenerateChannelNamesRequest(BaseModel):
+    """Model for AI channel name generation request"""
+    topic: str = Field(..., min_length=1, description="Topic or theme for channel names")
+    count: int = Field(default=5, ge=1, le=20, description="Number of channel names to generate")
+    
+    @field_validator("topic")
+    def validate_topic(cls, value: str) -> str:
+        if not value or value.strip() == "":
+            raise ValueError("Topic cannot be empty")
         return value.strip()
 
 
@@ -310,5 +323,6 @@ __all__ : list[str] = [
     "AIProviderKeyData",
     "SetDefaultProviderData",
     "GenerateMessagesRequest",
+    "GenerateChannelNamesRequest",
     "Validate"
 ]

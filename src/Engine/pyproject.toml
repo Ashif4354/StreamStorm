@@ -20,7 +20,15 @@ dependencies = [
     "pyautogui>=0.9.54",
     "python-socketio>=5.14.3",
     "yt-dlp>=2025.11.12",
+    # AI Dependencies
+    "pydantic-ai>=0.2.8",
+    "langchain>=0.3.0",
+    "langchain-core>=0.3.0",
+    "langchain-openai>=0.3.0",
+    "langchain-anthropic>=0.3.0",
+    "langchain-google-genai>=2.0.0",
 ]
+
 
 [dependency-groups]
 dev = [
