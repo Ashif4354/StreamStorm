@@ -30,8 +30,16 @@ const Linux = () => {
                 <i>For Linux distributions with glibc 2.31+</i>
             </span>
 
+            {/* Quick Navigation */}
+            <div className='linux-options-index'>
+                <span>Jump to: </span>
+                <a href="#option1" className='linux-option-link'>📦 Option 1: tar.gz</a>
+                <span className='linux-option-separator'>|</span>
+                <a href="#option2" className='linux-option-link'>🐧 Option 2: .deb Package</a>
+            </div>
+
             {/* Tar.gz Installation */}
-            <div className='linux-install-method'>
+            <div className='linux-install-method' id="option1">
                 <h5 className='linux-method-title'>📦 Option 1: tar.gz Package</h5>
                 <ol className='linux-install-list'>
                     <li>
@@ -45,7 +53,7 @@ const Linux = () => {
                     <li>
                         <span className='linux-step-label'>Extract the archive:</span>
                         <CodeBlock code="tar -xzf StreamStorm.tar.gz" />
-                    </li>                    
+                    </li>
                     <li>
                         <span className='linux-step-label'>Navigate to the directory:</span>
                         <CodeBlock code="cd StreamStorm" />
@@ -66,9 +74,13 @@ const Linux = () => {
             </div>
 
             {/* Debian Installation */}
-            <div className='linux-install-method'>
+            <div className='linux-install-method' id="option2">
                 <h5 className='linux-method-title'>🐧 Option 2: Debian Package (Ubuntu/Debian)</h5>
                 <ol className='linux-install-list'>
+                    <li>
+                        <span className='linux-step-label'>Install dependencies:</span>
+                        <CodeBlock code="sudo apt-get update && sudo apt-get install -y python3 python3-pyqt5 python3-pyqt5.qtwebengine python3-pyqt5.qtwebchannel libqt5webkit5 python3-xlib scrot python3-tk python3-dev" />
+                    </li>
                     <li>
                         <span className='linux-step-label'>Download the .deb file:</span>
                         <CodeBlock code="wget https://github.com/Ashif4354/StreamStorm/releases/latest/download/streamstorm.deb" />
@@ -87,7 +99,7 @@ const Linux = () => {
                 </ol>
             </div>
 
-             <span className="download-note">
+            <span className="download-note">
                 <i>⚠️ Note: Linux builds currently do not support checking for new versions and auto-update functionality. We are working on adding this feature soon.</i>
             </span>
         </section>
