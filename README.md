@@ -52,6 +52,7 @@ StreamStorm's core functionality revolves around its ability to automate the sen
 
 ```bash
 git clone https://github.com/Ashif4354/StreamStorm.git
+cd StreamStorm
 ```
 
 **Booting the Engine (Backend)**

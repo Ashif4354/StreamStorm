@@ -112,7 +112,7 @@ class UndetectedDrivers(Selenium):
         self.go_to_page("https://www.youtube.com/account")
 
         self.find_and_click_element(By.XPATH, '//*[@id="options"]//*/a[text()="Add or manage your channel(s)"]', element_name="Add or manage your channel(s) button")
-        self.find_and_click_element(By.XPATH, '//*[@id="contents"]/ytd-button-renderer/yt-button-shape/a[contains(., "Create a channel")]', element_name="Create a channel button", scroll=False)
+        self.find_and_click_element(By.XPATH, '//*[@id="contents"]//yt-button-shape/*[self::button or self::a][contains(.,"Create a channel")]', element_name="Create a channel button", scroll=False)
 
         try:
             self.type_and_enter(By.XPATH, '//*[@id="input-2"]/input', name, enter=False)
