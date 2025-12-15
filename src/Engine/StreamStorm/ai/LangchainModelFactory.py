@@ -5,13 +5,13 @@ from .Base import ModelBase
 
 
 class OpenAIModel(ModelBase):
-    def create_model(self, model_name: str, api_key: str):
-        model = ChatOpenAI(model=model_name, api_key=api_key)
+    def create_model(self, model_name: str, api_key: str, base_url: str):
+        model = ChatOpenAI(model=model_name, api_key=api_key, base_url=base_url)
         return model
     
     
 class GoogleModel(ModelBase):
-    def create_model(self, model_name: str):
+    def create_model(self, model_name: str, api_key: str):
         model = ChatGoogleGenerativeAI(model=model_name, api_key=api_key)
         return model
     
