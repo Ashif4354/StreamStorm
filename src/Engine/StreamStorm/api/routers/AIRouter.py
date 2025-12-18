@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from ..validation import GenerateMessagesRequest
 from .SettingsRouter import read_settings
 from ...ai.Langchain import LangchainAI
+from ...ai.PydanticAI import PydanticAI
 
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
@@ -17,15 +18,16 @@ router: APIRouter = APIRouter(prefix="/ai", tags=["AI"])
 async def generate_messages(data: GenerateMessagesRequest) -> JSONResponse:
     logger.info(f"Generating messages with prompt: {data.prompt[:50]}...")
     settings: dict = await read_settings()
+    provider_name = settings["ai"]["defaultProvider"]
 
-    model = LangchainAI(
-        provider_name=settings["ai"]["defaultProvider"],
+    llm = PydanticAI(
+        provider_name=provider_name,
         model_name=settings["ai"]["defaultModel"],
         api_key=settings["ai"]["providers"][provider_name]["apiKey"],
         base_url=settings["ai"]["defaultBaseUrl"]
     )
 
-    messages = model.generate_messages(data.prompt)
+    messages = await llm.generate_messages(data.prompt)
 
     return JSONResponse(
         status_code=200,

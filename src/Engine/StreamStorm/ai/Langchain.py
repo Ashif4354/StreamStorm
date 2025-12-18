@@ -8,10 +8,20 @@ class LangchainAI(AIBase):
         base_model = ModelFactory.get_model(provider_name, model_name=model_name, api_key=api_key, base_url = base_url)
         self.model = base_model.with_structured_output(AIResponse)
         
-    def generate_messages(self, prompt : str):
+        
+    def __generate(self, prompt : str):
         responses = self.model.invoke(prompt)
-        return responses.values
+        return responses
     
+        
+        
+    def generate_messages(self, prompt : str):
+        new_prompt = prompt + "\n"
+        res = self.generate(new_prompt)
+        return res
+        
+       
     def generate_channels(self, prompt : str):
-        responses = self.model.invoke(prompt) 
-        return responses.values
+        new_prompt = prompt + "\n"
+        res = self.generate(new_prompt)
+        return res

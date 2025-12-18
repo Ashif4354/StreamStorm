@@ -35,7 +35,9 @@ class ModelFactory:
     @staticmethod
     def get_model(provider_name: str, **kwargs):
         provider_name = provider_name.lower()
+        
         if provider_name not in ModelFactory.factories:
             raise ValueError(f"Unsupported provider: {provider_name}")
+        
         provider = ModelFactory.factories[provider_name]
         return provider.create_model(**kwargs)
