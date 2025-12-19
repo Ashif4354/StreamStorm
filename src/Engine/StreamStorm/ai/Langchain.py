@@ -17,11 +17,11 @@ class LangchainAI(AIBase):
         
     def generate_messages(self, prompt : str):
         new_prompt = prompt + "\n"
-        res = self.generate(new_prompt)
+        res = self.__generate(new_prompt)
         return res
         
        
     def generate_channels(self, prompt : str):
         new_prompt = prompt + "\n"
-        res = self.generate(new_prompt)
+        res = self.__generate(new_prompt)
         return res

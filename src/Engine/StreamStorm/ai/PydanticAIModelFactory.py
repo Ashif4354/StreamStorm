@@ -11,19 +11,19 @@ from .Base import ModelBase
 
 class OpenAI(ModelBase):
     def create_model(self, model_name: str, api_key: str, base_url: str):
-        provider = OpenAIProvider(api_key, base_url)
+        provider = OpenAIProvider(base_url = base_url, api_key = api_key)
         model = OpenAIModel(model_name=model_name, provider=provider)
         return model
     
 class Google(ModelBase):
     def create_model(self, model_name: str, api_key: str, **kwargs):
-        provider = GoogleProvider(api_key)
+        provider = GoogleProvider(api_key=api_key)
         model = GoogleModel(model_name=model_name, provider=provider)
         return model
     
 class Anthropic(ModelBase):
     def create_model(self, model_name: str, api_key: str, **kwargs):
-        provider = AnthropicProvider(api_key)
+        provider = AnthropicProvider(api_key=api_key)
         model = AnthropicModel(model_name=model_name, provider=provider)
         return model
     

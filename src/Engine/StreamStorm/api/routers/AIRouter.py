@@ -20,14 +20,14 @@ async def generate_messages(data: GenerateMessagesRequest) -> JSONResponse:
     settings: dict = await read_settings()
     provider_name = settings["ai"]["defaultProvider"]
 
-    llm = PydanticAI(
+    ai = PydanticAI(
         provider_name=provider_name,
         model_name=settings["ai"]["defaultModel"],
         api_key=settings["ai"]["providers"][provider_name]["apiKey"],
         base_url=settings["ai"]["defaultBaseUrl"]
     )
 
-    messages = await llm.generate_messages(data.prompt)
+    messages = await ai.generate_messages(data.prompt)
 
     return JSONResponse(
         status_code=200,
@@ -42,15 +42,16 @@ async def generate_messages(data: GenerateMessagesRequest) -> JSONResponse:
 async def generate_channel_names(data: GenerateMessagesRequest) -> JSONResponse:
     logger.info(f"Generating channel names with prompt: {data.prompt[:50]}...")
     settings: dict = await read_settings()
-
-    model = LangchainAI(
-        provider_name=settings["ai"]["defaultProvider"],
+    provider_name = settings["ai"]["defaultProvider"]
+    
+    ai = PydanticAI(
+        provider_name=provider_name,
         model_name=settings["ai"]["defaultModel"],
         api_key=settings["ai"]["providers"][provider_name]["apiKey"],
         base_url=settings["ai"]["defaultBaseUrl"]
     )
     
-    channel_names = model.generate_channels(data.prompt)
+    channel_names = ai.generate_channels(data.prompt)
     
     return JSONResponse(
         status_code=200,

@@ -5,7 +5,7 @@ class AIBase(ABC):
     Abstract base class for an AI provider.
     """
     @abstractmethod
-    def generate(self):
+    def __generate(self):
         """
         Main generation method to be implemented by concrete providers.
         """
