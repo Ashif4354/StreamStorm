@@ -135,8 +135,8 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
                         multiline
                         rows={4}
                         variant="outlined"
-                        label="Prompt"
-                        placeholder="Enter a prompt for AI to generate a message list for you..."
+                        label="What kind of messages do you want and how many?"
+                        placeholder="10 Messages that would make IShowSpeed smile"
                         fullWidth
                         value={prompt}
                         onChange={(e) => {

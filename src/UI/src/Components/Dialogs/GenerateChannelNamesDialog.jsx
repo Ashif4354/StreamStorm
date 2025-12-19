@@ -133,8 +133,8 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
                         multiline
                         rows={4}
                         variant="outlined"
-                        label="Prompt"
-                        placeholder="Enter a prompt for AI to generate channel names for you..."
+                        label="What kind of channel names do you want and how many?"
+                        placeholder="10 channel names for a gaming channel"
                         fullWidth
                         value={prompt}
                         onChange={(e) => {
