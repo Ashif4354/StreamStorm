@@ -5,21 +5,21 @@ class AIBase(ABC):
     Abstract base class for an AI provider.
     """
     @abstractmethod
-    def __generate(self):
+    def __generate(self, *args, **kwargs):
         """
         Main generation method to be implemented by concrete providers.
         """
         pass
     
     @abstractmethod
-    def generate_messages(self):
+    def generate_messages(self, prompts: str, *args, **kwargs):
         """
         Generates a list of random messages.
         """
         pass
 
     @abstractmethod
-    def generate_channels(self):
+    def generate_channels(self, prompts: str, *args, **kwargs):
         """
         Generates a list of random channel names.
         """

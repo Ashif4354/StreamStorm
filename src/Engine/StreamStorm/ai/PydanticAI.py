@@ -7,13 +7,11 @@ from .ResponseModels import AIResponse
 
 
 class PydanticAI(AIBase):
-    def __init__(self, provider_name: str, model_name: str, api_key: str, base_url: str = None):
+    def __init__(self, provider_name: str, model_name: str, api_key: str, base_url: str | None = None):
         """
         Initializes the AI service with a specific provider.
         """
-        self.model = ModelFactory.get_model(provider_name, model_name=model_name, api_key=api_key, base_url=base_url)
-        # self.model = Agent(base_model, output_type=AIResponse)
-        
+        self.model = ModelFactory.get_model(provider_name, model_name=model_name, api_key=api_key, base_url=base_url)        
         
     async def __generate(self,agent, prompt : str ):
         responses = await agent.run(prompt)

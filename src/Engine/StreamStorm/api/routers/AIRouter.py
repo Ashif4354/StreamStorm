@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 
 from ..validation import GenerateMessagesRequest
 from .SettingsRouter import read_settings
-from ...ai.Langchain import LangchainAI
+# from ...ai.Langchain import LangchainAI
 from ...ai.PydanticAI import PydanticAI
 
 
@@ -51,7 +51,7 @@ async def generate_channel_names(data: GenerateMessagesRequest) -> JSONResponse:
         base_url=settings["ai"]["defaultBaseUrl"]
     )
     
-    channel_names = ai.generate_channels(data.prompt)
+    channel_names = await ai.generate_channels(data.prompt)
     
     return JSONResponse(
         status_code=200,
