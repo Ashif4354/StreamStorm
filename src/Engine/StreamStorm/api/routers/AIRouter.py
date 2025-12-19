@@ -4,6 +4,9 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from ..validation import GenerateMessagesRequest
+from .SettingsRouter import read_settings
+# from ...ai.Langchain import LangchainAI
+from ...ai.PydanticAI import PydanticAI
 
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
@@ -14,10 +17,18 @@ router: APIRouter = APIRouter(prefix="/ai", tags=["AI"])
 @router.post("/generate/messages")
 async def generate_messages(data: GenerateMessagesRequest) -> JSONResponse:
     logger.info(f"Generating messages with prompt: {data.prompt[:50]}...")
-    
-    # TODO: Fill in AI generation logic here
-    messages: list[str] = []  # Placeholder - replace with AI-generated messages
-    
+    settings: dict = await read_settings()
+    provider_name = settings["ai"]["defaultProvider"]
+
+    ai = PydanticAI(
+        provider_name=provider_name,
+        model_name=settings["ai"]["defaultModel"],
+        api_key=settings["ai"]["providers"][provider_name]["apiKey"],
+        base_url=settings["ai"]["defaultBaseUrl"]
+    )
+
+    messages = await ai.generate_messages(data.prompt)
+
     return JSONResponse(
         status_code=200,
         content={
@@ -30,9 +41,17 @@ async def generate_messages(data: GenerateMessagesRequest) -> JSONResponse:
 @router.post("/generate/channel-names")
 async def generate_channel_names(data: GenerateMessagesRequest) -> JSONResponse:
     logger.info(f"Generating channel names with prompt: {data.prompt[:50]}...")
+    settings: dict = await read_settings()
+    provider_name = settings["ai"]["defaultProvider"]
     
-    # TODO: Fill in AI generation logic here
-    channel_names: list[str] = []  # Placeholder - replace with AI-generated channel names
+    ai = PydanticAI(
+        provider_name=provider_name,
+        model_name=settings["ai"]["defaultModel"],
+        api_key=settings["ai"]["providers"][provider_name]["apiKey"],
+        base_url=settings["ai"]["defaultBaseUrl"]
+    )
+    
+    channel_names = await ai.generate_channels(data.prompt)
     
     return JSONResponse(
         status_code=200,

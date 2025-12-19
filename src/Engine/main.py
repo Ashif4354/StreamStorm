@@ -11,7 +11,7 @@ from logging import Logger, getLogger
 
 from dgupdater import check_update
 from uvicorn import run as run_uvicorn
-from webview import create_window, start
+# from webview import create_window, start
 from socketio import ASGIApp
 
 from StreamStorm.api.fastapi_app import app as fastapi_app
@@ -47,10 +47,11 @@ def main() -> None:
     Thread(target=serve_api, daemon=True).start()
     logger.debug("API server started.")
     
+    
     # Comment this below two line after testing
-    # if CONFIG["ENV"] == "development":
-    #     input()
-    #     return
+    if CONFIG["ENV"] == "development":
+        input()
+        return
 
     try:
 
