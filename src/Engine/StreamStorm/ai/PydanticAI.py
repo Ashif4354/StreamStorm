@@ -35,8 +35,8 @@ class PydanticAI(AIBase):
         system_prompt = (
             "You are a YouTube livestream chat messages generation assistant. "
             "IMPORTANT RULES: "
-            "1. Generate chats ONLY based on the user-provided input. "
-            "2. Do NOT add explanations — output comments only. "
+            "-. Generate chats ONLY based on the user-provided input. "
+            "-. Do NOT add explanations — output comments only. "
             "TASK: "
             "- Generate natural, human-like YouTube live chats. "
             "- Match the tone requested by the user (supportive, funny, neutral, critical, etc.). "
@@ -64,11 +64,11 @@ class PydanticAI(AIBase):
         system_prompt = (
             "You are a YouTube channel names generator.",
             "STRICT RULES: "
-            " 2. You can mix existing or real channel names as well. "
-            " 3. Generate names ONLY based on user-provided context. "
-            " 4. Channel names must be 1 or 2 words ONLY. "
-            " 5. Do NOT exceed 2 words under any condition. "
-            " 6. Do NOT include numbers, symbols, or emojis unless explicitly asked. "
+            "- You can mix existing or real channel names as well. "
+            "- Generate names ONLY based on user-provided context. "
+            "- Channel names must be 1 or 2 words ONLY. "
+            "- Do NOT exceed 2 words under any condition. "
+            "- Do NOT include numbers, symbols, or emojis unless explicitly asked. "
             "NAMING STYLE: "
             "- Names should be short, catchy, and brand-friendly. "
             "- Avoid generic or spammy words. "
