@@ -1,30 +1,28 @@
-from typing import Callable, Optional
-from logging import DEBUG, getLogger, Logger
-from psutil import virtual_memory
+from logging import DEBUG, Logger, getLogger
 from os import environ
-
-from ..config import CONFIG
+from typing import Callable, Optional
 
 from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from psutil import virtual_memory
 from selenium.common.exceptions import SessionNotCreatedException
 
+from ..config import CONFIG
 from ..core.StreamStorm import StreamStorm
+from ..utils.CustomLogger import CustomLogger
 from .lib.exception_handlers import (
     common_exception_handler,
+    session_not_created_exception_handler,
     validation_exception_handler,
-    session_not_created_exception_handler
 )
 from .lib.LifeSpan import lifespan
 from .lib.middlewares import LogRequestMiddleware, RequestValidationMiddleware
-from ..utils.CustomLogger import CustomLogger
-from .routers.StormRouter import router as storm_router
+from .routers.AIRouter import router as ai_router
 from .routers.EnvironmentRouter import router as environment_router
 from .routers.SettingsRouter import router as settings_router
-from .routers.AIRouter import router as ai_router
-
+from .routers.StormRouter import router as storm_router
 
 CustomLogger().setup_fastapi_logging()
 
@@ -35,25 +33,27 @@ if CONFIG["ENV"] == "development":
     logger.debug("Instrumenting atatus")
 
     from dotenv import load_dotenv
+
     load_dotenv()
 
     from atatus import Client, get_client
-    from atatus.contrib.starlette import create_client, Atatus
+    from atatus.contrib.starlette import Atatus, create_client
 
     atatus_client: Optional[Client] = get_client()
 
     if atatus_client is None:
         atatus_client = create_client(
             {
-                'APP_NAME': environ.get('ATATUS_APP_NAME'),
-                'LICENSE_KEY': environ.get('ATATUS_LICENSE_KEY'),
-                'APP_VERSION': CONFIG["VERSION"],
-                'TRACING': True,
-                'ANALYTICS': True,
-                'ANALYTICS_CAPTURE_OUTGOING': True,
-                'LOG_BODY': 'all',
-                'LOG_LEVEL': 'debug',
-                'LOG_FILE': 'streamstorm.log'
+                "APP_NAME": environ.get("ATATUS_APP_NAME"),
+                "LICENSE_KEY": environ.get("ATATUS_LICENSE_KEY"),
+                "APP_VERSION": CONFIG["VERSION"],
+                "TRACING": True,
+                "ANALYTICS": True,
+                "ANALYTICS_CAPTURE_OUTGOING": True,
+                "LOG_BODY": "all",
+                "LOG_LEVEL": "debug",
+                "LOG_FILE": "streamstorm.log",
+                "LLMOBS": True,
             }
         )
 
@@ -70,7 +70,7 @@ app.exception_handlers = {
     SystemError: common_exception_handler,
     RuntimeError: common_exception_handler,
     RequestValidationError: validation_exception_handler,
-    SessionNotCreatedException: session_not_created_exception_handler
+    SessionNotCreatedException: session_not_created_exception_handler,
 }
 
 app.add_middleware(
@@ -82,6 +82,7 @@ app.add_middleware(
 app.add_middleware(LogRequestMiddleware)
 app.add_middleware(RequestValidationMiddleware)
 
+
 @app.middleware("http")
 async def add_cors_headers(request: Request, call_next: Callable):
     response: Response = await call_next(request)
@@ -90,19 +91,19 @@ async def add_cors_headers(request: Request, call_next: Callable):
     response.headers["Access-Control-Allow-Headers"] = "*"
     return response
 
+
 if CONFIG["ENV"] == "development":
-    
     # @app.middleware("http")
     # async def add_atatus_set_response_body_middleware(request: Request, call_next: Callable):
     #     response: Response = await call_next(request)
-        
+
     #     if request.method == "POST":
     #         set_response_body(response.body)
-            
+
     #     return response
-    
-    # logger.debug("Atatus set_response_body middleware added to FastAPI app")    
-    
+
+    # logger.debug("Atatus set_response_body middleware added to FastAPI app")
+
     app.add_middleware(Atatus, client=atatus_client)
     logger.debug("Atatus middleware added to FastAPI app")
 
@@ -111,33 +112,31 @@ app.include_router(environment_router)
 app.include_router(settings_router)
 app.include_router(ai_router)
 
+
 @app.get("/")
 async def root() -> JSONResponse:
-    
     return JSONResponse(
         status_code=200,
-        content={
-            "success": True,
-            "message": "I am the StreamStorm Engine"
-        }
+        content={"success": True, "message": "I am the StreamStorm Engine"},
     )
 
-    
+
 @app.get("/get_ram_info")
 async def get_ram_info() -> JSONResponse:
     return JSONResponse(
-        status_code=200, 
+        status_code=200,
         content={
-            "free": virtual_memory().available / (1024**3), 
-            "total": virtual_memory().total / (1024**3)
-        }
+            "free": virtual_memory().available / (1024**3),
+            "total": virtual_memory().total / (1024**3),
+        },
     )
-    
+
+
 @app.get("/config")
 async def status() -> JSONResponse:
     response: dict = {
         "version": CONFIG["VERSION"],
-        "log_file_path": StreamStorm.log_file_path
+        "log_file_path": StreamStorm.log_file_path,
     }
 
     return JSONResponse(

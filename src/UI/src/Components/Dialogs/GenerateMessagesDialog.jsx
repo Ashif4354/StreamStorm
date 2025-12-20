@@ -24,7 +24,7 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
     const { colorScheme } = useColorScheme();
     const [hostAddress] = useLocalStorageState("hostAddress");
     const notifications = useNotifications();
-    const { defaultAIProvider } = useAppState();
+    const { defaultAIProvider, defaultAIModel } = useAppState();
 
     const [prompt, setPrompt] = useState("");
     const [loading, setLoading] = useState(false);
@@ -131,25 +131,41 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
                         Please set a default AI provider and model in Settings first.
                     </Alert>
                 ) : (
-                    <TextField
-                        multiline
-                        rows={4}
-                        variant="outlined"
-                        label="What kind of messages do you want and how many?"
-                        placeholder="10 Messages that would make IShowSpeed smile"
-                        fullWidth
-                        value={prompt}
-                        onChange={(e) => {
-                            setPrompt(e.target.value);
-                            setError(false);
-                            setHelperText("");
-                        }}
-                        error={error}
-                        helperText={helperText}
-                        margin="normal"
-                        disabled={loading}
-                        sx={inputProps}
-                    />
+                    <>
+                        <TextField
+                            multiline
+                            rows={4}
+                            variant="outlined"
+                            label="What kind of messages do you want and how many?"
+                            placeholder="10 Messages that would make IShowSpeed smile"
+                            fullWidth
+                            value={prompt}
+                            onChange={(e) => {
+                                setPrompt(e.target.value);
+                                setError(false);
+                                setHelperText("");
+                            }}
+                            error={error}
+                            helperText={helperText}
+                            margin="normal"
+                            disabled={loading}
+                            sx={inputProps}
+                        />
+                        {defaultAIModel && (
+                            <span
+                                style={{
+                                    fontSize: "0.75rem",
+                                    color: colorScheme === "light"
+                                        ? "var(--slight-dark-text)"
+                                        : "var(--slight-light-text)",
+                                    marginTop: "4px",
+                                    display: "block"
+                                }}
+                            >
+                                Using model: {defaultAIModel}
+                            </span>
+                        )}
+                    </>
                 )}
             </DialogContent>
 

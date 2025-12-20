@@ -21,7 +21,7 @@ import { analytics } from "../../config/firebase";
 const GenerateChannelNamesDialog = ({ open, onClose }) => {
     const { btnProps, inputProps } = useCustomMUIProps();
     const { colorScheme } = useColorScheme();
-    const { hostAddress, defaultAIProvider } = useAppState();
+    const { hostAddress, defaultAIProvider, defaultAIModel } = useAppState();
     const notifications = useNotifications();
 
     const [prompt, setPrompt] = useState("");
@@ -129,25 +129,41 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
                         Please set a default AI provider and model in Settings first.
                     </Alert>
                 ) : (
-                    <TextField
-                        multiline
-                        rows={4}
-                        variant="outlined"
-                        label="What kind of channel names do you want and how many?"
-                        placeholder="10 channel names for a gaming channel"
-                        fullWidth
-                        value={prompt}
-                        onChange={(e) => {
-                            setPrompt(e.target.value);
-                            setError(false);
-                            setHelperText("");
-                        }}
-                        error={error}
-                        helperText={helperText}
-                        margin="normal"
-                        disabled={loading}
-                        sx={inputProps}
-                    />
+                    <>
+                        <TextField
+                            multiline
+                            rows={4}
+                            variant="outlined"
+                            label="What kind of channel names do you want and how many?"
+                            placeholder="10 channel names for a gaming channel"
+                            fullWidth
+                            value={prompt}
+                            onChange={(e) => {
+                                setPrompt(e.target.value);
+                                setError(false);
+                                setHelperText("");
+                            }}
+                            error={error}
+                            helperText={helperText}
+                            margin="normal"
+                            disabled={loading}
+                            sx={inputProps}
+                        />
+                        {defaultAIModel && (
+                            <span
+                                style={{
+                                    fontSize: "0.75rem",
+                                    color: colorScheme === "light"
+                                        ? "var(--slight-dark-text)"
+                                        : "var(--slight-light-text)",
+                                    marginTop: "4px",
+                                    display: "block"
+                                }}
+                            >
+                                Using model: {defaultAIModel}
+                            </span>
+                        )}
+                    </>
                 )}
             </DialogContent>
 
