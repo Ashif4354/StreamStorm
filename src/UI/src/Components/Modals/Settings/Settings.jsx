@@ -52,14 +52,13 @@ const Settings = (props) => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    // Expected format: { openai: {...}, anthropic: {...}, google: {...}, defaultProvider, defaultModel, defaultBaseUrl }
-                    const { defaultProvider: fetchedDefault, defaultModel: fetchedModel, defaultBaseUrl: fetchedBaseUrl, ...providers } = data;
-                    setApiKeysData(providers);
+                    // Response format: { providers: { openai: {...}, anthropic: {...}, google: {...} }, defaultProvider, defaultModel, defaultBaseUrl }
+                    setApiKeysData(data.providers ?? {});
 
                     // Update app state with fetched default settings (handle nulls)
-                    setDefaultAIProvider(fetchedDefault ?? null);
-                    setDefaultAIModel(fetchedModel ?? null);
-                    setDefaultAIBaseUrl(fetchedBaseUrl ?? null);
+                    setDefaultAIProvider(data.defaultProvider ?? null);
+                    setDefaultAIModel(data.defaultModel ?? null);
+                    setDefaultAIBaseUrl(data.defaultBaseUrl ?? null);
                 }
             } catch (error) {
                 console.error('Failed to fetch API keys:', error);
@@ -79,7 +78,7 @@ const Settings = (props) => {
         }));
     };
 
-    const handleSetDefaultProvider = async (providerId, model, baseUrl) => {
+    const handleSetDefaultProvider = async (providerId, apiKey, model, baseUrl) => {
         try {
             const response = await fetch(`${hostAddress}/settings/ai/default`, {
                 method: 'POST',
@@ -88,6 +87,7 @@ const Settings = (props) => {
                 },
                 body: JSON.stringify({
                     provider: providerId,
+                    apiKey: apiKey,
                     model: model,
                     baseUrl: baseUrl
                 }),

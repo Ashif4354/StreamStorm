@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from ...ai.PydanticAI import PydanticAI
 from ..validation import GenerateMessagesRequest
 from .SettingsRouter import read_settings
+from ...utils.settings_json import Settings
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
 
@@ -16,14 +17,14 @@ router: APIRouter = APIRouter(prefix="/ai", tags=["AI"])
 @router.post("/generate/messages")
 async def generate_messages(data: GenerateMessagesRequest) -> JSONResponse:
     logger.info(f"Generating messages with prompt: {data.prompt[:50]}...")
-    settings: dict = await read_settings()
-    provider_name = settings["ai"]["defaultProvider"]
+    settings: Settings = await read_settings(model_format=True)
+    provider_name = settings.ai.defaultProvider
 
     AI = PydanticAI(
         provider_name=provider_name,
-        model_name=settings["ai"]["defaultModel"],
-        api_key=settings["ai"]["providers"][provider_name]["apiKey"],
-        base_url=settings["ai"]["defaultBaseUrl"],
+        model_name=settings.ai.defaultModel,
+        api_key=getattr(settings.ai.providers, provider_name).apiKey,
+        base_url=settings.ai.defaultBaseUrl,
     )
 
     messages = await AI.generate_messages(data.prompt)
@@ -36,14 +37,14 @@ async def generate_messages(data: GenerateMessagesRequest) -> JSONResponse:
 @router.post("/generate/channel-names")
 async def generate_channel_names(data: GenerateMessagesRequest) -> JSONResponse:
     logger.info(f"Generating channel names with prompt: {data.prompt[:50]}...")
-    settings: dict = await read_settings()
-    provider_name = settings["ai"]["defaultProvider"]
+    settings: Settings = await read_settings(model_format=True)
+    provider_name = settings.ai.defaultProvider
 
     AI = PydanticAI(
         provider_name=provider_name,
-        model_name=settings["ai"]["defaultModel"],
-        api_key=settings["ai"]["providers"][provider_name]["apiKey"],
-        base_url=settings["ai"]["defaultBaseUrl"],
+        model_name=settings.ai.defaultModel,
+        api_key=getattr(settings.ai.providers, provider_name).apiKey,
+        base_url=settings.ai.defaultBaseUrl,
     )
 
     channel_names = await AI.generate_channels(data.prompt)

@@ -230,11 +230,11 @@ class AIProviderKeyData(BaseModel):
     """Model for saving a single AI provider's configuration"""
     model_config = ConfigDict(strict=True)
     
-    apiKey: str = Field(..., min_length=10, description="API key for the provider", validation_alias=AliasChoices("apiKey", "api_key"))
+    api_key: str = Field(..., min_length=10, description="API key for the provider", validation_alias=AliasChoices("api_key", "apiKey"))
     model: str = Field(..., min_length=1, description="Model name")
-    baseUrl: str | None = Field(None, description="Optional base URL for custom providers", validation_alias=AliasChoices("baseUrl", "base_url"))
+    base_url: str | None = Field(None, description="Optional base URL for custom providers", validation_alias=AliasChoices("base_url", "baseUrl"))
     
-    @field_validator("apiKey")
+    @field_validator("api_key")
     def validate_api_key(cls, value: str) -> str:
         if not value or value.strip() == "":
             raise ValueError("API key cannot be empty")
@@ -248,7 +248,7 @@ class AIProviderKeyData(BaseModel):
             raise ValueError("Model cannot be empty")
         return value.strip()
     
-    @field_validator("baseUrl")
+    @field_validator("base_url")
     def validate_base_url(cls, value: str | None) -> str | None:
         if value is None or value.strip() == "":
             return None
@@ -259,10 +259,11 @@ class AIProviderKeyData(BaseModel):
 
 
 class SetDefaultProviderData(BaseModel):
-    """Model for setting the default AI provider with model and optional baseUrl."""
+    """Model for setting the default AI provider with apiKey, model and optional baseUrl."""
     provider: str = Field(..., description="Provider ID to set as default")
+    api_key: str = Field(..., min_length=10, description="API key for the provider", validation_alias=AliasChoices("api_key", "apiKey"))
     model: str = Field(..., min_length=1, description="Model name to set as default")
-    baseUrl: str | None = Field(None, description="Optional base URL for custom providers", validation_alias=AliasChoices("baseUrl", "base_url"))
+    base_url: str | None = Field(None, description="Optional base URL for custom providers", validation_alias=AliasChoices("base_url", "baseUrl"))
     
     @field_validator("provider")
     def validate_provider(cls, value: str) -> str:
@@ -271,13 +272,21 @@ class SetDefaultProviderData(BaseModel):
             raise ValueError(f"Provider must be one of: {', '.join(valid_providers)}")
         return value
     
+    @field_validator("api_key")
+    def validate_api_key(cls, value: str) -> str:
+        if not value or value.strip() == "":
+            raise ValueError("API key cannot be empty")
+        if len(value.strip()) < 10:
+            raise ValueError("API key must be at least 10 characters")
+        return value.strip()
+    
     @field_validator("model")
     def validate_model(cls, value: str) -> str:
         if not value or value.strip() == "":
             raise ValueError("Model cannot be empty")
         return value.strip()
     
-    @field_validator("baseUrl")
+    @field_validator("base_url")
     def validate_base_url(cls, value: str | None) -> str | None:
         if value is None or value.strip() == "":
             return None

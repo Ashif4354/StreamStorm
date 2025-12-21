@@ -10,40 +10,27 @@ const SystemInfoContext = createContext();
 const SystemInfoProvider = ({children}) => {
 
     const [availableRAM, setAvailableRAM] = useState(null);
-    const [debugMode, setDebugMode] = useState(false);
-    
-    const [debugList, setDebugList] = useState([]);
-    const [pollingIntervals, setPollingIntervals] = useState([]);
+    const [debugMode, setDebugMode] = useState(false);    
+    const [debugCounter, setDebugCounter] = useState(0);
 
     const notifications = useNotifications();
 
-    const systemInfoControls = { availableRAM, setAvailableRAM, fetchRAM, RAM_PER_PROFILE, debugMode, setDebugList, setPollingIntervals };
-
-
-    const stopPolling = () => {
-        setPollingIntervals(currentIntervals => {
-            currentIntervals.forEach(interval => clearInterval(interval));
-            return [];
-        })
-    }
+    const systemInfoControls = { availableRAM, setAvailableRAM, fetchRAM, RAM_PER_PROFILE, debugMode, setDebugCounter };
      
     useEffect(() => { 
-        if (debugList.length == 10) {            
+        if (debugCounter >= 10) {            
             setDebugMode(true);
-            stopPolling();
 
             notifications.show('Debug mode enabled!', { severity: 'info' });
         }   
-    }, [debugList]);
+    }, [debugCounter]);
 
     useEffect(() => {
         window.enableStreamStormDebugMode = () => {
             setDebugMode(true);
-            stopPolling();
 
             notifications.show('Debug mode enabled!', { severity: 'info' });
         }
-        // stopPolling(); //comment this line in production
     }, []);
 
     return (

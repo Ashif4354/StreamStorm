@@ -12,7 +12,7 @@ from json import dump, load  # noqa: E402
 from re import sub  # noqa: E402
 from platform import system  # noqa: E402
 from logging import basicConfig, INFO, info as log_info  # noqa: E402
-from src.Engine.StreamStorm.config.config import CONFIG  # noqa: E402
+from src.Engine.StreamStorm.settings import settings  # noqa: E402
 
 basicConfig(level=INFO)
 
@@ -25,19 +25,19 @@ def check_engine_env(version: str):
     
     log_info("Checking environment configuration...")
     
-    if CONFIG["ENV"] in ("development", "test"):
+    if settings.env in ("development", "test"):
         raise ValueError(
-            "Environment is not set to 'production' in Engine/config/config.py. "
+            "Environment is not set to 'production' in Engine/settings/settings.py. "
             "Change it to 'production' before building the release."
         )
         
-    if CONFIG["VERSION"] != version:
+    if settings.version != version:
         raise ValueError(
-            "Version in Engine/config/config.py is not the same as the new version. "
+            "Version in Engine/settings/settings.py is not the same as the new version. "
             "Change it to the new version before building the release."
         )
     
-    log_info(f"Environment configuration check passed. ENV is set to '{CONFIG['ENV']}'.")
+    log_info(f"Environment configuration check passed. ENV is set to '{settings.env}'.")
     
 
 def update_versions(new_version: str) -> None:

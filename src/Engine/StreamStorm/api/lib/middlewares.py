@@ -1,15 +1,15 @@
-from fastapi import Request
 from logging import Logger, getLogger
+from os import environ
+
+from fastapi import Request
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
-from os import environ
-from fastapi.responses import JSONResponse
 
 from ...core.StreamStorm import StreamStorm
+from ...settings import settings
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
-
-polling_paths: set[str] = {"/config", "/get_ram_info"}
 
 
 class LogRequestMiddleware(BaseHTTPMiddleware):
@@ -18,31 +18,35 @@ class LogRequestMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
         path: str = request.url.path
 
-        if path not in polling_paths:
-            client_ip: str = request.client.host if request.client else "unknown"
-            url: str = str(request.url)
-            method: str = request.method
-            headers: dict = dict(request.headers)
+        client_ip: str = request.client.host if request.client else "unknown"
+        url: str = str(request.url)
+        method: str = request.method
+        headers: dict = dict(request.headers)
 
-            try:
-                body: bytes = await request.body()
-                body_str: str = body.decode("utf-8", errors="replace")
+        try:
+            body: bytes = await request.body()
+            body_str: str = body.decode("utf-8", errors="replace")
 
-            except Exception:
-                body_str: str = "<unable to decode>"
+        except Exception:
+            body_str: str = "<unable to decode>"
 
-            logger.debug(
-                "[REQUEST RECEIVED]\n"
-                f"IP: {client_ip}\n"
-                f"URL: {url}\n"
-                f"Path: {path}\n"
-                f"Method: {method}\n"
-                "Headers:\n"
-                + "\n".join([f"  {k}: {v}" for k, v in headers.items()])
-                + "\n"
-                "Body:\n"
-                f"{body_str if body_str.strip() else '  <empty>'}\n"
-            )
+        finally:
+            if path in settings.sensitive_endpoints and method == "POST":                
+                final_body: str = "  <hidden-due-to-sensitive-data>\n"
+            else:
+                final_body: str = f"{body_str if body_str.strip() else '  <empty>'}\n"
+                
+
+
+        logger.debug(
+            "[REQUEST RECEIVED]\n"
+            f"IP: {client_ip}\n"
+            f"URL: {url}\n"
+            f"Path: {path}\n"
+            f"Method: {method}\n"
+            "Headers:\n" + "\n".join([f"  {k}: {v}" for k, v in headers.items()]) + "\n"
+            "Body:\n" + final_body
+        )
 
         response: Response = await call_next(request)
 
@@ -100,13 +104,13 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
                         },
                         headers=cors_headers,
                     )
-                    
+
                     # return JSONResponse(
                     #     status_code=200,
                     #     content={
                     #         "success": True,
                     #         "message": "Testing",
-                    #     },                  
+                    #     },
                     # )
 
         if (

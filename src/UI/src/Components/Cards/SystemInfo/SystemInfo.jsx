@@ -22,7 +22,7 @@ const SystemInfo = () => {
     const { colorScheme } = useColorScheme();
 
     const onIconClick = () => {
-        systemInfoControls.setDebugList((prev) => [...prev, 0]);
+        systemInfoControls.setDebugCounter((prev) => prev + 1);
     };
 
     const createInitialPoints = () => {

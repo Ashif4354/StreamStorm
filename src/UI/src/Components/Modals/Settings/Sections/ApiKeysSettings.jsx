@@ -246,7 +246,7 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
     const handleSetAsDefault = async () => {
         setSetDefaultLoading(true);
         const finalModel = isCustomUrl ? customModel : (model === 'other' ? customModel : model);
-        const success = await onSetDefault(provider.id, finalModel, provider.hasBaseUrl ? baseUrl : null);
+        const success = await onSetDefault(provider.id, apiKey, finalModel, provider.hasBaseUrl ? baseUrl : null);
         setSetDefaultLoading(false);
 
         if (success) {

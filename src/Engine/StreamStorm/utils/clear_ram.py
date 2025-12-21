@@ -1,6 +1,6 @@
 from subprocess import Popen
 from platform import system
-from ..config.config import CONFIG
+from ..settings import settings
 
 from logging import getLogger, Logger
 
@@ -11,7 +11,7 @@ def clear_ram() -> None:
     if system() != "Windows":
         return
     
-    rammap_path: str = CONFIG['ROOT'] / "RAMMap.exe"
+    rammap_path: str = settings.root / "RAMMap.exe"
     
     try:
         Popen(

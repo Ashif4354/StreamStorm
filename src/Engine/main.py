@@ -22,9 +22,9 @@ from socketio import ASGIApp
 from uvicorn import run as run_uvicorn
 from webview import create_window, start
 
-from StreamStorm.config.config import CONFIG
+from StreamStorm.settings import settings
 
-logfire_configure(service_name="StreamStorm", environment=CONFIG["ENV"])
+logfire_configure(token=settings.logfire_token, service_name="StreamStorm", environment=settings.env)
 
 from StreamStorm.api.fastapi_app import app as fastapi_app
 from StreamStorm.socketio.sio import sio
@@ -44,8 +44,8 @@ def serve_api() -> None:
     logger.debug("Starting API-SocketIO Server")
 
     app: ASGIApp = ASGIApp(sio, fastapi_app)
-    HOST: str = "0.0.0.0"
-    PORT: int = 1919  # 1919, because 19 is the character number for "S" in the English alphabets.
+    HOST: str = settings.host
+    PORT: int = settings.port
 
     logger.info(f"StreamStorm Engine listening at {HOST}:{PORT}")
 
@@ -59,11 +59,11 @@ def serve_api() -> None:
 
 def main() -> None:
     # Comment this below two line after testing
-    if CONFIG["ENV"] == "development":
+    if settings.env == "development":
         serve_api()
         return
 
-    if CONFIG["OS"] == "Windows":
+    if settings.os == "Windows":
         check_update(parallel=True)
 
     Thread(target=serve_api, daemon=True).start()
@@ -72,7 +72,7 @@ def main() -> None:
     try:
         ui_url: str = (
             "https://streamstorm-ui.darkglance.in/"
-            if CONFIG["ENV"] == "production"
+            if settings.env == "production"
             else "http://localhost:5173"
         )
         # ui_url = "https://streamstorm-ui.darkglance.in/"
@@ -88,7 +88,7 @@ def main() -> None:
         )
         logger.debug("Webview created.")
 
-        if CONFIG["OS"] == "Linux":
+        if settings.os == "Linux":
             start(gui="qt")
         else:
             start()

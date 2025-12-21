@@ -10,7 +10,7 @@ from logfire import instrument_fastapi, instrument_pydantic_ai
 from psutil import virtual_memory
 from selenium.common.exceptions import SessionNotCreatedException
 
-from ..config import CONFIG
+from ..settings import settings
 from ..core.StreamStorm import StreamStorm
 from ..utils.CustomLogger import CustomLogger
 from .lib.exception_handlers import (
@@ -30,7 +30,7 @@ CustomLogger().setup_fastapi_logging()
 logger: Logger = getLogger(f"fastapi.{__name__}")
 logger.setLevel(DEBUG)
 
-if CONFIG["ENV"] == "development":
+if settings.env == "development":
     logger.debug("Instrumenting atatus")
 
     from atatus import Client, get_client, set_response_body
@@ -43,7 +43,7 @@ if CONFIG["ENV"] == "development":
             {
                 "APP_NAME": environ.get("ATATUS_APP_NAME"),
                 "LICENSE_KEY": environ.get("ATATUS_LICENSE_KEY"),
-                "APP_VERSION": CONFIG["VERSION"],
+                "APP_VERSION": settings.version,
                 "TRACING": True,
                 "ANALYTICS": True,
                 "ANALYTICS_CAPTURE_OUTGOING": True,
@@ -61,7 +61,7 @@ else:
 
 app: FastAPI = FastAPI(lifespan=lifespan)
 
-if CONFIG["ENV"] == "development":
+if settings.env == "development":
     instrument_fastapi(app)
     instrument_pydantic_ai()
 
@@ -93,7 +93,7 @@ async def add_cors_headers(request: Request, call_next: Callable):
     return response
 
 
-if CONFIG["ENV"] == "development":
+if settings.env == "development":
 
     @app.middleware("http")
     async def add_atatus_set_response_body_middleware(
@@ -157,7 +157,7 @@ async def get_ram_info() -> JSONResponse:
 @app.get("/config")
 async def status() -> JSONResponse:
     response: dict = {
-        "version": CONFIG["VERSION"],
+        "version": settings.version,
         "log_file_path": StreamStorm.log_file_path,
     }
 

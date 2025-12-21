@@ -9,7 +9,7 @@ from datetime import datetime
 from asyncio import AbstractEventLoop, run_coroutine_threadsafe
 
 from .GetIstTime import get_ist_time
-from ..config import CONFIG
+from ..settings import settings
 from ..api.validation import StormData
 from ..socketio.sio import sio
 from ..core.StreamStorm import StreamStorm
@@ -63,7 +63,7 @@ class CustomLogger:
 
     def __get_console_handler(self) -> Handler:
         
-        env: str = CONFIG.get("ENV")
+        env: str = settings.env
         handler: Handler = NullHandler()
 
         if env == "development":
@@ -146,7 +146,7 @@ class CustomLogger:
         logger.propagate = False
         
     def log_to_history(self, data: StormData, remarks: str = "No remarks") -> None:
-        if CONFIG.get("ENV") == "test":
+        if settings.env == "test":
             return
         
         logger: Logger = getLogger("history")
