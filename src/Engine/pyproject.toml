@@ -20,7 +20,7 @@ dependencies = [
     "pyautogui>=0.9.54",
     "python-socketio>=5.14.3",
     "yt-dlp>=2025.11.12",
-    "pydantic-ai>=0.4.3",
+    "pydantic-ai-slim[anthropic,fastmcp,google,logfire,openai]>=0.4.3",
 ]
 
 [dependency-groups]
@@ -31,5 +31,6 @@ dev = [
     "atatus>=2.0.0",
     "python-dotenv>=1.1.1",
     "pytest>=8.4.1",
-    "pytest-mock>=3.14.1"
+    "pytest-mock>=3.14.1",
+    "logfire[fastapi]>=4.16.0",
 ]

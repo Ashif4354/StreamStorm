@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from logfire import instrument_fastapi, instrument_pydantic_ai
 from psutil import virtual_memory
 from selenium.common.exceptions import SessionNotCreatedException
 
@@ -32,11 +33,7 @@ logger.setLevel(DEBUG)
 if CONFIG["ENV"] == "development":
     logger.debug("Instrumenting atatus")
 
-    from dotenv import load_dotenv
-
-    load_dotenv()
-
-    from atatus import Client, get_client
+    from atatus import Client, get_client, set_response_body
     from atatus.contrib.starlette import Atatus, create_client
 
     atatus_client: Optional[Client] = get_client()
@@ -63,6 +60,10 @@ else:
     logger.debug("Skipping atatus instrumentation in production")
 
 app: FastAPI = FastAPI(lifespan=lifespan)
+
+if CONFIG["ENV"] == "development":
+    instrument_fastapi(app)
+    instrument_pydantic_ai()
 
 app.exception_handlers = {
     Exception: common_exception_handler,
@@ -93,16 +94,37 @@ async def add_cors_headers(request: Request, call_next: Callable):
 
 
 if CONFIG["ENV"] == "development":
-    # @app.middleware("http")
-    # async def add_atatus_set_response_body_middleware(request: Request, call_next: Callable):
-    #     response: Response = await call_next(request)
 
-    #     if request.method == "POST":
-    #         set_response_body(response.body)
+    @app.middleware("http")
+    async def add_atatus_set_response_body_middleware(
+        request: Request, call_next: Callable
+    ):
+        response: Response = await call_next(request)
 
-    #     return response
+        response_body = b""
+        async for chunk in response.body_iterator:
+            response_body += chunk
 
-    # logger.debug("Atatus set_response_body middleware added to FastAPI app")
+        if response_body:
+            try:
+                decoded_body = response_body.decode("utf-8")
+                set_response_body(decoded_body)
+            except Exception as e:
+                logger.error(f"Error setting response body: {e}")
+
+            headers = dict(response.headers)
+            headers.pop("content-length", None)
+
+            return Response(
+                content=response_body,
+                status_code=response.status_code,
+                headers=headers,
+                media_type=response.media_type,
+            )
+
+        return response
+
+    logger.debug("Atatus set_response_body middleware added to FastAPI app")
 
     app.add_middleware(Atatus, client=atatus_client)
     logger.debug("Atatus middleware added to FastAPI app")
@@ -139,9 +161,7 @@ async def status() -> JSONResponse:
         "log_file_path": StreamStorm.log_file_path,
     }
 
-    return JSONResponse(
-        status_code=200, 
-        content=response
-    )    
+    return JSONResponse(status_code=200, content=response)
+
 
 __all__: list[str] = ["app"]
