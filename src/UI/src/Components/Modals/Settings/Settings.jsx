@@ -50,12 +50,9 @@ const Settings = (props) => {
                     },
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    // Response format: { providers: { openai: {...}, anthropic: {...}, google: {...} }, defaultProvider, defaultModel, defaultBaseUrl }
+                const data = await response.json();
+                if (data.success) {
                     setApiKeysData(data.providers ?? {});
-
-                    // Update app state with fetched default settings (handle nulls)
                     setDefaultAIProvider(data.defaultProvider ?? null);
                     setDefaultAIModel(data.defaultModel ?? null);
                     setDefaultAIBaseUrl(data.defaultBaseUrl ?? null);
@@ -93,8 +90,8 @@ const Settings = (props) => {
                 }),
             });
 
-            if (response.ok) {
-                const data = await response.json();
+            const data = await response.json();
+            if (data.success) {
                 setDefaultAIProvider(data.defaultProvider);
                 setDefaultAIModel(data.defaultModel);
                 setDefaultAIBaseUrl(data.defaultBaseUrl ?? null);

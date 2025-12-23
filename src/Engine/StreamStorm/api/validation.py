@@ -224,8 +224,6 @@ class KillInstanceData(BaseModel):
     index: StrictInt = Field(... , ge=0, description="Instance index must be a non-negative integer")
     name: str = Field(... , description="Channel name")
 
-
-# Settings Models
 class AIProviderKeyData(BaseModel):
     """Model for saving a single AI provider's configuration"""
     model_config = ConfigDict(strict=True)

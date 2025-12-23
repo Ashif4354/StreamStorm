@@ -29,7 +29,7 @@ logger: Logger = getLogger(f"fastapi.{__name__}")
 
 router: APIRouter = APIRouter(prefix="/storm")
 
-@router.get("/")
+@router.get("")
 async def index() -> JSONResponse:
     if StreamStorm.ss_instance is None:
         return JSONResponse(

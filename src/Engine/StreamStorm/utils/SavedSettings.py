@@ -42,7 +42,6 @@ class Provider(BaseModel):
     baseUrl: Optional[str] = None
 
 
-# 2. Group them (The Chunin level)
 class AIProviders(BaseModel):
     openai: Provider = Field(
         default_factory=lambda: Provider(baseUrl="https://api.openai.com/v1")
@@ -51,7 +50,6 @@ class AIProviders(BaseModel):
     google: Provider = Field(default_factory=Provider)
 
 
-# 3. The Top Level (The Hokage level)
 class AISettings(BaseModel):
     providers: AIProviders = Field(default_factory=AIProviders)
     defaultProvider: Optional[str] = None
@@ -59,11 +57,11 @@ class AISettings(BaseModel):
     defaultBaseUrl: Optional[str] = None
 
 
-class Settings(BaseModel):
+class SavedSettings(BaseModel):
     ai: AISettings = Field(default_factory=AISettings)
 
 
-DEFAULT_SETTINGS: dict = Settings().model_dump()
+DEFAULT_SETTINGS: dict = SavedSettings().model_dump()
 
 
 async def ensure_settings_file() -> None:
@@ -78,7 +76,7 @@ async def ensure_settings_file() -> None:
         logger.info(f"Created default settings file: {SETTINGS_FILE_PATH}")
 
 
-async def read_settings(model_format: bool = False) -> dict | Settings:
+async def read_settings(model_format: bool = False) -> dict | SavedSettings:
     """Read settings from file, create if not exists"""
     await ensure_settings_file()
 
@@ -92,7 +90,7 @@ async def read_settings(model_format: bool = False) -> dict | Settings:
                 settings["ai"] = DEFAULT_SETTINGS["ai"]
 
             if model_format:
-                return Settings(**settings)
+                return SavedSettings(**settings)
 
             return settings
 
@@ -102,7 +100,7 @@ async def read_settings(model_format: bool = False) -> dict | Settings:
             await file.write(dumps(DEFAULT_SETTINGS, indent=4))
 
         if model_format:
-            return Settings(**DEFAULT_SETTINGS)
+            return SavedSettings(**DEFAULT_SETTINGS)
 
         return DEFAULT_SETTINGS.copy()
 
@@ -119,5 +117,5 @@ async def write_settings(settings: dict) -> None:
 __all__ = [
     "read_settings",
     "write_settings",
-    "Settings",
+    "SavedSettings",
 ]

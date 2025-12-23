@@ -188,15 +188,15 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
                 }),
             });
 
-            if (response.ok) {
-                const responseData = await response.json();
+            const responseData = await response.json();
+            if (responseData.success) {
                 const savedModel = isCustomUrl ? customModel : finalModel;
                 onUpdateApiKey(provider.id, {
                     apiKey,
                     baseUrl,
                     model: savedModel
                 });
-                // If this is the default provider, update the default model in parent
+                
                 if (responseData.defaultModelUpdated && onDefaultModelUpdated) {
                     onDefaultModelUpdated(savedModel);
                 }

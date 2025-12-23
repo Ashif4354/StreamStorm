@@ -4,10 +4,9 @@ from typing import Literal
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from ...utils.settings_json import read_settings, write_settings
+from ...utils.SavedSettings import read_settings, write_settings, SavedSettings
 from ..validation import AIProviderKeyData, SetDefaultProviderData
 from ...settings import settings
-from ...utils.settings_json import Settings
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
 
@@ -20,13 +19,13 @@ async def get_ai_keys() -> JSONResponse:
     logger.debug("Fetching AI provider keys")
 
     try:
-        settings: Settings = await read_settings(model_format=True)
+        settings: SavedSettings = await read_settings(model_format=True)
 
         logger.info("AI provider keys fetched successfully")
 
         return JSONResponse(
             status_code=200, 
-            content=settings.ai.model_dump()
+            content={"success": True, **settings.ai.model_dump()}
         )
 
     except Exception as e:

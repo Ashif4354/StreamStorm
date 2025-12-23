@@ -1,5 +1,5 @@
 from typing import Any
-
+from logging import Logger, getLogger
 from pydantic import BaseModel
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
@@ -7,6 +7,8 @@ from pydantic_ai.models import Model
 from .Base import AIBase
 from .PydanticAIModelFactory import ModelFactory
 from .ResponseModels import AIGeneratedChannels, AIGeneratedMessages
+
+logger: Logger = getLogger(f"fastapi.{__name__}")
 
 
 class PydanticAI(AIBase):
@@ -56,6 +58,7 @@ class PydanticAI(AIBase):
         try:
             responses = await self._generate(agent, prompt)
         except Exception as e:
+            logger.error(f"Error generating messages: {e}")
             responses = AIGeneratedMessages(messages=[])
 
         return responses.messages
