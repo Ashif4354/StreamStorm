@@ -53,5 +53,6 @@ DEFAULT_SAVED_SETTINGS: dict = SavedSettings().model_dump()
 
 __all__ = [
     "SavedSettings",
+    "AISettings",
     "DEFAULT_SAVED_SETTINGS",
 ]

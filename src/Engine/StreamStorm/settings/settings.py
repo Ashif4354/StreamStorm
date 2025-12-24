@@ -11,7 +11,7 @@ from pydantic import model_validator, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from asyncer import syncify
 
-from .SavedSettings import SavedSettings, DEFAULT_SAVED_SETTINGS
+from SavedSettings import SavedSettings, AISettings, DEFAULT_SAVED_SETTINGS
 
 ROOT: Path = Path(__file__).parent.parent.parent.parent.parent.resolve()
 APP_DATA_DIR: Path = Path(user_data_dir("StreamStorm", "DarkGlance"))
@@ -61,6 +61,7 @@ async def write_settings(settings: dict) -> None:
     async with aio_open(SETTINGS_FILE_PATH, "w", encoding="utf-8") as file:
         await file.write(dumps(settings, indent=4))
 
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=(".env", "../../.env", "../src/Engine/.env"),
@@ -92,23 +93,33 @@ class Settings(BaseSettings):
     }
 
     saved_settings: SavedSettings = Field(default_factory=SavedSettings) 
+    ai: AISettings = Field(default_factory=AISettings)
 
     @model_validator(mode="before")
     @classmethod
     def load_saved_settings(cls, data: dict) -> dict:
         settings = syncify(read_settings_json, raise_sync_error=False)()
         data["saved_settings"] = settings
+        data["ai"] = settings.ai
 
         return data
 
     @model_validator(mode="after")
     def save_settings(self) -> "Settings":
-        syncify(write_settings, raise_sync_error=False)(self.saved_settings.model_dump())  
+        settings_json_content: dict = self.saved_settings.model_dump()
+
+        settings_json_content["ai"] = self.ai.model_dump()
+
+        syncify(write_settings, raise_sync_error=False)(settings_json_content)  
 
         return self        
 
 
 settings: Settings = Settings()
+
+ai_settings = settings.ai
+ai_settings.providers.openai.apiKey = "123"
+settings.ai = ai_settings
 
 __all__: list[str] = ["settings"]
 
