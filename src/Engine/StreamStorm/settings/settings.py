@@ -6,10 +6,8 @@ from json import JSONDecodeError, dumps, loads
 from logging import Logger, getLogger
 
 from platformdirs import user_data_dir
-from aiofiles import open as aio_open
 from pydantic import model_validator, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from asyncer import syncify
 
 from .SavedSettings import SavedSettings, AISettings, DEFAULT_SAVED_SETTINGS
 
@@ -19,24 +17,24 @@ SETTINGS_FILE_PATH: Path = APP_DATA_DIR / "settings.json"
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
 
-async def ensure_settings_json_file() -> None:
+def ensure_settings_json_file() -> None:
     """Ensure the settings file and directory exist"""
     if not exists(APP_DATA_DIR):
         makedirs(APP_DATA_DIR, exist_ok=True)
         logger.info(f"Created settings directory: {APP_DATA_DIR}")
 
     if not exists(SETTINGS_FILE_PATH):
-        async with aio_open(SETTINGS_FILE_PATH, "w", encoding="utf-8") as file:
-            await file.write(dumps(DEFAULT_SAVED_SETTINGS, indent=4))
+        with open(SETTINGS_FILE_PATH, "w", encoding="utf-8") as file:
+            file.write(dumps(DEFAULT_SAVED_SETTINGS, indent=4))
         logger.info(f"Created default settings file: {SETTINGS_FILE_PATH}")
 
 
-async def read_settings_json() -> SavedSettings:        
-    await ensure_settings_json_file()
+def read_settings_json() -> SavedSettings:        
+    ensure_settings_json_file()
 
     try:
-        async with aio_open(SETTINGS_FILE_PATH, "r", encoding="utf-8") as file:
-            content = await file.read()
+        with open(SETTINGS_FILE_PATH, "r", encoding="utf-8") as file:
+            content = file.read()
             settings = loads(content)
 
             # Ensure AI section exists
@@ -48,18 +46,18 @@ async def read_settings_json() -> SavedSettings:
     except (JSONDecodeError, FileNotFoundError) as e:
         logger.error(f"Error reading settings file, recreating: {e}")
 
-        async with aio_open(SETTINGS_FILE_PATH, "w", encoding="utf-8") as file:
-            await file.write(dumps(DEFAULT_SAVED_SETTINGS, indent=4))
+        with open(SETTINGS_FILE_PATH, "w", encoding="utf-8") as file:
+            file.write(dumps(DEFAULT_SAVED_SETTINGS, indent=4))
 
         return SavedSettings(**DEFAULT_SAVED_SETTINGS) 
 
 
-async def write_settings(settings: dict) -> None:
+def write_settings_json(settings: dict) -> None:
     """Write settings to file"""
-    await ensure_settings_json_file()
+    ensure_settings_json_file()
 
-    async with aio_open(SETTINGS_FILE_PATH, "w", encoding="utf-8") as file:
-        await file.write(dumps(settings, indent=4))
+    with open(SETTINGS_FILE_PATH, "w", encoding="utf-8") as file:
+        file.write(dumps(settings, indent=4))
 
 
 class Settings(BaseSettings):
@@ -98,7 +96,7 @@ class Settings(BaseSettings):
     @model_validator(mode="before")
     @classmethod
     def load_saved_settings(cls, data: dict) -> dict:
-        settings = syncify(read_settings_json, raise_sync_error=False)()
+        settings = read_settings_json()
         data["saved_settings"] = settings
         data["ai"] = settings.ai
 
@@ -110,7 +108,7 @@ class Settings(BaseSettings):
 
         settings_json_content["ai"] = self.ai.model_dump()
 
-        syncify(write_settings, raise_sync_error=False)(settings_json_content)  
+        write_settings_json(settings_json_content)  
 
         return self        
 

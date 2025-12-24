@@ -77,19 +77,6 @@ wheels = [
 ]
 
 [[package]]
-name = "asyncer"
-version = "0.0.11"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "anyio" },
-    { name = "sniffio" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/76/91/0ee25acf9faa42bbe08e1ed79261dc7734b7dc9d4b8a9c32a932e0983a46/asyncer-0.0.11.tar.gz", hash = "sha256:c66c3f0700d12d89551b56f4bc867b4bd61601fd650e474b550ac874110062f1", size = 18353, upload-time = "2025-12-01T18:12:26.738Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d2/17/aae04a8e87b266581206af94159d5aa2899b006581033db7c64af8538403/asyncer-0.0.11-py3-none-any.whl", hash = "sha256:cdcda69773d042cc17bf45a69827b82fa89012def6ae24f8b3cd0ea70c44bb2d", size = 9531, upload-time = "2025-12-01T18:12:25.301Z" },
-]
-
-[[package]]
 name = "atatus"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2520,7 +2507,6 @@ version = "3.5.2"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofiles" },
-    { name = "asyncer" },
     { name = "dgupdater" },
     { name = "fastapi", extra = ["standard"] },
     { name = "platformdirs" },
@@ -2555,7 +2541,6 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiofiles", specifier = ">=24.1.0" },
-    { name = "asyncer", specifier = ">=0.0.11" },
     { name = "dgupdater", specifier = ">=1.2.1" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.14" },
     { name = "platformdirs", specifier = ">=4.3.8" },

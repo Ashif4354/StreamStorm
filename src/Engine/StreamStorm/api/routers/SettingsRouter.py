@@ -14,7 +14,7 @@ router: APIRouter = APIRouter(prefix="/settings")
 
 
 @router.get("/ai/keys")
-async def get_ai_keys() -> JSONResponse:
+def get_ai_keys() -> JSONResponse:
     """Get all AI provider keys and default provider"""
     logger.debug("Fetching AI provider keys")
 
@@ -36,7 +36,7 @@ async def get_ai_keys() -> JSONResponse:
 
 
 @router.post("/ai/keys/{provider_id}")
-async def save_ai_key(
+def save_ai_key(
     provider_id: Literal["openai", "anthropic", "google"], data: AIProviderKeyData
 ) -> JSONResponse:
 
@@ -83,7 +83,7 @@ async def save_ai_key(
 
 
 @router.get("/ai/default")
-async def get_default_provider() -> JSONResponse:
+def get_default_provider() -> JSONResponse:
     """Get the current default AI provider with model and baseUrl"""
     logger.debug("Fetching default AI provider")
 
@@ -111,7 +111,7 @@ async def get_default_provider() -> JSONResponse:
 
 
 @router.post("/ai/default")
-async def set_default_provider(data: SetDefaultProviderData) -> JSONResponse:
+def set_default_provider(data: SetDefaultProviderData) -> JSONResponse:
     
     logger.info(
         f"Setting default AI provider to: {data.provider} with model: {data.model}"
