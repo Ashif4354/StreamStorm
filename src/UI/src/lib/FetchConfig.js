@@ -6,11 +6,16 @@ const fetchConfig = async (appState) => {
     })
     .then(response => response.json())
     .then(data => {
-        appState.setEngineVersion(data.version);
-        appState.setLogFilePath(data.log_file_path);
+        if (data.success) {
+            appState.setEngineVersion(data.version);
+            appState.setLogFilePath(data.log_file_path);
+        } else {
+            console.error("Failed to fetch config:", data.message);
+            atatus.notify(data.message, {}, ['config_fetch_failed']);
+        }
     })
     .catch((error) => {
-        atatus.notify(error, {}, ['status_fetch_error']);
+        atatus.notify(error, {}, ['config_fetch_error']);
     });
 }
 

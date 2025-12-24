@@ -79,7 +79,6 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    /* gap: 0.5rem; */
 }
 
 .channel-selection-intermediate-container {
@@ -141,7 +140,6 @@
     flex-direction: column;
     height: 100%;
     border-radius: var(--border-radius);
-    background-color: aqua;
 }
 
 .logs-box-container {

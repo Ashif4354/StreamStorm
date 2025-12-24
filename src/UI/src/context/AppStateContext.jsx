@@ -50,6 +50,8 @@ const AppStateProvider = ({ children }) => {
 
         if (hostAddress) {
             fetchDefaultAISettings();
+        } else {
+            setAiSettingsLoading(false);
         }
     }, [hostAddress]);
 

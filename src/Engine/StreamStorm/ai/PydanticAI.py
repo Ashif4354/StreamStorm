@@ -67,7 +67,7 @@ class PydanticAI(AIBase):
 
     async def generate_channels(self, prompt: str) -> list[str]:
         system_prompt = (
-            "You are a YouTube channel names generator.",
+            "You are a YouTube channel names generator."
             "STRICT RULES: "
             "- You can mix existing or real channel names as well. "
             "- Generate names ONLY based on user-provided context. "
@@ -89,7 +89,7 @@ class PydanticAI(AIBase):
 
         try:
             response = await self._generate(agent, prompt)
-        except Exceptionas as e:
+        except Exception as e:
             response = AIGeneratedChannels(channel_names=[])
 
         return response.channel_names

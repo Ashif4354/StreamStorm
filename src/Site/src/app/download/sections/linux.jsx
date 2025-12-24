@@ -52,7 +52,7 @@ const Linux = () => {
                     </li>
                     <li>
                         <span className='linux-step-label'>Extract the archive:</span>
-                        <CodeBlock code="tar -xzf StreamStorm.tar.gz" />
+                        <CodeBlock code="tar -xzf streamstorm.tar.gz" />
                     </li>
                     <li>
                         <span className='linux-step-label'>Navigate to the directory:</span>

@@ -32,7 +32,6 @@ const ChipBasedConfig = (props) => {
             <Chip
                 sx={{
                     width: '120px',
-                    // marginRight: channel.status === 3 ? '0' : '1rem',
                 }}
                 variant="outlined"
                 size="small"

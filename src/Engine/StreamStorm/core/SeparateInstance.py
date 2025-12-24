@@ -10,7 +10,7 @@ from .Playwright import Playwright
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 class SeparateInstance(Playwright):
-    __slots__: tuple[str, ...] = ('channel_name', 'index', 'wait_time', 'should_wait')
+    __slots__: tuple[str, ...] = ('channel_name', 'index', 'wait_time', 'should_wait', 'profile_dir')
 
     def __init__(
         self,

@@ -15,25 +15,27 @@ const ChannelCard = (props) => {
     const appState = useAppState();
     const notifications = useNotifications();
     const dialogs = useDialogs();
-    let statusColor, statusText;
+    let statusColor, statusText, channelStatus;
 
     if (channel.status === undefined || channel.status === null) {
-        channel.status = -1; // Default to Idle if no status provided
+        channelStatus = -1; // Default to Idle if no status provided
+    } else {
+        channelStatus = channel.status
     }
 
-    if (channel.status === -1) { // Idle
+    if (channelStatus === -1) { // Idle
         statusColor = 'default';
         statusText = 'Idle';
-    } else if (channel.status === 0) {  // Dead
+    } else if (channelStatus === 0) {  // Dead
         statusColor = 'error';
         statusText = 'Dead';
-    } else if (channel.status === 1) {  // Getting Ready
+    } else if (channelStatus === 1) {  // Getting Ready
         statusColor = 'secondary';
         statusText = 'Getting Ready';
-    } else if (channel.status === 2) {  // Ready
+    } else if (channelStatus === 2) {  // Ready
         statusColor = 'info';
         statusText = 'Ready';
-    } else if (channel.status === 3) {  // Storming
+    } else if (channelStatus === 3) {  // Storming
         statusColor = 'success';
         statusText = 'Storming';
     }
@@ -132,7 +134,7 @@ const ChannelCard = (props) => {
                 <Button
                     variant="outlined"
                     size="small"
-                    disabled={channel.status <= 0}
+                    disabled={channelStatus <= 0}
                     onClick={onHandleKillInstance}
 
                     sx={{

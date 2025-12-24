@@ -40,7 +40,7 @@ const ServerContextProvider = ({ children }) => {
                     atatus.notify(error, {}, ['server_context_fetch_error']);
                 });
         }
-    }, [appState.stormInProgress]);
+    }, [appState.stormInProgress, appState.hostAddress]);
 
 
     const values = {

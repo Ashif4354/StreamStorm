@@ -24,7 +24,7 @@ const statsMap = [
     },
 ];
 
-export default function SystemStatsCard({ stats, note, sx, colorScheme }) {
+export default function SystemStatsCard({ stats, note }) {
     return (
         <Stack spacing={1.25}>
             {statsMap.map((s, i) => (

@@ -9,7 +9,6 @@ import { useServerContext } from "../../../context/ServerContext";
 const ConfigData = () => {
 
     const formControls = useStormData();
-    // const stormConfig = formControls.getStormData();
 
     const { stormData } = useServerContext();
 

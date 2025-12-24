@@ -176,6 +176,10 @@ class Playwright(BrowserAutomator):
                     
             logger.debug(f"[{self.index}] [{self.channel_name}] Element clicked: {selector_name} : {selector}")
             await element.click()
+
+            if check_brand_account:
+                return brand_account
+                
         except ElementNotFound as e:
             if not for_subscribe:
                 logger.error(f"[{self.index}] [{self.channel_name}] Element not found: {selector_name} : {selector}")
@@ -185,10 +189,10 @@ class Playwright(BrowserAutomator):
                     + selector
                 )
                 raise BrowserClosedError from e
-            
-        finally:
+
             if check_brand_account:
                 return brand_account
+            
 
     async def type_and_enter(self, text_field: Locator, message: str) -> None:
         """Type a message into a text field and press enter."""

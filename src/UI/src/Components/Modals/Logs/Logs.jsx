@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useColorScheme } from '@mui/material/styles';
 import { Divider, Modal, Box } from '@mui/material';
-import { Users, Terminal } from 'lucide-react';
+import { Terminal } from 'lucide-react';
 
 import '../Modals.css';
 import CloseButton from '../../Elements/CloseButton';

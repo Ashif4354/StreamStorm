@@ -41,8 +41,8 @@ if settings.env == "development":
     if atatus_client is None:
         atatus_client = create_client(
             {
-                "APP_NAME": environ.get("ATATUS_APP_NAME"),
-                "LICENSE_KEY": environ.get("ATATUS_LICENSE_KEY"),
+                "APP_NAME": settings.app_name,
+                "LICENSE_KEY": settings.atatus_license_key,
                 "APP_VERSION": settings.version,
                 "TRACING": True,
                 "ANALYTICS": True,
@@ -157,6 +157,7 @@ async def get_ram_info() -> JSONResponse:
 @app.get("/config")
 async def status() -> JSONResponse:
     response: dict = {
+        "success": True,
         "version": settings.version,
         "log_file_path": StreamStorm.log_file_path,
     }

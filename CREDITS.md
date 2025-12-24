@@ -5,7 +5,7 @@
  - Contributors <br>
     <div style="display: flex; margin-top: 1rem; margin-bottom: 1rem;">
         <a href="https://github.com/Ashif4354/StreamStorm/graphs/contributors">
-            <img src="https://contrib.rocks/image?repo=Ashif4354/StreamStorm" />
+            <img src="https://contrib.rocks/image?repo=Ashif4354/StreamStorm" alt="StreamStorm Contributors" />
         </a>
     </div>
 

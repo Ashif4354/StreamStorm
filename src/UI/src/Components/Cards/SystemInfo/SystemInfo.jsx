@@ -97,7 +97,6 @@ const SystemInfo = () => {
                     <Divider sx={{ marginY: "20px" }} />
                     <SystemStatsCard
                         stats={chartSeries[chartSeries.length - 1]}
-                        colorScheme={colorScheme}
                         note={`To operate one account you need approximately ${systemInfoControls.RAM_PER_PROFILE}MB of RAM. ${systemInfoControls.availableRAM
                             ? `Since you have ${systemInfoControls.availableRAM} MB of RAM available, you can run approximately ${Math.floor(systemInfoControls.availableRAM / systemInfoControls.RAM_PER_PROFILE)} channels.`
                             : "RAM information is currently unavailable."

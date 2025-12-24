@@ -134,7 +134,7 @@ const LeftPanelDashboard = () => {
             socket.off("storm_stopped");
             socket.off("storm_paused");
             socket.off("storm_resumed");
-            socket.off("message_rate");
+            socket.off("messages_rate");
             socket.off("total_messages");
             socket.off("instance_status");
         };
