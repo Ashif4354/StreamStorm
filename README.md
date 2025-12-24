@@ -65,8 +65,20 @@ uv sync
 uv run main.py
 ```
 
+or, if you have `make` installed, you can use:
+
+```bash
+# To run in production mode
+make run
+----------------------------
+# To run in development mode
+make ui
+# Then in a new terminal, in same directory, run
+make run-dev
+```
+
 * No need to install Python or a virtual environment, uv will handle everything for you.
-* The backend will run on `http://localhost:1919` by default. You can change this in the `main.py` file if needed.
+* The backend will run on `http://0.0.0.0:1919` by default. You can change this by setting `STREAMSTORM_HOST` and `STREAMSTORM_PORT` environment variable configuration.
 
 **Booting the UI (Frontend)**
 
@@ -75,12 +87,37 @@ The frontend is a React application built with Vite.
 ```bash
 cd src/UI
 npm install
-vite --host
+npm start
+```
+
+or, if you have `make` installed, you can use:
+
+```bash
+make ui
 ```
 
 * The frontend will run on `http://localhost:5173` by default. You can now open this URL in your browser and interact with the application.
 * By default, the Engine will load the UI from `https://streamstorm-ui.darkglance.in/` in a separate window, but you can change this in the `main.py` file if needed. 
 Just replace `https://streamstorm-ui.darkglance.in/` with `http://localhost:5173/` to load the local UI instead.
+
+**Running the Landing Page**
+
+The landing page is a Next.js application built with Vite.
+
+```bash
+cd src/LandingPage
+npm install
+npm run dev
+```
+
+or, if you have `make` installed, you can use:
+
+```bash
+make site
+```
+
+* The landing page will run on `http://localhost:3000` by default. You can now open this URL in your browser and interact with the application.
+
 
 # 🧠 **Troubleshooting & FAQ**
 
@@ -99,14 +136,3 @@ StreamStorm is licensed under the Personal Use License. See the [LICENSE](./LICE
 
 # 🏆 Credits
 ###### [Credits](./CREDITS.md)
-
-
-
-<!-- 
-### ⚠️ **Dos and Don’ts**
-
-*   **✅ DO** create profiles from within the app before starting a storm for the first time. The app needs to know about your YouTube accounts.
-*   **✅ DO** monitor your RAM usage, especially when running a large number of channels.
-*   **❌ DO NOT** close the browser windows manually while a storm is in progress. Use the "Stop" button in the UI.
-*   **❌ DO NOT** interrupt the profile creation process. It can lead to corrupted profiles. If it fails, use the "Delete All Profiles" feature and try again.
-*   **⚠️ Acknowledgment**: Automating user interactions on platforms like YouTube can be against their Terms of Service. Use this tool responsibly. The developers are not responsible for any account suspension or action taken against you. -->
