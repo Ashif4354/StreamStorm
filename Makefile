@@ -1,4 +1,4 @@
-.PHONY: help run run-ui run-site build-ui build-site deb artifacts update-versions executable firebase-deploy dgupdater-commit-publish generate-setup-windows trigger-cross-os-build build-and-release
+.PHONY: help run run-dev run-api run-api-dev pytest run-ui run-site build-ui build-site deb artifacts update-versions executable firebase-deploy dgupdater-commit-publish generate-setup-windows trigger-cross-os-build build-and-release
 
 # Variables
 PY_SCRIPTS_DIR := build/scripts
@@ -25,8 +25,12 @@ help:
 	@echo ""
 	@echo "Core Commands:"
 	@echo "  make run                      Start the Engine app (uv run main.py in src/Engine)"
-	@echo "  make ui                   Start the UI (npm start in src/UI)"
-	@echo "  make site                 Start the Site (npm run dev in src/Site)"
+	@echo "  make run-dev                  Start Engine in development mode"
+	@echo "  make run-api                  Start API only"
+	@echo "  make run-api-dev              Start API only in development mode"
+	@echo "  make pytest                   Run tests with STREAMSTORM_ENV=test"
+	@echo "  make ui                       Start the UI (npm start in src/UI)"
+	@echo "  make site                     Start the Site (npm run dev in src/Site)"
 	@echo ""
 	@echo "Build Commands:"
 	@echo "  make build-ui                 Build the UI (npm build in src/UI)"
@@ -56,15 +60,47 @@ deps:
 	cd src/Engine && uv sync
 
 run:
-	@echo "Starting Engine application..."
+	@echo "Starting Engine..."
 	cd src/Engine && uv run main.py
 
+run-dev:
+	@echo "Starting Engine in development mode..."
+ifeq ($(OS),Windows_NT)
+	cd src/Engine && set STREAMSTORM_ENV=development&& uv run main.py
+else
+	cd src/Engine && STREAMSTORM_ENV=development uv run main.py
+endif
+
+run-api:
+	@echo "Starting API only..."
+ifeq ($(OS),Windows_NT)
+	cd src/Engine && set STREAMSTORM_RUN_ONLY_API=true&& uv run main.py
+else
+	cd src/Engine && STREAMSTORM_RUN_ONLY_API=true uv run main.py
+endif
+
+run-api-dev:
+	@echo "Starting API only in development mode..."
+ifeq ($(OS),Windows_NT)
+	cd src/Engine && set STREAMSTORM_ENV=development&& set STREAMSTORM_RUN_ONLY_API=true&& uv run main.py
+else
+	cd src/Engine && STREAMSTORM_ENV=development STREAMSTORM_RUN_ONLY_API=true uv run main.py
+endif
+
+pytest:
+	@echo "Running tests..."
+ifeq ($(OS),Windows_NT)
+	cd src/Engine && set STREAMSTORM_ENV=test&& uv run pytest
+else
+	cd src/Engine && STREAMSTORM_ENV=test uv run pytest
+endif
+
 ui:
-	@echo "Starting UI application..."
+	@echo "Starting UI..."
 	cd src/UI && npm start
 
 site:
-	@echo "Starting Site application..."
+	@echo "Starting Site..."
 	cd src/Site && npm run dev
 
 # ============================================================================

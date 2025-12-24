@@ -71,10 +71,11 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 1919  # 1919, because 19 is the character number for "S" in the English alphabets.
 
-    env: str = "development"  # Valid values {"development", "production", "test"}
+    env: str = "production"  # Valid values {"development", "production", "test"}
     version: str = "3.5.2"
     root: Path = ROOT
     os: str = system()
+    run_only_api: bool = False
 
     atatus_app_name: str = ""  # Fetches from env variable
     atatus_license_key: str = ""  # Fetches from env variable

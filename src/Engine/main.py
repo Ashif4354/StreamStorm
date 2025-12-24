@@ -24,7 +24,12 @@ from webview import create_window, start
 
 from StreamStorm.settings import settings
 
-logfire_configure(token=settings.logfire_token, service_name="StreamStorm", environment=settings.env)
+logfire_configure(
+    token=settings.logfire_token, 
+    service_name="StreamStorm", 
+    environment=settings.env, 
+    console=False
+)
 
 from StreamStorm.api.fastapi_app import app as fastapi_app
 from StreamStorm.socketio.sio import sio
@@ -58,8 +63,7 @@ def serve_api() -> None:
 
 
 def main() -> None:
-    # Comment this below two line after testing
-    if settings.env == "development":
+    if settings.run_only_api:
         serve_api()
         return
 
