@@ -13,8 +13,16 @@ DEFAULT_SAVED_SETTINGS: dict = {
                 "model": "",
                 "baseUrl": "https://api.openai.com/v1",
             },
-            "anthropic": {"apiKey": "", "model": "", "baseUrl": None},
-            "google": {"apiKey": "", "model": "", "baseUrl": None},
+            "anthropic": {
+                "apiKey": "", 
+                "model": "", 
+                "baseUrl": None
+            },
+            "google": {
+                "apiKey": "", 
+                "model": "", 
+                "baseUrl": None
+            },
         },
         "defaultProvider": None,
         "defaultModel": None,

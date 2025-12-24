@@ -11,7 +11,7 @@ from pydantic import model_validator, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from asyncer import syncify
 
-from SavedSettings import SavedSettings, AISettings, DEFAULT_SAVED_SETTINGS
+from .SavedSettings import SavedSettings, AISettings, DEFAULT_SAVED_SETTINGS
 
 ROOT: Path = Path(__file__).parent.parent.parent.parent.parent.resolve()
 APP_DATA_DIR: Path = Path(user_data_dir("StreamStorm", "DarkGlance"))
@@ -116,10 +116,6 @@ class Settings(BaseSettings):
 
 
 settings: Settings = Settings()
-
-ai_settings = settings.ai
-ai_settings.providers.openai.apiKey = "123"
-settings.ai = ai_settings
 
 __all__: list[str] = ["settings"]
 

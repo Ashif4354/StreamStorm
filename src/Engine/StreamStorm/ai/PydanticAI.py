@@ -7,21 +7,23 @@ from pydantic_ai.models import Model
 from .Base import AIBase
 from .PydanticAIModelFactory import ModelFactory
 from .ResponseModels import AIGeneratedChannels, AIGeneratedMessages
+from ..settings import settings
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
-
 
 class PydanticAI(AIBase):
     def __init__(
         self,
-        provider_name: str,
-        model_name: str,
-        api_key: str,
-        base_url: str | None = None,
+        provider_name: str = settings.ai.defaultProvider,
+        model_name: str = settings.ai.defaultModel,
+        api_key: str = "",
+        base_url: str | None = settings.ai.defaultBaseUrl,
     ):
         """
         Initializes the AI service with a specific provider.
         """
+        api_key: str = getattr(settings.ai.providers, provider_name).apiKey
+        
         self.model: Model = ModelFactory.get_model(
             provider_name, model_name=model_name, api_key=api_key, base_url=base_url
         )

@@ -4,7 +4,7 @@ from typing import Literal
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from ...utils.SavedSettings import read_settings, write_settings, SavedSettings
+from ...settings.SavedSettings import AISettings
 from ..validation import AIProviderKeyData, SetDefaultProviderData
 from ...settings import settings
 
@@ -19,8 +19,6 @@ async def get_ai_keys() -> JSONResponse:
     logger.debug("Fetching AI provider keys")
 
     try:
-        settings: SavedSettings = await read_settings(model_format=True)
-
         logger.info("AI provider keys fetched successfully")
 
         return JSONResponse(
@@ -45,25 +43,24 @@ async def save_ai_key(
     logger.info(f"Saving AI key for provider: {provider_id}")
 
     try:
-        settings: dict = await read_settings()
+        ai_settings: AISettings = settings.ai.model_copy()
 
         # Update provider data
-        settings["ai"]["providers"][provider_id]["apiKey"] = data.api_key
-        settings["ai"]["providers"][provider_id]["model"] = data.model
+        getattr(ai_settings.providers, provider_id).apiKey = data.api_key
+        getattr(ai_settings.providers, provider_id).model = data.model
 
         if data.base_url is not None:
-            settings["ai"]["providers"][provider_id]["baseUrl"] = data.base_url
+            getattr(ai_settings.providers, provider_id).baseUrl = data.base_url
         elif provider_id == "openai":
-            settings["ai"]["providers"][provider_id]["baseUrl"] = (
-                "https://api.openai.com/v1"
-            )
+            ai_settings.providers.openai.baseUrl = "https://api.openai.com/v1"
 
         # If this provider is the current default, update defaultModel as well
-        if settings["ai"].get("defaultProvider") == provider_id:
-            settings["ai"]["defaultModel"] = data.model
+        if ai_settings.defaultProvider == provider_id:
+            ai_settings.defaultModel = data.model
+
             logger.info(f"Updated defaultModel to: {data.model}")
 
-        await write_settings(settings)
+        settings.ai = ai_settings  # writes to settings.json
 
         logger.info(f"AI key saved successfully for provider: {provider_id}")
 
@@ -72,16 +69,44 @@ async def save_ai_key(
             content={
                 "success": True,
                 "message": f"{provider_id.capitalize()} settings saved successfully",
-                "defaultModelUpdated": settings["ai"].get("defaultProvider")
-                == provider_id,
+                "defaultModelUpdated": settings.ai.defaultProvider == provider_id,
             },
         )
 
     except Exception as e:
         logger.error(f"Error saving AI key for {provider_id}: {e}")
+        
         return JSONResponse(
             status_code=500,
             content={"success": False, "message": f"Error saving settings: {str(e)}"},
+        )
+
+
+@router.get("/ai/default")
+async def get_default_provider() -> JSONResponse:
+    """Get the current default AI provider with model and baseUrl"""
+    logger.debug("Fetching default AI provider")
+
+    try:
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "defaultProvider": settings.ai.defaultProvider,
+                "defaultModel": settings.ai.defaultModel,
+                "defaultBaseUrl": settings.ai.defaultBaseUrl,
+            },
+        )
+
+    except Exception as e:
+        logger.error(f"Error fetching default provider: {e}")
+
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "message": f"Error fetching default provider: {str(e)}",
+            },
         )
 
 
@@ -93,15 +118,14 @@ async def set_default_provider(data: SetDefaultProviderData) -> JSONResponse:
     )
 
     try:
-        settings = await read_settings()
+        ai_settings: AISettings = settings.ai.model_copy()
 
         # Set default provider, apiKey, model, and baseUrl from request data
-        settings["ai"]["defaultProvider"] = data.provider
-        settings["ai"]["defaultApiKey"] = data.api_key
-        settings["ai"]["defaultModel"] = data.model
-        settings["ai"]["defaultBaseUrl"] = data.base_url
+        ai_settings.defaultProvider = data.provider
+        ai_settings.defaultModel = data.model
+        ai_settings.defaultBaseUrl = data.base_url
 
-        await write_settings(settings)
+        settings.ai = ai_settings  # writes to settings.json
 
         logger.info(
             f"Default AI provider set to: {data.provider} with model: {data.model}"
@@ -111,15 +135,16 @@ async def set_default_provider(data: SetDefaultProviderData) -> JSONResponse:
             status_code=200,
             content={
                 "success": True,
-                "message": f"{data.provider.capitalize()} set as default provider",
-                "defaultProvider": data.provider,
-                "defaultModel": data.model,
-                "defaultBaseUrl": data.base_url,
+                "message": f"{settings.ai.defaultProvider.capitalize()} set as default provider",
+                "defaultProvider": settings.ai.defaultProvider,
+                "defaultModel": settings.ai.defaultModel,
+                "defaultBaseUrl": settings.ai.defaultBaseUrl,
             },
         )
 
     except Exception as e:
         logger.error(f"Error setting default provider: {e}")
+
         return JSONResponse(
             status_code=500,
             content={
@@ -129,31 +154,4 @@ async def set_default_provider(data: SetDefaultProviderData) -> JSONResponse:
         )
 
 
-@router.get("/ai/default")
-async def get_default_provider() -> JSONResponse:
-    """Get the current default AI provider with model and baseUrl"""
-    logger.debug("Fetching default AI provider")
 
-    try:
-        settings = await read_settings()
-        ai_settings = settings.get("ai", {})
-
-        return JSONResponse(
-            status_code=200,
-            content={
-                "success": True,
-                "defaultProvider": ai_settings.get("defaultProvider", None),
-                "defaultModel": ai_settings.get("defaultModel", None),
-                "defaultBaseUrl": ai_settings.get("defaultBaseUrl", None),
-            },
-        )
-
-    except Exception as e:
-        logger.error(f"Error fetching default provider: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={
-                "success": False,
-                "message": f"Error fetching default provider: {str(e)}",
-            },
-        )
