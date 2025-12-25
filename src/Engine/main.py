@@ -16,6 +16,7 @@ from os import getpid, kill
 from signal import SIGTERM
 from threading import Thread
 
+from fastapi import FastAPI
 from dgupdater import check_update
 from logfire import configure as logfire_configure
 from socketio import ASGIApp
@@ -48,10 +49,21 @@ def exit_app() -> None:
 
 def serve_api() -> None:
     logger.debug("Starting API-SocketIO Server")
+    
+    new_app: FastAPI = FastAPI(
+        title="StreamStorm API with MCP Server",
+        version=settings.version,
+        routes=[
+            *mcp_app.routes
+        ],
+        lifespan=mcp_app.lifespan,
+        docs_url="/mcp-docs",
+        openapi_url="/mcp-openapi.json"
+    )
 
-    fastapi_app.mount("/mcp", mcp_app)
+    new_app.mount("/", fastapi_app)
 
-    app: ASGIApp = ASGIApp(sio, fastapi_app)
+    app: ASGIApp = ASGIApp(sio, new_app)
     HOST: str = settings.host
     PORT: int = settings.port
 

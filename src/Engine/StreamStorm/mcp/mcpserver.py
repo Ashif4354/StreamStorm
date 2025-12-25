@@ -317,7 +317,7 @@ def tool_get_logs(last_n_lines: int) -> dict[str, Any]:
 #     """
 #     return get_logs(last_n_lines)
 
-mcp_app = mcp.http_app(path='/')
+mcp_app = mcp.http_app(path='/mcp')
 
 __all__: list[str] = [
     "mcp_app"
