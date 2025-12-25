@@ -17,6 +17,7 @@ from signal import SIGTERM
 from threading import Thread
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from dgupdater import check_update
 from logfire import configure as logfire_configure
 from socketio import ASGIApp
@@ -24,6 +25,7 @@ from uvicorn import run as run_uvicorn
 from webview import create_window, start
 
 from StreamStorm.settings import settings
+from StreamStorm.utils.CombinedLifeSpan import combined_lifespan
 
 logfire_configure(
     token=settings.logfire_token, 
@@ -56,9 +58,17 @@ def serve_api() -> None:
         routes=[
             *mcp_app.routes
         ],
-        lifespan=mcp_app.lifespan,
+        lifespan=combined_lifespan,
         docs_url="/mcp-docs",
         openapi_url="/mcp-openapi.json"
+    )
+
+    new_app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     new_app.mount("/", fastapi_app)
