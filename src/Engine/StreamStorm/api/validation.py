@@ -23,15 +23,49 @@ class StormData(BaseModel):
     
     model_config = ConfigDict(strict=True) 
     
-    video_url: str = Field(..., description="Video url", validation_alias=AliasChoices("video_url", "videoUrl"))
-    chat_url: str = Field(... , description="Chat url", validation_alias=AliasChoices("chat_url", "chatUrl"))
-    messages: list[str] = Field(..., description="Message list")
-    subscribe: bool = Field(... , description="Subscribe flag")
-    subscribe_and_wait: bool = Field(..., description="Subscribe and wait flag", validation_alias=AliasChoices("subscribe_and_wait", "subscribeAndWait"))
-    subscribe_and_wait_time: StrictInt = Field(... , ge=0, description="Subscribe and wait time in seconds", validation_alias=AliasChoices("subscribe_and_wait_time", "subscribeAndWaitTime"))
-    slow_mode: int = Field(... , ge=1, description="Slow mode time in seconds", validation_alias=AliasChoices("slow_mode", "slowMode"))
-    channels: list[int] = Field(... , description="Channels")
-    background: bool = Field(... , description="Background flag")
+    video_url: str = Field(
+        ...,
+        description="The YouTube video URL where the live chat storm will be performed. Must be in format 'https://www.youtube.com/watch?v=VIDEO_ID'. Required to identify the target live stream.",
+        validation_alias=AliasChoices("video_url", "videoUrl")
+    )
+    chat_url: str = Field(
+        ...,
+        description="The YouTube live chat URL corresponding to the video. Must be in format 'https://www.youtube.com/live_chat?v=VIDEO_ID'. Must match the video_url's video ID.",
+        validation_alias=AliasChoices("chat_url", "chatUrl")
+    )
+    messages: list[str] = Field(
+        ...,
+        description="List of messages to spam in the YouTube live chat. Provide at least one message. Messages will be sent in rotation across all channels. Format: ['message1', 'message2', ...]."
+    )
+    subscribe: bool = Field(
+        ...,
+        description="Whether to subscribe to the channel before sending messages. Set to true if you want each profile to subscribe to the channel first. This is required only if some youtube channels need a subscription to allow sending messages in their live chat."
+    )
+    subscribe_and_wait: bool = Field(
+        ...,
+        description="Whether to wait after subscribing before starting to spam. Only applies if 'subscribe' is true. Set to true for a more natural behavior. This is required only if some youtube channels need a subscription and also wait for the given time before sending messages in their live chat.",
+        validation_alias=AliasChoices("subscribe_and_wait", "subscribeAndWait")
+    )
+    subscribe_and_wait_time: StrictInt = Field(
+        ...,
+        ge=0,
+        description="Time in seconds to wait after subscribing before starting to spam. Must be 0 or greater. Only applies if 'subscribe_and_wait' is true.",
+        validation_alias=AliasChoices("subscribe_and_wait_time", "subscribeAndWaitTime")
+    )
+    slow_mode: int = Field(
+        ...,
+        ge=1,
+        description="Delay in seconds between messages sent by each channel. Must be at least 1 second. Higher values reduce spam rate but help avoid detection. Recommended: match YouTube's slow mode setting.",
+        validation_alias=AliasChoices("slow_mode", "slowMode")
+    )
+    channels: list[int] = Field(
+        ...,
+        description="List of channel IDs (indices) to use for storming. Each ID refers to a pre-created YouTube channel profile. Format: [1, 2, 3, ...]. All IDs must be positive integers."
+    )
+    background: bool = Field(
+        ...,
+        description="Whether to run browser instances in headless/background mode. Set to true for invisible operation, false to see browser windows for debugging."
+    )
 
     @field_validator("video_url")
     def validate_video_url(cls, value: str) -> str:
@@ -97,11 +131,18 @@ class StormData(BaseModel):
 
 
 class ProfileData(BaseModel):
-    count: StrictInt = Field(... , ge=1, description="Count must be an integer and at least 1")   
+    count: StrictInt = Field(
+        ...,
+        ge=1,
+        description="Number of Chromium browser profiles to create. Must be a positive integer (1 or greater). Each profile represents a separate YouTube account that can be used for storming."
+    )   
     
     
 class ChangeMessagesData(BaseModel):
-    messages: list[str] = Field(... , description="Message list")
+    messages: list[str] = Field(
+        ...,
+        description="New list of messages to use for the ongoing storm. Replaces the current message pool. Provide at least one message. Format: ['message1', 'message2', ...]. Messages will be sent in rotation."
+    )
     
     @field_validator("messages")
     def validate_messages(cls, value: list[str]) -> list[str]:
@@ -113,7 +154,12 @@ class ChangeMessagesData(BaseModel):
         return value
     
 class ChangeSlowModeData(BaseModel):
-    slow_mode: int = Field(..., description="New slow mode value", ge=1, validation_alias=AliasChoices("slow_mode", "slowMode"))
+    slow_mode: int = Field(
+        ...,
+        ge=1,
+        description="New delay in seconds between messages for the ongoing storm. Must be at least 1 second. Adjusts the spam rate without restarting the storm. Lower values = faster spam, higher values = safer.",
+        validation_alias=AliasChoices("slow_mode", "slowMode")
+    )
     
     @field_validator("slow_mode")
     def validate_slow_mode(cls, value: int) -> int:
@@ -124,7 +170,10 @@ class ChangeSlowModeData(BaseModel):
         return value
 
 class StartMoreChannelsData(BaseModel):
-    channels: list[StrictInt] = Field(... , description="Channels")
+    channels: list[StrictInt] = Field(
+        ...,
+        description="List of additional channel IDs to add to the running storm. Each ID refers to a pre-created YouTube channel profile. Format: [4, 5, 6, ...]. All IDs must be positive integers and not already in use."
+    )
 
     @field_validator("channels")
     def validate_channels(cls, value: list[int]) -> list[int]:
@@ -147,7 +196,10 @@ class StartMoreChannelsData(BaseModel):
     
     
 class GetChannelsData(BaseModel):
-    mode: str = Field(... , description="Mode")
+    mode: str = Field(
+        ...,
+        description="Mode for fetching channel data. Use 'new' when starting a fresh storm (returns all available channels). Use 'add' when adding channels to an existing storm (returns available channels excluding active ones)."
+    )
 
     @field_validator("mode")
     def validate_mode(cls, value: str) -> str:
@@ -157,9 +209,20 @@ class GetChannelsData(BaseModel):
         return value
     
 class CreateChannelsData(BaseModel):
-    channels: list[dict[str, str]] = Field(... , description="Channels data with name and logo uri")
-    logo_needed: bool = Field(... , description="Logo needed flag", validation_alias=AliasChoices("logo_needed", "logoNeeded"))
-    random_logo: bool = Field(... , description="Random logo flag", validation_alias=AliasChoices("random_logo", "randomLogo"))
+    channels: list[dict[str, str]] = Field(
+        ...,
+        description="List of channel configurations to create. Each item must be an object with 'name' (channel name string) and 'uri' (path to logo image file). Format: [{'name': 'ChannelName', 'uri': '/path/to/logo.png'}, ...]. URI is required if logo_needed=true and random_logo=false."
+    )
+    logo_needed: bool = Field(
+        ...,
+        description="Whether to set profile pictures for the channels. Set to true to add logos, false to skip logo setup. Required for realistic-looking profiles.",
+        validation_alias=AliasChoices("logo_needed", "logoNeeded")
+    )
+    random_logo: bool = Field(
+        ...,
+        description="Whether to use randomly generated logos instead of provided URIs. Only applies if logo_needed=true. Set to true for auto-generated logos, false to use the URIs provided in channels list.",
+        validation_alias=AliasChoices("random_logo", "randomLogo")
+    )
     
     @field_validator("channels")
     def validate_channels(cls, value: list) -> list[dict[str, str]]:
@@ -206,7 +269,10 @@ class CreateChannelsData(BaseModel):
     
 
 class VerifyChannelsDirectoryData(BaseModel):
-    directory: str = Field(... , description="Directory")
+    directory: str = Field(
+        ...,
+        description="Absolute path to a directory containing channel logo images. Directory must exist and contain only image files (PNG, JPG, JPEG). Each filename (without extension) will be used as the channel name. Format: 'C:/path/to/logos' or '/path/to/logos' (Follow OS specific path format supported by python)."
+    )
     
     @field_validator("directory")
     def validate_directory(cls, value: str) -> str:
@@ -221,16 +287,36 @@ class VerifyChannelsDirectoryData(BaseModel):
         
         
 class KillInstanceData(BaseModel):
-    index: StrictInt = Field(... , ge=0, description="Instance index must be a non-negative integer")
-    name: str = Field(... , description="Channel name")
+    index: StrictInt = Field(
+        ...,
+        ge=0,
+        description="Index of the storm instance to kill. Must be a non-negative integer matching an active instance. This is the same index used when the channel was started."
+    )
+    name: str = Field(
+        ...,
+        description="Name of the channel being killed. Used for logging and identification purposes. Should match the channel name associated with the instance index."
+    )
 
 class AIProviderKeyData(BaseModel):
     """Model for saving a single AI provider's configuration"""
     model_config = ConfigDict(strict=True)
     
-    api_key: str = Field(..., min_length=10, description="API key for the provider", validation_alias=AliasChoices("api_key", "apiKey"))
-    model: str = Field(..., min_length=1, description="Model name")
-    base_url: str | None = Field(None, description="Optional base URL for custom providers", validation_alias=AliasChoices("base_url", "baseUrl"))
+    api_key: str = Field(
+        ...,
+        min_length=10,
+        description="API key for authenticating with the AI provider. Must be at least 10 characters. Obtain from provider's dashboard. Required for AI message generation.",
+        validation_alias=AliasChoices("api_key", "apiKey")
+    )
+    model: str = Field(
+        ...,
+        min_length=1,
+        description="Name of the AI model to use for generation. Format depends on provider. Check provider documentation for available models."
+    )
+    base_url: str | None = Field(
+        None,
+        description="Optional custom base URL for API requests. Use for self-hosted models or API proxies. Must start with 'http://' or 'https://'. Leave empty/null for default provider URLs.",
+        validation_alias=AliasChoices("base_url", "baseUrl")
+    )
     
     @field_validator("api_key")
     def validate_api_key(cls, value: str) -> str:
@@ -258,10 +344,26 @@ class AIProviderKeyData(BaseModel):
 
 class SetDefaultProviderData(BaseModel):
     """Model for setting the default AI provider with apiKey, model and optional baseUrl."""
-    provider: str = Field(..., description="Provider ID to set as default")
-    api_key: str = Field(..., min_length=10, description="API key for the provider", validation_alias=AliasChoices("api_key", "apiKey"))
-    model: str = Field(..., min_length=1, description="Model name to set as default")
-    base_url: str | None = Field(None, description="Optional base URL for custom providers", validation_alias=AliasChoices("base_url", "baseUrl"))
+    provider: str = Field(
+        ...,
+        description="ID of the AI provider to set as default. Must be one of: 'openai', 'anthropic', or 'google'. This provider will be used for all AI message and channel name generation."
+    )
+    api_key: str = Field(
+        ...,
+        min_length=10,
+        description="API key for the selected provider. Must be at least 10 characters. Required for authentication. The key will be stored securely for future use.",
+        validation_alias=AliasChoices("api_key", "apiKey")
+    )
+    model: str = Field(
+        ...,
+        min_length=1,
+        description="Model name to use as default for AI generation. Must be a valid model for the selected provider."
+    )
+    base_url: str | None = Field(
+        None,
+        description="Optional custom API endpoint URL. Use for proxies or self-hosted models. Must start with 'http://' or 'https://'. Set to null to use the provider's default endpoint.",
+        validation_alias=AliasChoices("base_url", "baseUrl")
+    )
     
     @field_validator("provider")
     def validate_provider(cls, value: str) -> str:
@@ -295,7 +397,11 @@ class SetDefaultProviderData(BaseModel):
 
 class GenerateMessagesRequest(BaseModel):
     """Model for AI message generation request"""
-    prompt: str = Field(..., min_length=1, description="Prompt for AI to generate messages")
+    prompt: str = Field(
+        ...,
+        min_length=1,
+        description="Natural language prompt describing what messages or channel names to generate. Be specific about the topic, tone, quantity, and style. Example: 'Generate 10 enthusiastic messages about a gaming stream' or 'Create 5 tech-related YouTube channel names'."
+    )
     
     @field_validator("prompt")
     def validate_prompt(cls, value: str) -> str:

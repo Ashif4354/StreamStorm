@@ -53,18 +53,6 @@ class LogRequestMiddleware(BaseHTTPMiddleware):
         return response
 
 
-storm_controls_endpoints: set[str] = {
-    "/storm/pause",
-    "/storm/resume",
-    "/storm/change_messages",
-    "/storm/start_storm_dont_wait",
-    "/storm/change_slow_mode",
-    "/storm/start_more_channels",
-    "/storm/kill_instance",
-    "/storm/context",
-}
-
-
 class RequestValidationMiddleware(BaseHTTPMiddleware):
     __slots__: tuple[str, ...] = ()
 
@@ -72,37 +60,27 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
         path: str = request.url.path
         method: str = request.method
 
-        cors_headers: dict[str, str] = {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "*",
-            "Access-Control-Allow-Headers": "*",
-        }
-
         if method == "POST":
-            if path in (
-                "/storm/start",
-                "/environment/profiles/create",
-                "/environment/profiles/delete",
-            ):
+            if path in settings.busy_endpoints:
                 if environ.get("BUSY") == "1":
                     return JSONResponse(
-                        status_code=429,
+                        status_code=429,  # Too Many Requests
                         content={
                             "success": False,
                             "message": f"Engine is Busy: {environ.get('BUSY_REASON')}",
                         },
-                        headers=cors_headers,
+                        headers=settings.cors_headers,
                     )
 
-            elif path in storm_controls_endpoints:
+            elif path in settings.storm_controls_endpoints:
                 if StreamStorm.ss_instance is None:
                     return JSONResponse(
-                        status_code=409,
+                        status_code=409,  # Conflict
                         content={
                             "success": False,
                             "message": "No storm is running. Start a storm first.",
                         },
-                        headers=cors_headers,
+                        headers=settings.cors_headers,
                     )
 
                     # return JSONResponse(
@@ -113,18 +91,15 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
                     #     },
                     # )
 
-        if (
-            method == "GET"
-            and path in storm_controls_endpoints
-            and StreamStorm.ss_instance is None
-        ):
+        if (method == "GET" and path in settings.storm_controls_endpoints and 
+        StreamStorm.ss_instance is None):
             return JSONResponse(
-                status_code=409,
+                status_code=409,  # Conflict
                 content={
                     "success": False,
                     "message": "No storm is running. Start a storm first.",
                 },
-                headers=cors_headers,
+                headers=settings.cors_headers,
             )
 
         response: JSONResponse = await call_next(request)

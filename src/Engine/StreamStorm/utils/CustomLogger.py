@@ -124,6 +124,10 @@ class CustomLogger:
 
         self.__setup_logging("fastapi")
 
+    def setup_fastmcp_logging(self) -> None:
+
+        self.__setup_logging("fastmcp")
+
     def setup_history_logger(self) -> None:
 
         log_file: Path = self.__touch_log_file("History.log")

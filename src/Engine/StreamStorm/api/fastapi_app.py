@@ -1,5 +1,4 @@
 from logging import DEBUG, Logger, getLogger
-from os import environ
 from typing import Callable, Optional
 
 from fastapi import FastAPI, HTTPException, Request, Response
@@ -41,7 +40,7 @@ if settings.env == "development":
     if atatus_client is None:
         atatus_client = create_client(
             {
-                "APP_NAME": settings.app_name,
+                "APP_NAME": settings.atatus_app_name,
                 "LICENSE_KEY": settings.atatus_license_key,
                 "APP_VERSION": settings.version,
                 "TRACING": True,
@@ -135,16 +134,29 @@ app.include_router(settings_router)
 app.include_router(ai_router)
 
 
-@app.get("/")
+@app.get("/", operation_id="health_check", summary="Check if StreamStorm engine is running.")
 async def root() -> JSONResponse:
+    """
+    Check if StreamStorm engine is running
+    """
     return JSONResponse(
         status_code=200,
         content={"success": True, "message": "I am the StreamStorm Engine"},
     )
 
 
-@app.get("/get_ram_info")
+@app.get("/get_ram_info", operation_id="get_system_ram_info", summary="Get system RAM information.", deprecated=True)
 async def get_ram_info() -> JSONResponse:
+    """
+    Get system RAM information (deprecated).
+    
+    Returns the current free and total RAM on the system.
+    This endpoint is deprecated and may be removed in future versions.
+    
+    Returns:
+        free (float): Available RAM in gigabytes
+        total (float): Total RAM in gigabytes
+    """
     return JSONResponse(
         status_code=200,
         content={
@@ -154,8 +166,16 @@ async def get_ram_info() -> JSONResponse:
     )
 
 
-@app.get("/config")
+@app.get("/config", operation_id="streamstorm_engine_config", summary="Get StreamStorm engine config and version.")
 async def status() -> JSONResponse:
+    """
+    Get StreamStorm engine config like engine version and log file path
+
+    Returns:
+        success (bool): True if the request was successful
+        version (str): StreamStorm engine version
+        log_file_path (str): Path to the StreamStorm engine log file for current session
+    """
     response: dict = {
         "success": True,
         "version": settings.version,

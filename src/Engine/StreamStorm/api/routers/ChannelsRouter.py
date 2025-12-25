@@ -5,18 +5,31 @@ from os import listdir
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse  # noqa: F401
 
-from .ProfileRouter import router as profile_router
 from ...core.CreateChannels import CreateChannels
 from ..validation import CreateChannelsData, VerifyChannelsDirectoryData
 
-router: APIRouter = APIRouter(prefix="/channels")
-
-router.include_router(profile_router)
+router: APIRouter = APIRouter(prefix="/channels", tags=["Create YouTube Channels"])
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
 
-@router.post("/create")
+@router.post("/create", operation_id="create_youtube_channels", summary="Create YouTube channel profiles with logos.")
 def create_channels(data: CreateChannelsData) -> JSONResponse:
+    """
+    Create YouTube channel profiles with profile pictures.
+    
+    Creates channel profiles in the StreamStorm data directory
+    with optional logo images (auto-generated or from provided paths).
+    
+    Args:
+        data.channels (list): Channel configurations to create
+        data.logo_needed (bool): Whether to add logos to channels
+        data.random_logo (bool): Whether to use random generated logos
+    
+    Returns:
+        success (bool): True if channels were created
+        message (str): Confirmation message
+        failed (list): List of channels that failed to create
+    """
     
     cc: CreateChannels = CreateChannels(data.logo_needed, data.random_logo)
     failed_list : list = cc.start(data.channels)
@@ -34,8 +47,23 @@ def create_channels(data: CreateChannelsData) -> JSONResponse:
         content=response
     )
     
-@router.post("/verify_dir")
+@router.post("/verify_dir", operation_id="verify_channels_directory", summary="Verify a directory contains valid channel logo images.")
 async def verify_dir(data: VerifyChannelsDirectoryData) -> JSONResponse:
+    """
+    Verify a directory contains valid channel logo images.
+    
+    Checks that the specified directory exists, contains only valid
+    image files (png, jpg, jpeg), and extracts channel names from filenames.
+    
+    Args:
+        data.directory (str): Path to the directory to verify
+    
+    Returns:
+        success (bool): True if directory is valid
+        message (str): Result message
+        files (list): List of valid channel files with names and URIs
+        count (int): Number of valid channel files found
+    """
     
     path: Path = Path(data.directory)
 

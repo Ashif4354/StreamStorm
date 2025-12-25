@@ -91,6 +91,37 @@ class Settings(BaseSettings):
         "/settings/ai/default",
     }
 
+    storm_controls_endpoints: set[str] = {
+        "/storm/pause",
+        "/storm/resume",
+        "/storm/change_messages",
+        "/storm/start_storm_dont_wait",
+        "/storm/change_slow_mode",
+        "/storm/start_more_channels",
+        "/storm/kill_instance",
+        "/storm/context",
+    }
+
+    busy_endpoints: set[str] = {
+        "/storm/start",
+        "/environment/profiles/create",
+        "/environment/profiles/delete",
+    }
+
+    storm_control_tools: set[str] = {
+        ""
+    }
+
+    busy_tools: set[str] = {
+        ""
+    }
+
+    cors_headers: dict[str, str] = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Headers": "*",
+    }
+
     saved_settings: SavedSettings = Field(default_factory=SavedSettings) 
     ai: AISettings = Field(default_factory=AISettings)
 

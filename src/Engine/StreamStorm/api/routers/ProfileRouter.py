@@ -9,10 +9,24 @@ from ...core.Profiles import Profiles
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
 
-router: APIRouter = APIRouter(prefix="/profiles")
+router: APIRouter = APIRouter(prefix="/profiles", tags=["Manage Profiles"])
 
-@router.post("/create")
+@router.post("/create", operation_id="create_chromium_profiles", summary="Create Chromium browser profiles for storming.")
 async def create_profiles(data: ProfileData) -> dict:
+    """
+    Create temporary Chromium browser profiles for storming.
+    
+    Creates the specified number of Chromium browser profiles
+    in the StreamStorm data directory for use during storms.
+    Sets the environment to BUSY during creation.
+    
+    Args:
+        data.count (int): Number of profiles to create
+    
+    Returns:
+        success (bool): True if profiles were created successfully
+        message (str): Confirmation message
+    """
     environ.update({"BUSY": "1", "BUSY_REASON": "Creating profiles"})
 
     profiles: Profiles = Profiles()
@@ -31,8 +45,18 @@ async def create_profiles(data: ProfileData) -> dict:
         }
     )
     
-@router.post("/delete")
+@router.post("/delete", operation_id="delete_chromium_profiles", summary="Delete all temporary Chromium browser profiles.")
 async def delete_all_profiles() -> dict:
+    """
+    Delete all temporary Chromium browser profiles.
+    
+    Removes all temporary profiles created by StreamStorm.
+    Sets the environment to BUSY during deletion.
+    
+    Returns:
+        success (bool): True if profiles were deleted successfully
+        message (str): Confirmation message
+    """
     environ.update({"BUSY": "1", "BUSY_REASON": "Deleting profiles"})
 
     profiles: Profiles = Profiles()
