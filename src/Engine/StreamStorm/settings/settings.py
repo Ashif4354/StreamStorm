@@ -150,4 +150,4 @@ settings: Settings = Settings()
 __all__: list[str] = ["settings"]
 
 if __name__ == "__main__":
-    print(settings.model_dump())
+    print(settings.model_dump_json(indent=4))
