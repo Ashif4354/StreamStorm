@@ -3,7 +3,6 @@ import { createContext, useState, useContext } from 'react';
 import { useNotifications } from '@toolpad/core/useNotifications';
 
 import { RAM_PER_PROFILE } from "../lib/Constants";
-import fetchRAM from "../lib/FetchRAM"
 
 const SystemInfoContext = createContext();
 
@@ -15,7 +14,7 @@ const SystemInfoProvider = ({children}) => {
 
     const notifications = useNotifications();
 
-    const systemInfoControls = { availableRAM, setAvailableRAM, fetchRAM, RAM_PER_PROFILE, debugMode, setDebugCounter };
+    const systemInfoControls = { availableRAM, setAvailableRAM, RAM_PER_PROFILE, debugMode, setDebugCounter };
      
     useEffect(() => { 
         if (debugCounter >= 10) {            

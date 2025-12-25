@@ -6,7 +6,6 @@ import * as atatus from "atatus-spa";
 
 import "./Dialogs.css";
 import { useLocalStorageState } from "@toolpad/core/useLocalStorageState";
-import { useNotifications } from "@toolpad/core/useNotifications";
 import ErrorText from "../Elements/ErrorText";
 import { useCustomMUIProps } from "../../context/CustomMUIPropsContext";
 import { analytics } from "../../config/firebase";
@@ -17,7 +16,6 @@ const AddChannels = ({ payload, open, onClose }) => {
 
     const { colorScheme } = useColorScheme();
     const [hostAddress] = useLocalStorageState('hostAddress');
-    const notifications = useNotifications();
 
     const [channelsData, setChannelsData] = useState([]);
     const [channelsDataLoading, setChannelsDataLoading] = useState(false);
@@ -84,9 +82,6 @@ const AddChannels = ({ payload, open, onClose }) => {
         }
     }, [open, hostAddress]);
 
-    useEffect(() => {
-        systemInfoControls.fetchRAM(hostAddress, notifications, systemInfoControls);
-    }, [hostAddress]);
 
     useEffect(() => {
         if (systemInfoControls.availableRAM) {
