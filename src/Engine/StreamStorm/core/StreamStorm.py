@@ -40,7 +40,6 @@ class StreamStorm(Profiles):
     
     each_channel_instances: list[SeparateInstance] = []
     ss_instance: Optional["StreamStorm"] = None
-    log_file_path: str = "" # Will be set by CustomLogger during logging setup
 
     def __init__(self, data: StormData) -> None:
         

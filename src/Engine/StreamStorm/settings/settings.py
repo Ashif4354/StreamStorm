@@ -83,6 +83,7 @@ class Settings(BaseSettings):
 
     app_data_dir: Path = APP_DATA_DIR
     settings_file_path: Path = SETTINGS_FILE_PATH
+    log_file_path: str = "" # Will be set by CustomLogger during logging setup
 
     sensitive_endpoints: set[str] = {
         "/settings/ai/keys/anthropic",

@@ -82,7 +82,7 @@ class CustomLogger:
         # sourcery skip: class-extract-method
         
         log_file: Path = self.__touch_log_file(f"log - {get_ist_time()}.log")
-        StreamStorm.log_file_path = str(log_file)
+        settings.log_file_path = str(log_file)
 
         file_formatter: Formatter = Formatter(
             "%(asctime)s [%(name)s: %(lineno)d] %(levelname)s: %(message)s"

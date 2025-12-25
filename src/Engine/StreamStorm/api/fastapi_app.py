@@ -179,7 +179,7 @@ async def status() -> JSONResponse:
     response: dict = {
         "success": True,
         "version": settings.version,
-        "log_file_path": StreamStorm.log_file_path,
+        "log_file_path": settings.log_file_path,
     }
 
     return JSONResponse(status_code=200, content=response)
