@@ -30,7 +30,7 @@ const SystemInfo = () => {
             timeStep: START_POINT + TIME_INTERVAL_IN_SEC * idx,
             cpu_percent: 0,
             ram_percent: 0,
-            ram_gb: 0,
+            used_ram_gb: 0,
             free_ram_percent: 0,
             free_ram_gb: 0,
             free_ram_mb: 0,

@@ -1,10 +1,11 @@
 from typing import Any
+from json import loads
 
 from ...utils.SystemInfoEmitter import get_system_metrics
 from ...settings import settings
 
 
-def get_system_metrics_resource() -> str:
+def get_system_metrics_resource() -> dict[str, Any]:
     """
     Get real-time system usage metrics as JSON.
     
@@ -12,7 +13,7 @@ def get_system_metrics_resource() -> str:
         JSON string containing:
         - cpu_percent: Current CPU usage percentage
         - ram_percent: Current RAM usage percentage
-        - ram_gb: Used RAM in GB
+        - used_ram_gb: Used RAM in GB
         - free_ram_percent: Free RAM percentage
         - free_ram_gb: Free RAM in GB
         - free_ram_mb: Free RAM in MB
@@ -20,16 +21,24 @@ def get_system_metrics_resource() -> str:
     return get_system_metrics()
 
 
-def get_system_settings() -> str:
+def get_system_settings() -> dict[str, Any]:
     """
     Get current application settings as JSON.
     
     Returns:
-        JSON string containing all application settings from the
+        JSON containing all application settings from the
         Pydantic Settings model (version, env, host, port, os,
         app_data_dir, and any other configured settings).
     """
-    return settings.model_dump_json(indent=4)
+
+    settings_ = settings.model_copy()
+    settings_.ai.providers.anthropic.apiKey = "<REDACTED>"
+    settings_.ai.providers.openai.apiKey = "<REDACTED>"
+    settings_.ai.providers.google.apiKey = "<REDACTED>"
+    final_settings = loads(settings_.model_dump_json())
+    print(final_settings)
+
+    return final_settings
 
 
 __all__: list[str] = [

@@ -21,7 +21,7 @@ All events are emitted to the `streamstorm` room. The UI should join this room t
 {
   cpu_percent: string,        // Current CPU usage percentage (e.g., "45.2")
   ram_percent: string,        // Current RAM usage percentage (e.g., "67.5")
-  ram_gb: string,            // Used RAM in GB (e.g., "8.5")
+  used_ram_gb: string,            // Used RAM in GB (e.g., "8.5")
   free_ram_percent: string,  // Free RAM percentage (e.g., "32.5")
   free_ram_gb: string,       // Free RAM in GB (e.g., "4.2")
   free_ram_mb: string        // Free RAM in MB (e.g., "4200")

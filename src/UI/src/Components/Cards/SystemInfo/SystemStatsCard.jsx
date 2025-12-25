@@ -12,7 +12,7 @@ const statsMap = [
     },
     {
         percentageKey: "ram_percent",
-        valueKey: "ram_gb",
+        valueKey: "used_ram_gb",
         label: "RAM Usage",
         icon: <MemoryIcon fontSize="small" />,
     },
@@ -55,7 +55,7 @@ export default function SystemStatsCard({ stats, note }) {
                             </Typography>
                         </Box>
                     </Box>
-                    
+
                     <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 1 }}>
                         <Typography
                             sx={{

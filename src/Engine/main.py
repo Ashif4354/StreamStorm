@@ -33,6 +33,7 @@ logfire_configure(
 
 from StreamStorm.api.fastapi_app import app as fastapi_app
 from StreamStorm.socketio.sio import sio
+from StreamStorm.mcp.mcpserver import mcp_app
 from StreamStorm.utils.CustomLogger import CustomLogger
 
 CustomLogger().setup_streamstorm_logging()
@@ -47,6 +48,8 @@ def exit_app() -> None:
 
 def serve_api() -> None:
     logger.debug("Starting API-SocketIO Server")
+
+    fastapi_app.mount("/mcp", mcp_app)
 
     app: ASGIApp = ASGIApp(sio, fastapi_app)
     HOST: str = settings.host

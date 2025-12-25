@@ -12,7 +12,7 @@ def get_system_metrics() -> dict[str, Any]:
     return {
         "cpu_percent": str(cpu_percent(interval=None)),
         "ram_percent": str(mem.percent),
-        "ram_gb": str(mem.used / (1024**3)),
+        "used_ram_gb": str(mem.used / (1024**3)),
         "free_ram_percent": str((mem.available * 100) / mem.total),
         "free_ram_gb": str(mem.available / (1024**3)),
         "free_ram_mb": str(free_ram_mb),
