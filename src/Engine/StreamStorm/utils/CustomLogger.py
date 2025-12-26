@@ -126,7 +126,7 @@ class CustomLogger:
 
     def setup_fastmcp_logging(self) -> None:
 
-        self.__setup_logging("fastmcp")
+        self.__setup_logging("mcpapp")
 
     def setup_history_logger(self) -> None:
 
@@ -162,3 +162,8 @@ class CustomLogger:
         message_str = f"Date Time: {date_time}\n\n{message_str}\n"
         
         logger.info(message_str)
+        
+
+custom_logger: CustomLogger = CustomLogger()
+
+__all__: list[str] = ["custom_logger"]

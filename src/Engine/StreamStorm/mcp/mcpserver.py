@@ -4,7 +4,7 @@ from fastmcp import FastMCP
 from fastmcp.server.openapi import RouteMap, MCPType
 from fastmcp.server.middleware.rate_limiting import RateLimitingMiddleware
 from fastmcp.server.middleware.logging import LoggingMiddleware
-from ..utils.CustomLogger import CustomLogger
+from ..utils.CustomLogger import custom_logger
 from .middlewares.EngineBusyCheck import EngineBusyCheckMiddleware
 from .middlewares.CheckStormInProgress import CheckStormInProgressMiddleware
 from ..api.fastapi_app import app
@@ -23,7 +23,7 @@ from .resources import (
     get_logs
 )
 
-CustomLogger().setup_fastmcp_logging()
+custom_logger.setup_fastmcp_logging()
 
 logger: Logger = getLogger(f"fastmcp.{__name__}")
 mcp = FastMCP.from_fastapi(

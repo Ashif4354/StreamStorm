@@ -11,7 +11,7 @@ from selenium.common.exceptions import SessionNotCreatedException
 
 from ..settings import settings
 from ..core.StreamStorm import StreamStorm
-from ..utils.CustomLogger import CustomLogger
+from ..utils.CustomLogger import custom_logger
 from .lib.exception_handlers import (
     common_exception_handler,
     session_not_created_exception_handler,
@@ -24,7 +24,7 @@ from .routers.EnvironmentRouter import router as environment_router
 from .routers.SettingsRouter import router as settings_router
 from .routers.StormRouter import router as storm_router
 
-CustomLogger().setup_fastapi_logging()
+custom_logger.setup_fastapi_logging()
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
 logger.setLevel(DEBUG)
@@ -60,9 +60,7 @@ else:
 
 app: FastAPI = FastAPI(lifespan=lifespan)
 
-if settings.env == "development":
-    instrument_fastapi(app)
-    instrument_pydantic_ai()
+
 
 app.exception_handlers = {
     Exception: common_exception_handler,

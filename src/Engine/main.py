@@ -37,9 +37,9 @@ logfire_configure(
 from StreamStorm.api.fastapi_app import app as fastapi_app
 from StreamStorm.socketio.sio import sio
 from StreamStorm.mcp.mcpserver import mcp_app
-from StreamStorm.utils.CustomLogger import CustomLogger
+from StreamStorm.utils.CustomLogger import custom_logger
 
-CustomLogger().setup_streamstorm_logging()
+custom_logger.setup_streamstorm_logging()
 
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
