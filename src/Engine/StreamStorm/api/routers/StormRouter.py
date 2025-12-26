@@ -60,7 +60,7 @@ async def index() -> JSONResponse:
             }
         )
 
-@router.post("/start", operation_id="start_storm", summary="Start a new YouTube live chat spam storm.")
+@router.post("/start", operation_id="start_storm", summary="Start a new YouTube live chat storm.")
 async def start(data: StormData) -> JSONResponse:
     """
     Start a new storm (storm means sending messages in YouTube live chat).
@@ -268,7 +268,7 @@ async def change_messages(data: ChangeMessagesData) -> JSONResponse:
     )
 
 
-@router.post("/start_storm_dont_wait", operation_id="start_storm_immediately", summary="Start storm without waiting for all instances.")
+@router.post("/start_storm_dont_wait", operation_id="start_storm_dont_wait", summary="Start storm without waiting for all instances.")
 async def start_storm_dont_wait() -> JSONResponse:
     """
     Start the storm without waiting for all instances to be ready.
@@ -292,7 +292,7 @@ async def start_storm_dont_wait() -> JSONResponse:
     )
 
 
-@router.post("/change_slow_mode", operation_id="change_storm_slow_mode", summary="Change the slow mode delay during a storm.")
+@router.post("/change_slow_mode", operation_id="change_slow_mode", summary="Change the slow mode delay during a storm.")
 async def change_slow_mode(data: ChangeSlowModeData) -> JSONResponse:
     """
     Change the slow mode interval for the current storm.
@@ -449,7 +449,7 @@ async def get_channels_data(data: GetChannelsData) -> JSONResponse:
         content=response_data
     )
 
-@router.post("/kill_instance", operation_id="kill_storm_instance", summary="Kill a specific storm instance by index.")
+@router.post("/kill_instance", operation_id="kill_instance", summary="Kill a specific storm instance by index.")
 async def kill_instance(data: KillInstanceData) -> JSONResponse:
     """
     Kill a specific storm instance by index.
