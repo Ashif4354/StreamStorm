@@ -19,7 +19,7 @@ from threading import Thread
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dgupdater import check_update
-from logfire import configure as logfire_configure
+from logfire import configure as logfire_configure, instrument_fastapi, instrument_pydantic_ai, instrument_mcp
 from socketio import ASGIApp
 from uvicorn import run as run_uvicorn
 from webview import create_window, start
@@ -33,6 +33,10 @@ logfire_configure(
     environment=settings.env, 
     console=False
 )
+
+if settings.env == "development":
+    instrument_pydantic_ai()
+    instrument_mcp()
 
 from StreamStorm.api.fastapi_app import app as fastapi_app
 from StreamStorm.socketio.sio import sio
@@ -72,6 +76,9 @@ def serve_api() -> None:
     )
 
     new_app.mount("/", fastapi_app)
+    
+    if settings.env == "development":
+        instrument_fastapi(new_app)
 
     app: ASGIApp = ASGIApp(sio, new_app)
     HOST: str = settings.host
