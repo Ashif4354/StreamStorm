@@ -110,11 +110,20 @@ class Settings(BaseSettings):
     }
 
     storm_control_tools: set[str] = {
-        ""
+        "pause_storm",
+        "resume_storm",
+        "change_storm_messages",
+        "start_storm_dont_wait",
+        "change_slow_mode",
+        "add_channels_to_storm",
+        "kill_instance",
+        "get_storm_context",
     }
 
     busy_tools: set[str] = {
-        ""
+        "start_storm",
+        "create_chromium_profiles",
+        "delete_chromium_profiles",
     }
 
     cors_headers: dict[str, str] = {
