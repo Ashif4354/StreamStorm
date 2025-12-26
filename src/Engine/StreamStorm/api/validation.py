@@ -35,7 +35,7 @@ class StormData(BaseModel):
     )
     messages: list[str] = Field(
         ...,
-        description="List of messages to spam in the YouTube live chat. Provide at least one message. Messages will be sent in rotation across all channels. Format: ['message1', 'message2', ...]."
+        description="List of messages to send in the YouTube live chat. Provide at least one message. Messages will be sent in rotation across all channels. Format: ['message1', 'message2', ...]."
     )
     subscribe: bool = Field(
         ...,
@@ -43,19 +43,19 @@ class StormData(BaseModel):
     )
     subscribe_and_wait: bool = Field(
         ...,
-        description="Whether to wait after subscribing before starting to spam. Only applies if 'subscribe' is true. Set to true for a more natural behavior. This is required only if some youtube channels need a subscription and also wait for the given time before sending messages in their live chat.",
+        description="Whether to wait after subscribing before starting to storm. Only applies if 'subscribe' is true. Set to true for a more natural behavior. This is required only if some youtube channels need a subscription and also wait for the given time before sending messages in their live chat.",
         validation_alias=AliasChoices("subscribe_and_wait", "subscribeAndWait")
     )
     subscribe_and_wait_time: StrictInt = Field(
         ...,
         ge=0,
-        description="Time in seconds to wait after subscribing before starting to spam. Must be 0 or greater. Only applies if 'subscribe_and_wait' is true.",
+        description="Time in seconds to wait after subscribing before starting to storm. Must be 0 or greater. Only applies if 'subscribe_and_wait' is true.",
         validation_alias=AliasChoices("subscribe_and_wait_time", "subscribeAndWaitTime")
     )
     slow_mode: int = Field(
         ...,
         ge=1,
-        description="Delay in seconds between messages sent by each channel. Must be at least 1 second. Higher values reduce spam rate but help avoid detection. Recommended: match YouTube's slow mode setting.",
+        description="Delay in seconds between messages sent by each channel. Must be at least 1 second. Higher values reduce message rate but help avoid detection. Recommended: match YouTube's slow mode setting.",
         validation_alias=AliasChoices("slow_mode", "slowMode")
     )
     channels: list[int] = Field(
@@ -157,7 +157,7 @@ class ChangeSlowModeData(BaseModel):
     slow_mode: int = Field(
         ...,
         ge=1,
-        description="New delay in seconds between messages for the ongoing storm. Must be at least 1 second. Adjusts the spam rate without restarting the storm. Lower values = faster spam, higher values = safer.",
+        description="New delay in seconds between messages for the ongoing storm. Must be at least 1 second. Adjusts the messages rate without restarting the storm. Lower values = faster rate, higher values = safer.",
         validation_alias=AliasChoices("slow_mode", "slowMode")
     )
     

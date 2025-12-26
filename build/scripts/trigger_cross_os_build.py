@@ -21,7 +21,7 @@ EVENT_TYPE: str = "cross-os-build"
 def check_gh_available() -> None:
     """Check if GitHub CLI is available."""
     if not which("gh"):
-        raise RuntimeError("GitHub CLI (gh) is not installed or not found in PATH. Please install it to proceed.")
+        raise RuntimeError("GitHub CLI (gh) is not installed or not found in PATH. Install it to proceed.")
     log_info("GitHub CLI (gh) is available")
 
 
@@ -36,7 +36,7 @@ def check_gh_auth() -> None:
     )
     
     if result.returncode != 0:
-        log_error("GitHub CLI is not authenticated. Please run 'gh auth login' first.")
+        log_error("GitHub CLI is not authenticated. Run 'gh auth login' first.")
         raise RuntimeError("GitHub CLI authentication required")
     
     log_info("GitHub CLI is authenticated")

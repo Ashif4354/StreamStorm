@@ -15,10 +15,10 @@ router: APIRouter = APIRouter(prefix="/ai", tags=["AI"])
 @router.post("/generate/messages", operation_id="ai_generate_messages", summary="Generate messages using AI, based on a prompt.")
 async def generate_messages(data: GenerateMessagesRequest) -> JSONResponse:
     """
-    Generate spam messages using AI, based on a prompt.
+    Generate messages using AI, based on a prompt.
     
     Uses the configured AI provider to generate a list of messages
-    suitable for YouTube live chat spamming based on the given prompt.
+    suitable for YouTube live chatting based on the given prompt.
     
     Args:
         data.prompt (str): The prompt describing what kind of messages to generate and how many messages to generate

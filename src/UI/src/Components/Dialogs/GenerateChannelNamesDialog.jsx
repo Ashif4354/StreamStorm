@@ -34,7 +34,7 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
     const handleSubmit = async () => {
         if (!prompt.trim()) {
             setError(true);
-            setHelperText("Please enter a prompt.");
+            setHelperText("Enter a prompt.");
             return;
         }
 
@@ -73,7 +73,7 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
             setPrompt("");
         } catch (err) {
             setError(true);
-            setHelperText("Failed to connect to server. Please try again.");
+            setHelperText("Failed to connect to server. Try again.");
             notifications.show("Failed to generate channel names", {
                 severity: "error",
                 autoHideDuration: 3000,
@@ -126,7 +126,7 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
                             borderRadius: 'var(--border-radius)',
                         }}
                     >
-                        Please set a default AI provider and model in Settings first.
+                        Set a default AI provider and model in Settings first.
                     </Alert>
                 ) : (
                     <>

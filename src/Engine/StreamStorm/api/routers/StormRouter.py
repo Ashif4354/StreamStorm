@@ -34,7 +34,7 @@ async def index() -> JSONResponse:
     """
     Get the current storm status.
     
-    Returns whether a storm (YouTube live chat message spam) is currently running or not.
+    Returns whether a storm  is currently running or not.
     
     Returns:
         success (bool): True if the request was successful
@@ -63,7 +63,7 @@ async def index() -> JSONResponse:
 @router.post("/start", operation_id="start_storm", summary="Start a new YouTube live chat spam storm.")
 async def start(data: StormData) -> JSONResponse:
     """
-    Start a new storm (storm means spamming messages in YouTube live chat).
+    Start a new storm (storm means sending messages in YouTube live chat).
     
     Initializes browser instances for each channel and begins sending
     messages to the specified YouTube live chat at the configured rate.
@@ -72,11 +72,11 @@ async def start(data: StormData) -> JSONResponse:
     Args:
         data.video_url (str): YouTube video URL (format: https://www.youtube.com/watch?v=VIDEO_ID)
         data.chat_url (str): YouTube live chat URL (format: https://www.youtube.com/live_chat?v=VIDEO_ID)
-        data.messages (list[str]): List of messages to spam in rotation
+        data.messages (list[str]): List of messages to send in rotation
         data.channels (list[int]): List of channel profile IDs to use for storming
         data.slow_mode (int): Delay in seconds between messages (minimum 1)
         data.subscribe (bool): Whether to subscribe to the channel before sending messages
-        data.subscribe_and_wait (bool): Whether to wait after subscribing before spamming
+        data.subscribe_and_wait (bool): Whether to wait after subscribing before storming
         data.subscribe_and_wait_time (int): Time in seconds to wait after subscribing
         data.background (bool): Whether to run browsers in headless/background mode
     
@@ -247,7 +247,7 @@ async def change_messages(data: ChangeMessagesData) -> JSONResponse:
     """
     Change the messages being sent in the current storm.
     
-    Updates the message pool used for spamming during an active storm.
+    Updates the message pool used for storming during an active storm.
     
     Args:
         data.messages (list[str]): New list of messages to use
@@ -334,7 +334,7 @@ async def start_more_channels(data: StartMoreChannelsData) -> JSONResponse:
     Add more channels to an active storm.
     
     Starts additional browser instances for new channels while
-    the storm is already running. Can only be called after storm starts and spamming has started.
+    the storm is already running. Can only be called after storm starts and storming has started.
     The available channels and their indices can be retrieved using POST /storm/get_channels_data or the get_available_channels mcp tool. with mode "add"
     
     Args:

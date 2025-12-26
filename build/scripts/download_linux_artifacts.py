@@ -15,7 +15,7 @@ log_info(f"Root directory: {ROOT}")
 
 def check_gh_available():
     if not which("gh"):
-        raise RuntimeError("GitHub CLI (gh) is not installed or not found in PATH. Please install it to proceed.")
+        raise RuntimeError("GitHub CLI (gh) is not installed or not found in PATH. Install it to proceed.")
 
 def get_latest_run_id() -> str:
     
