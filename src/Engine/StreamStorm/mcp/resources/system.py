@@ -35,8 +35,10 @@ def get_system_settings() -> dict[str, Any]:
     settings_.ai.providers.anthropic.apiKey = "<REDACTED>"
     settings_.ai.providers.openai.apiKey = "<REDACTED>"
     settings_.ai.providers.google.apiKey = "<REDACTED>"
+    settings_.saved_settings.ai.providers.anthropic.apiKey = "<REDACTED>"
+    settings_.saved_settings.ai.providers.openai.apiKey = "<REDACTED>"
+    settings_.saved_settings.ai.providers.google.apiKey = "<REDACTED>"
     final_settings = loads(settings_.model_dump_json())
-    print(final_settings)
 
     return final_settings
 
