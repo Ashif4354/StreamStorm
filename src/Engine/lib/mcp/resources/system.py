@@ -1,11 +1,12 @@
 from typing import Any
 from json import loads
+from asyncio import to_thread
 
 from ...utils.SystemInfoEmitter import get_system_metrics
 from ...settings import settings
 
 
-def get_system_metrics_resource() -> dict[str, Any]:
+async def get_system_metrics_resource() -> dict[str, Any]:
     """
     Get real-time system usage metrics as JSON.
     
@@ -18,10 +19,11 @@ def get_system_metrics_resource() -> dict[str, Any]:
         - free_ram_gb: Free RAM in GB
         - free_ram_mb: Free RAM in MB
     """
-    return get_system_metrics()
+    # get_system_metrics uses psutil which is blocking
+    return await to_thread(get_system_metrics)
 
 
-def get_system_settings() -> dict[str, Any]:
+async def get_system_settings() -> dict[str, Any]:
     """
     Get current application settings as JSON.
     

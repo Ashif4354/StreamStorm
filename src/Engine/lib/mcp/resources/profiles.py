@@ -1,10 +1,11 @@
 from typing import Any, Optional
+from asyncio import to_thread
 
 from ...core.Profiles import Profiles
 from ...core.StreamStorm import StreamStorm
 
 
-def get_available_profiles() -> dict[str, Any]:
+async def get_available_profiles() -> dict[str, Any]:
     """
     Get list of available temporary browser profiles.
     
@@ -17,7 +18,8 @@ def get_available_profiles() -> dict[str, Any]:
     profiles_instance = Profiles()
     
     try:
-        available_profiles = profiles_instance.get_available_temp_profiles()
+        # get_available_temp_profiles may do file system operations
+        available_profiles = await to_thread(profiles_instance.get_available_temp_profiles)
     except (FileNotFoundError, ValueError):
         available_profiles = []
     
@@ -28,7 +30,7 @@ def get_available_profiles() -> dict[str, Any]:
     }
 
 
-def get_assigned_profiles() -> dict[str, Any]:
+async def get_assigned_profiles() -> dict[str, Any]:
     """
     Get profile to channel assignment mapping during storm.
     

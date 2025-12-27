@@ -1,9 +1,11 @@
 from typing import Any
 
+from aiofiles import open as aio_open
+
 from ...settings import settings
 
 
-def get_logs(last_n_lines: int = 50) -> dict[str, Any]:
+async def get_logs(last_n_lines: int = 50) -> dict[str, Any]:
     """
     Get the last N log entries from the current session log file.
     
@@ -35,8 +37,8 @@ def get_logs(last_n_lines: int = 50) -> dict[str, Any]:
         }
     
     try:
-        with open(log_file_path, "r", encoding="utf-8") as f:
-            all_lines = f.readlines()
+        async with aio_open(log_file_path, "r", encoding="utf-8") as f:
+            all_lines = await f.readlines()
             
         # Get last N lines
         last_lines = all_lines[-last_n_lines:] if len(all_lines) > last_n_lines else all_lines
@@ -63,4 +65,3 @@ def get_logs(last_n_lines: int = 50) -> dict[str, Any]:
 
 
 __all__: list[str] = ["get_logs"]
-

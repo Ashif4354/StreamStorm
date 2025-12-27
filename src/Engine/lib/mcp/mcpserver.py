@@ -1,5 +1,6 @@
 from logging import getLogger, Logger
 from typing import Any
+from asyncio import to_thread
 
 from fastmcp import FastMCP
 from fastmcp.server.openapi import RouteMap, MCPType
@@ -12,7 +13,7 @@ from .middlewares.EngineBusyCheck import EngineBusyCheckMiddleware
 from .middlewares.CheckStormInProgress import CheckStormInProgressMiddleware
 from ..api.fastapi_app import app
 
-# Import resource functions
+# Import async resource functions
 from .resources import (
     get_storm_channels,
     get_active_channels,
@@ -60,7 +61,7 @@ mcp.add_middleware(EngineBusyCheckMiddleware())
 mcp.add_middleware(CheckStormInProgressMiddleware())
 
 @mcp.tool(name="greet_streamstorm", tags={"system"})
-def greet(name: str) -> str:
+async def greet(name: str) -> str:
     """
     Greet StreamStorm MCP server.
     
@@ -74,7 +75,7 @@ def greet(name: str) -> str:
 
 
 @mcp.tool(name="get_storm_channels", tags={"storm", "channels"})
-def tool_get_storm_channels() -> dict[str, Any]:
+async def tool_get_storm_channels() -> dict[str, Any]:
     """
     Get all channels with their current status.
     
@@ -82,33 +83,33 @@ def tool_get_storm_channels() -> dict[str, Any]:
     Returns channel information including name, logo, and status for all
     channels participating in the current storm session.
     """
-    return get_storm_channels()
+    return await get_storm_channels()
 
 
 @mcp.tool(name="get_active_channels", tags={"storm", "channels"})
-def tool_get_active_channels() -> dict[str, Any]:
+async def tool_get_active_channels() -> dict[str, Any]:
     """
     Get currently active/running channel indices.
     
     Returns a list of channel indices that are currently in Ready (2)
     or Storming (3) state during an active storm session.
     """
-    return get_active_channels()
+    return await get_active_channels()
 
 
 @mcp.tool(name="get_storm_messages", tags={"storm", "messages"})
-def tool_get_storm_messages() -> dict[str, Any]:
+async def tool_get_storm_messages() -> dict[str, Any]:
     """
     Get current message list being sent during the storm.
     
     Returns the list of messages that instances are cycling through
     when sending chat messages to the livestream.
     """
-    return get_storm_messages()
+    return await get_storm_messages()
 
 
 @mcp.tool(name="get_system_metrics", tags={"system", "metrics"})
-def tool_get_system_metrics() -> dict[str, Any]:
+async def tool_get_system_metrics() -> dict[str, Any]:
     """
     Get real-time system usage metrics.
     
@@ -116,44 +117,44 @@ def tool_get_system_metrics() -> dict[str, Any]:
     statistics. Useful for monitoring resource consumption during
     storm operations.
     """
-    return get_system_metrics_resource()
+    return await get_system_metrics_resource()
 
 
 @mcp.tool(name="get_system_settings", tags={"system", "settings"})
-def tool_get_system_settings() -> dict[str, Any]:
+async def tool_get_system_settings() -> dict[str, Any]:
     """
     Get current application settings. Mask sensitive data.
     
     Returns configuration including version, environment, host, port,
     operating system, and application data directory path.
     """
-    return get_system_settings()
+    return await get_system_settings()
 
 
 @mcp.tool(name="get_available_profiles", tags={"profiles"})
-def tool_get_available_profiles() -> dict[str, Any]:
+async def tool_get_available_profiles() -> dict[str, Any]:
     """
     Get list of available temporary browser profiles.
     
     Returns profiles created for storm operations. Each profile is
     a browser session that can log into a different YouTube channel.
     """
-    return get_available_profiles()
+    return await get_available_profiles()
 
 
 @mcp.tool(name="get_assigned_profiles", tags={"profiles"})
-def tool_get_assigned_profiles() -> dict[str, Any]:
+async def tool_get_assigned_profiles() -> dict[str, Any]:
     """
     Get profile to channel assignment mapping during storm.
     
     Returns which browser profile is assigned to which channel index
     during an active storm session.
     """
-    return get_assigned_profiles()
+    return await get_assigned_profiles()
 
 
 @mcp.tool(name="get_channel_status", tags={"channel", "status"})
-def tool_get_channel_status(channel_id: int) -> dict[str, Any]:
+async def tool_get_channel_status(channel_id: int) -> dict[str, Any]:
     """
     Get the status of a specific channel.
     
@@ -162,11 +163,11 @@ def tool_get_channel_status(channel_id: int) -> dict[str, Any]:
         
     Status codes: -1=Idle, 0=Dead, 1=Getting Ready, 2=Ready, 3=Storming.
     """
-    return get_channel_status(channel_id)
+    return await get_channel_status(channel_id)
 
 
 @mcp.tool(name="get_channel_info", tags={"channel", "info"})
-def tool_get_channel_info(channel_id: int) -> dict[str, Any]:
+async def tool_get_channel_info(channel_id: int) -> dict[str, Any]:
     """
     Get full information for a specific channel.
     
@@ -175,11 +176,11 @@ def tool_get_channel_info(channel_id: int) -> dict[str, Any]:
         
     Returns channel name, logo, status, and other metadata.
     """
-    return get_channel_info(channel_id)
+    return await get_channel_info(channel_id)
 
 
 @mcp.tool(name="get_logs", tags={"logs", "debugging"})
-def tool_get_logs(last_n_lines: int) -> dict[str, Any]:
+async def tool_get_logs(last_n_lines: int) -> dict[str, Any]:
     """
     Get the last N log entries from the current log file.
     
@@ -189,7 +190,7 @@ def tool_get_logs(last_n_lines: int) -> dict[str, Any]:
     Returns recent application log entries for debugging and
     monitoring storm operations.
     """
-    return get_logs(last_n_lines)
+    return await get_logs(last_n_lines)
 
 
 # ============================================================================
@@ -197,7 +198,7 @@ def tool_get_logs(last_n_lines: int) -> dict[str, Any]:
 # ============================================================================
 
 @mcp.tool(name="get_storm_status", tags={"storm", "status"})
-def tool_get_storm_status() -> dict[str, Any]:
+async def tool_get_storm_status() -> dict[str, Any]:
     """
     Get the current storm status.
     
@@ -261,7 +262,7 @@ async def tool_get_message_stats() -> dict[str, Any]:
 
 
 @mcp.tool(name="get_storm_context", tags={"storm", "context"})
-def tool_get_storm_context() -> dict[str, Any]:
+async def tool_get_storm_context() -> dict[str, Any]:
     """
     Get the current storm context and statistics.
     
@@ -293,7 +294,7 @@ def tool_get_storm_context() -> dict[str, Any]:
 
 
 @mcp.tool(name="get_ai_provider_keys", tags={"settings", "ai"})
-def tool_get_ai_provider_keys() -> dict[str, Any]:
+async def tool_get_ai_provider_keys() -> dict[str, Any]:
     """
     Get all AI provider configurations and keys.
     
@@ -321,7 +322,7 @@ def tool_get_ai_provider_keys() -> dict[str, Any]:
 
 
 @mcp.tool(name="get_default_ai_provider", tags={"settings", "ai"})
-def tool_get_default_ai_provider() -> dict[str, Any]:
+async def tool_get_default_ai_provider() -> dict[str, Any]:
     """
     Get the current default AI provider configuration.
     
@@ -351,7 +352,7 @@ def tool_get_default_ai_provider() -> dict[str, Any]:
 
 
 @mcp.tool(name="health_check", tags={"system"})
-def tool_health_check() -> dict[str, Any]:
+async def tool_health_check() -> dict[str, Any]:
     """
     Check if StreamStorm engine is running.
     
@@ -365,7 +366,7 @@ def tool_health_check() -> dict[str, Any]:
 
 
 @mcp.tool(name="get_system_ram_info", tags={"system", "metrics"})
-def tool_get_system_ram_info() -> dict[str, Any]:
+async def tool_get_system_ram_info() -> dict[str, Any]:
     """
     Get system RAM information.
     
@@ -379,14 +380,18 @@ def tool_get_system_ram_info() -> dict[str, Any]:
     """
     from psutil import virtual_memory
     
-    return {
-        "free": virtual_memory().available / (1024**3),
-        "total": virtual_memory().total / (1024**3),
-    }
+    def get_ram_info() -> dict[str, float]:
+        mem = virtual_memory()
+        return {
+            "free": mem.available / (1024**3),
+            "total": mem.total / (1024**3),
+        }
+    
+    return await to_thread(get_ram_info)
 
 
 @mcp.tool(name="streamstorm_engine_config", tags={"system", "config"})
-def tool_streamstorm_engine_config() -> dict[str, Any]:
+async def tool_streamstorm_engine_config() -> dict[str, Any]:
     """
     Get StreamStorm engine config and version.
     
@@ -408,7 +413,7 @@ def tool_streamstorm_engine_config() -> dict[str, Any]:
 
 
 @mcp.tool(name="get_storm_history", tags={"storm", "history"})
-def tool_get_storm_history(last_n_requests: int = 2) -> dict[str, Any]:
+async def tool_get_storm_history(last_n_requests: int = 2) -> dict[str, Any]:
     """
     Get the last N storm requests from the history log.
     
@@ -424,9 +429,10 @@ def tool_get_storm_history(last_n_requests: int = 2) -> dict[str, Any]:
         count (int): Number of requests returned
         message (str): Status message
     """
+    from aiofiles import open as aio_open
     
     # Clamp to reasonable limits
-    last_n_requests = max(1, min(last_n_requests, 20))
+    n_requests = max(1, min(last_n_requests, 20))
     
     history_file = settings.app_data_dir / "logs" / "History.log"
     
@@ -439,7 +445,8 @@ def tool_get_storm_history(last_n_requests: int = 2) -> dict[str, Any]:
         }
     
     try:
-        content = history_file.read_text(encoding="utf-8")
+        async with aio_open(history_file, "r", encoding="utf-8") as f:
+            content = await f.read()
         
         # Split by the separator (60 equal signs followed by newline)
         separator = "=" * 60 + "\n"
@@ -447,7 +454,7 @@ def tool_get_storm_history(last_n_requests: int = 2) -> dict[str, Any]:
         
         # Filter out empty entries and get the last N
         entries = [e.strip() for e in entries if e.strip()]
-        last_entries = entries[-last_n_requests:] if len(entries) >= last_n_requests else entries
+        last_entries = entries[-n_requests:] if len(entries) >= n_requests else entries
         
         # Reverse to show most recent first
         last_entries.reverse()
@@ -475,7 +482,7 @@ def tool_get_storm_history(last_n_requests: int = 2) -> dict[str, Any]:
 
 # Storm Resources
 @mcp.resource("storm://channels")
-def resource_storm_channels() -> dict[str, Any]:
+async def resource_storm_channels() -> dict[str, Any]:
     """
     Get all channels with their current status.
     
@@ -483,29 +490,29 @@ def resource_storm_channels() -> dict[str, Any]:
     Returns channel information including name, logo, and status for all
     channels participating in the current storm session.
     """
-    return get_storm_channels()
+    return await get_storm_channels()
 
 
 @mcp.resource("storm://active-channels")
-def resource_active_channels() -> dict[str, Any]:
+async def resource_active_channels() -> dict[str, Any]:
     """
     Get currently active/running channel indices.
     
     Returns a list of channel indices that are currently in Ready (2)
     or Storming (3) state during an active storm session.
     """
-    return get_active_channels()
+    return await get_active_channels()
 
 
 @mcp.resource("storm://messages")
-def resource_storm_messages() -> dict[str, Any]:
+async def resource_storm_messages() -> dict[str, Any]:
     """
     Get current message list being sent during the storm.
     
     Returns the list of messages that instances are cycling through
     when sending chat messages to the livestream.
     """
-    return get_storm_messages()
+    return await get_storm_messages()
 
 
 @mcp.resource("storm://message-stats")
@@ -539,7 +546,7 @@ async def resource_message_stats() -> dict[str, Any]:
 
 # System Resources
 @mcp.resource("system://metrics")
-def resource_system_metrics() -> dict[str, Any]:
+async def resource_system_metrics() -> dict[str, Any]:
     """
     Get real-time system usage metrics.
     
@@ -547,46 +554,46 @@ def resource_system_metrics() -> dict[str, Any]:
     statistics. Useful for monitoring resource consumption during
     storm operations.
     """
-    return get_system_metrics_resource()
+    return await get_system_metrics_resource()
 
 
 @mcp.resource("system://settings")
-def resource_system_settings() -> dict[str, Any]:
+async def resource_system_settings() -> dict[str, Any]:
     """
     Get current application settings. Mask sensitive data. 
     
     Returns configuration including version, environment, host, port,
     operating system, and application data directory path.
     """
-    return get_system_settings()
+    return await get_system_settings()
 
 
 # Profile Resources
 @mcp.resource("profiles://available")
-def resource_available_profiles() -> dict[str, Any]:
+async def resource_available_profiles() -> dict[str, Any]:
     """
     Get list of available temporary browser profiles.
     
     Returns profiles created for storm operations. Each profile is
     a browser session that can log into a different YouTube channel.
     """
-    return get_available_profiles()
+    return await get_available_profiles()
 
 
 @mcp.resource("profiles://assigned")
-def resource_assigned_profiles() -> dict[str, Any]:
+async def resource_assigned_profiles() -> dict[str, Any]:
     """
     Get profile to channel assignment mapping during storm.
     
     Returns which browser profile is assigned to which channel index
     during an active storm session.
     """
-    return get_assigned_profiles()
+    return await get_assigned_profiles()
 
 
 # Channel Resource Templates (dynamic URIs)
 @mcp.resource("channel://{channel_id}/status")
-def resource_channel_status(channel_id: int) -> dict[str, Any]:
+async def resource_channel_status(channel_id: int) -> dict[str, Any]:
     """
     Get the status of a specific channel.
     
@@ -595,11 +602,11 @@ def resource_channel_status(channel_id: int) -> dict[str, Any]:
         
     Status codes: -1=Idle, 0=Dead, 1=Getting Ready, 2=Ready, 3=Storming.
     """
-    return get_channel_status(channel_id)
+    return await get_channel_status(channel_id)
 
 
 @mcp.resource("channel://{channel_id}/info")
-def resource_channel_info(channel_id: int) -> dict[str, Any]:
+async def resource_channel_info(channel_id: int) -> dict[str, Any]:
     """
     Get full information for a specific channel.
     
@@ -608,12 +615,12 @@ def resource_channel_info(channel_id: int) -> dict[str, Any]:
         
     Returns channel name, logo, status, and other metadata.
     """
-    return get_channel_info(channel_id)
+    return await get_channel_info(channel_id)
 
 
 # Logs Resource Template
 @mcp.resource("streamstorm://logs/{last_n_lines}")
-def resource_logs(last_n_lines: int) -> dict[str, Any]:
+async def resource_logs(last_n_lines: int) -> dict[str, Any]:
     """
     Get the last N log entries from the current log file.
     
@@ -623,7 +630,7 @@ def resource_logs(last_n_lines: int) -> dict[str, Any]:
     Returns recent application log entries for debugging and
     monitoring storm operations.
     """
-    return get_logs(last_n_lines)
+    return await get_logs(last_n_lines)
 
 mcp_app = mcp.http_app(path='/mcp')
 

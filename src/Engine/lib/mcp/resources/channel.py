@@ -3,7 +3,7 @@ from typing import Any, Optional
 from ...core.StreamStorm import StreamStorm
 
 
-def get_channel_status(channel_id: int) -> dict[str, Any]:
+async def get_channel_status(channel_id: int) -> dict[str, Any]:
     """
     Get the status of a specific channel.
     
@@ -67,7 +67,7 @@ def get_channel_status(channel_id: int) -> dict[str, Any]:
     }
 
 
-def get_channel_info(channel_id: int) -> dict[str, Any]:
+async def get_channel_info(channel_id: int) -> dict[str, Any]:
     """
     Get full information for a specific channel.
     

@@ -3,7 +3,7 @@ from typing import Any, Optional
 from ...core.StreamStorm import StreamStorm
 
 
-def get_storm_channels() -> dict[str, Any]:
+async def get_storm_channels() -> dict[str, Any]:
     """
     Get all channels with their current status.
     
@@ -34,7 +34,7 @@ def get_storm_channels() -> dict[str, Any]:
     }
 
 
-def get_active_channels() -> dict[str, Any]:
+async def get_active_channels() -> dict[str, Any]:
     """
     Get currently active/running channel indices.
     
@@ -65,7 +65,7 @@ def get_active_channels() -> dict[str, Any]:
     }
 
 
-def get_storm_messages() -> dict[str, Any]:
+async def get_storm_messages() -> dict[str, Any]:
     """
     Get current message list being sent during the storm.
     
