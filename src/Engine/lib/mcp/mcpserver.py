@@ -225,6 +225,41 @@ def tool_get_storm_status() -> dict[str, Any]:
         }
 
 
+@mcp.tool(name="get_message_stats", tags={"storm", "messages", "stats"})
+async def tool_get_message_stats() -> dict[str, Any]:
+    """
+    Get real-time message statistics for the current storm.
+    
+    Returns the total number of messages sent and the current message rate
+    (messages per minute) during an active storm session.
+    
+    Returns:
+        success (bool): True if the request was successful
+        message_count (int): Total number of messages sent during this storm
+        message_rate (float): Current message rate in messages per minute
+        message (str): Status message
+    """
+    from ..core.StreamStorm import StreamStorm
+    
+    if StreamStorm.ss_instance is None:
+        return {
+            "success": False,
+            "message_count": 0,
+            "message_rate": 0.0,
+            "message": "No storm is running"
+        }
+    
+    async with StreamStorm.ss_instance.message_counter_lock:
+        message_count = StreamStorm.ss_instance.message_count
+    
+    return {
+        "success": True,
+        "message_count": message_count,
+        "message_rate": StreamStorm.ss_instance.message_rate,
+        "message": "Message statistics fetched successfully"
+    }
+
+
 @mcp.tool(name="get_storm_context", tags={"storm", "context"})
 def tool_get_storm_context() -> dict[str, Any]:
     """
@@ -471,6 +506,35 @@ def resource_storm_messages() -> dict[str, Any]:
     when sending chat messages to the livestream.
     """
     return get_storm_messages()
+
+
+@mcp.resource("storm://message-stats")
+async def resource_message_stats() -> dict[str, Any]:
+    """
+    Get real-time message statistics for the current storm.
+    
+    Returns the total number of messages sent and the current message rate
+    (messages per minute) during an active storm session.
+    """
+    from ..core.StreamStorm import StreamStorm
+    
+    if StreamStorm.ss_instance is None:
+        return {
+            "success": False,
+            "message_count": 0,
+            "message_rate": 0.0,
+            "message": "No storm is running"
+        }
+    
+    async with StreamStorm.ss_instance.message_counter_lock:
+        message_count = StreamStorm.ss_instance.message_count
+    
+    return {
+        "success": True,
+        "message_count": message_count,
+        "message_rate": StreamStorm.ss_instance.message_rate,
+        "message": "Message statistics fetched successfully"
+    }
 
 
 # System Resources
