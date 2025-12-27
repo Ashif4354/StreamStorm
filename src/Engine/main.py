@@ -54,7 +54,7 @@ def exit_app() -> None:
 
 
 def serve_api() -> None:
-    logger.debug("Starting API-SocketIO Server")
+    logger.debug("Starting API-MCP-SocketIO Server")
     
     new_app: FastAPI = FastAPI(
         title="StreamStorm API with MCP Server",
@@ -66,6 +66,7 @@ def serve_api() -> None:
         docs_url="/mcp-docs",
         openapi_url="/mcp-openapi.json"
     )
+    logger.debug("Merged /mcp route of MCP server to new app")
 
     new_app.add_middleware(
         CORSMiddleware,
@@ -76,15 +77,19 @@ def serve_api() -> None:
     )
 
     new_app.mount("/", fastapi_app)
+    logger.debug("Mounted API server at /")
     
     if settings.env == "development":
         instrument_fastapi(new_app)
 
     app: ASGIApp = ASGIApp(sio, new_app)
+    logger.debug("SocketIO and API server merged.")
+
     HOST: str = settings.host
     PORT: int = settings.port
 
-    logger.info(f"StreamStorm Engine listening at {HOST}:{PORT}")
+    logger.info(f"StreamStorm Engine listening at http://{HOST}:{PORT}")
+    logger.info(f"MCP Server listening at http://{HOST}:{PORT}/mcp")
 
     run_uvicorn(
         app,
