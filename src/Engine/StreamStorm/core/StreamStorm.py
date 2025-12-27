@@ -35,7 +35,7 @@ class StreamStorm(Profiles):
         'total_instances', 'ready_to_storm_instances', 'total_channels', 
         'all_channels', 'assigned_profiles', 'run_stopper_event', 'previous_count',
         'time_elapsed_since_last_minute', 'message_counter_lock', 'message_count',
-        'storm_context', 'storm_data', 'target_channel'
+        'storm_context', 'storm_data', 'target_channel', 'message_rate'
     )
     
     each_channel_instances: list[SeparateInstance] = []
@@ -68,6 +68,7 @@ class StreamStorm(Profiles):
         self.assigned_profiles: dict[str, int] = {}
         self.message_counter_lock: Lock = Lock()
         self.message_count: int = 0
+        self.message_rate: float = 0.0
         self.storm_context: dict = {}
 
         StreamStorm.ss_instance = self
@@ -94,7 +95,7 @@ class StreamStorm(Profiles):
 
     #     self.url = f"https://streamstorm.darkglance.in/r/{video_id}?hl=en-US&persist_hl=1"
         
-    def get_channel_url(self):
+    def get_channel_url(self) -> tuple[str, bool]:
         ytdlp_options: dict = {
             "quiet": True,
             # "dump_single_json": True,
@@ -104,6 +105,8 @@ class StreamStorm(Profiles):
         try:
             with YoutubeDL(ytdlp_options) as ytdlp:
                 info_dict: dict = ytdlp.extract_info(self.url, download=False)
+                
+                # We are going to /search page because It loads faster than the channel page
                 return (info_dict.get("channel_url") or info_dict.get("uploader_url")) + "/search" , True
                 
         except Exception as e:
@@ -299,7 +302,6 @@ class StreamStorm(Profiles):
         time_frame: int = 2 # time frame in seconds to send message count updates
         self.previous_count: int = 0
         self.time_elapsed_since_last_minute: int = 0 # in seconds
-        message_rate: float = 0.0
         
         logger.debug("#### Starting message handler...")
         await self.ready_event.wait()  # Wait for the ready event to be set before starting the storming    
@@ -327,9 +329,9 @@ class StreamStorm(Profiles):
             
             self.time_elapsed_since_last_minute += time_frame
             
-            message_rate = ((current_count / self.time_elapsed_since_last_minute) * 60) if self.time_elapsed_since_last_minute > 0 else message_rate
+            self.message_rate = ((current_count / self.time_elapsed_since_last_minute) * 60) if self.time_elapsed_since_last_minute > 0 else 0.0
             
-            await sio.emit('messages_rate', {'message_rate': message_rate}, room="streamstorm")
+            await sio.emit('messages_rate', {'message_rate': self.message_rate}, room="streamstorm")
             await sleep(time_frame) # asyncio.sleep
             
         # I know the time may have a difference of 1-3 seconds but it's not a big deal.
