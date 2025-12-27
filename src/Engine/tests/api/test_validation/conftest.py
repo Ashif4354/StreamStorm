@@ -8,10 +8,10 @@ from lib.api.validation import StormData
 
 @fixture(autouse=True)
 def path_storm_endpoint(mocker: MockerFixture, monkeypatch: MonkeyPatch  ):
-    mocker.patch("StreamStorm.api.routers.StormRouter.StreamStorm.ss_instance", None)
-    mocker.patch("StreamStorm.api.routers.StormRouter.environ.update", new=MagicMock())
-    mocker.patch("StreamStorm.api.routers.StormRouter.StreamStorm.start", new=AsyncMock())
-    mocker.patch("StreamStorm.api.routers.StormRouter.StreamStorm.start_more_channels", new=AsyncMock())
+    mocker.patch("lib.api.routers.StormRouter.StreamStorm.ss_instance", None)
+    mocker.patch("lib.api.routers.StormRouter.environ.update", new=MagicMock())
+    mocker.patch("lib.api.routers.StormRouter.StreamStorm.start", new=AsyncMock())
+    mocker.patch("lib.api.routers.StormRouter.StreamStorm.start_more_channels", new=AsyncMock())
     
     monkeypatch.setenv("BUSY", "0")
     

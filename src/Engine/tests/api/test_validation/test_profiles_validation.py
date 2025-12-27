@@ -30,7 +30,7 @@ COUNT_VALUES: tuple[tuple[int, int], ...] = (
 @mark.parametrize("count, expected", COUNT_VALUES)
 def test_data_validation_create_profiles(mocker: MockerFixture, client: TestClient, count: int, expected: int) -> NoReturn:
     
-    new_run_in_threadpool: AsyncMock = mocker.patch("StreamStorm.api.routers.ProfileRouter.run_in_threadpool", new=AsyncMock())
+    new_run_in_threadpool: AsyncMock = mocker.patch("lib.api.routers.ProfileRouter.run_in_threadpool", new=AsyncMock())
     
     response: Response = client.post("/environment/profiles/create", json={"count": count})
     logger.debug(response.json())

@@ -10,7 +10,7 @@ from lib.core.StreamStorm import StreamStorm
 @fixture(autouse=True)
 def reset_streamstorm(mocker: MockerFixture):
     StreamStorm.ss_instance = None
-    mocker.patch("StreamStorm.api.routers.StormRouter.StreamStorm.start", new=AsyncMock())
+    mocker.patch("lib.api.routers.StormRouter.StreamStorm.start", new=AsyncMock())
     yield
     StreamStorm.ss_instance = None
 

@@ -10,7 +10,7 @@ logger: Logger = getLogger(f"tests.{__name__}")
 
 @fixture(autouse=True)
 def set_ss_instance(mocker: MockerFixture, monkeypatch: MonkeyPatch):
-    mocker.patch("StreamStorm.api.routers.StormRouter.StreamStorm.ss_instance", object())
+    mocker.patch("lib.api.routers.StormRouter.StreamStorm.ss_instance", object())
     monkeypatch.setenv("BUSY", "0")
     
     

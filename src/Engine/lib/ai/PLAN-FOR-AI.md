@@ -238,7 +238,7 @@ class LangChain(AIBase):
 ## 4. The AI class will be used by StreamStorm in the following ways
 
 ```python
-from Engine.StreamStorm.ai.AI import LangChain
+from Engine.lib.ai.AI import LangChain
 
 # Instantiate the AI service with the desired provider
 ai = LangChain(provider_name="openai", model_name="gpt-4o-mini")

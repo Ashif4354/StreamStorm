@@ -12,7 +12,7 @@ from json import dump, load  # noqa: E402
 from re import sub  # noqa: E402
 from platform import system  # noqa: E402
 from logging import basicConfig, INFO, info as log_info  # noqa: E402
-from src.Engine.StreamStorm.settings import settings  # noqa: E402
+from src.Engine.lib.settings import settings  # noqa: E402
 
 basicConfig(level=INFO)
 

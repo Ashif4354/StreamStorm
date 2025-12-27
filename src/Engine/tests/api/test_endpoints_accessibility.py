@@ -31,7 +31,7 @@ def test_engine_status(client: TestClient) -> NoReturn:
 
 def test_start_storm(mocker: MockerFixture, client: TestClient) -> NoReturn:
     
-    mock_start: MagicMock = mocker.patch("StreamStorm.core.StreamStorm.StreamStorm.start", new_callable=AsyncMock)
+    mock_start: MagicMock = mocker.patch("lib.core.StreamStorm.StreamStorm.start", new_callable=AsyncMock)
 
     test_payload: dict = {
         "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
@@ -114,7 +114,7 @@ def test_get_channels_data(client: TestClient) -> NoReturn:
     
 def test_create_profiles(mocker: MockerFixture, client: TestClient) -> NoReturn:
     
-    new_run_in_threadpool: AsyncMock = mocker.patch("StreamStorm.api.routers.ProfileRouter.run_in_threadpool", new=AsyncMock())
+    new_run_in_threadpool: AsyncMock = mocker.patch("lib.api.routers.ProfileRouter.run_in_threadpool", new=AsyncMock())
     
     data: dict = {"count": 1}
 
@@ -127,7 +127,7 @@ def test_create_profiles(mocker: MockerFixture, client: TestClient) -> NoReturn:
 def test_delete_all_profiles(mocker: MockerFixture, client: TestClient) -> NoReturn:
     
     
-    new_run_in_threadpool: AsyncMock = mocker.patch("StreamStorm.api.routers.ProfileRouter.run_in_threadpool", new = AsyncMock())
+    new_run_in_threadpool: AsyncMock = mocker.patch("lib.api.routers.ProfileRouter.run_in_threadpool", new = AsyncMock())
     
     response: Response = client.post("/environment/profiles/delete")
     logger.debug(response.json())

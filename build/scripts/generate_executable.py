@@ -22,7 +22,7 @@ OS: str = system()
 def check_engine_env():
     """Check if the Engine environment is set to production before building."""
     
-    from src.Engine.StreamStorm.settings import settings  # noqa: E402
+    from src.Engine.lib.settings import settings  # noqa: E402
     
     log_info("Checking environment configuration...")
     

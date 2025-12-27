@@ -93,7 +93,7 @@ def test_change_slow_mode(ss_instance: StreamStorm, client: TestClient, data: di
     
 @mark.parametrize("data", start_more_channels_data)
 def test_start_more_channels(mocker: MockerFixture, ss_instance: StreamStorm, client: TestClient, data: dict) -> NoReturn:
-    mocker.patch("StreamStorm.api.routers.StormRouter.StreamStorm.start", new=AsyncMock())
+    mocker.patch("lib.api.routers.StormRouter.StreamStorm.start", new=AsyncMock())
     
     logger.debug("DATA ID: %s", data["id"])
     del data["id"]
