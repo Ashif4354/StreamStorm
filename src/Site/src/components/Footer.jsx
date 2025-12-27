@@ -12,7 +12,7 @@ const Footer = () => {
                 {visitCount && <span className="footer-element">Visit Count: {visitCount}</span>}
             </div>
             <br />
-            © 2024 StreamStorm. All rights reserved.
+            © {new Date().getFullYear()} StreamStorm. All rights reserved.
         </footer>
     );
 };

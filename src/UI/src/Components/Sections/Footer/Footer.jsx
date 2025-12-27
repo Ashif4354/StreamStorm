@@ -10,7 +10,7 @@ const Footer = () => {
         <footer className={`footer footer-${colorScheme} ${colorScheme}-bordered-container`}>
             <div className="footer-content">
                 <p className="footer-text">Email: darkglance.developer@gmail.com for any queries.</p>
-                <p className="footer-text">© 2025 StreamStorm. All rights reserved.</p>
+                <p className="footer-text">© {new Date().getFullYear()} StreamStorm. All rights reserved.</p>
                 <div className="versions-text">
                     <p>UI Version: {import.meta.env.VITE_APP_VERSION}</p>
                     <p>Engine Version: {appState.engineVersion}</p>

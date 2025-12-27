@@ -17,7 +17,7 @@ const PrivacyPolicy = () => {
     <div className="pp-page">
       <article className="pp-container">
         <h1>Privacy Policy</h1>
-        <p className="last-updated">Last Updated: August 23, 2025</p>
+        <p className="last-updated">Last Updated: December 27, 2025</p>
 
         <section>
           <h2>1. No Personal Data Collection</h2>
@@ -45,6 +45,7 @@ const PrivacyPolicy = () => {
             The app uses the internet only for:
             <ul>
               <li>Checking for software updates</li>
+              <li>Parse youtube video for metadata</li>
               <li>Downloading required browser webdrivers (chromedriver)</li>
               <li>Sending anonymous telemetry and performance data to Atatus</li>
               <li>Sending anonymous analytics data to Firebase Analytics</li>

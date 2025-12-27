@@ -22,6 +22,7 @@ const Instructions = () => {
 
           <nav className="instructions-index" aria-label="Table of Contents">
             <h2 className="instructions-index-heading">Table of Contents</h2>
+            <p className="instructions-paragraph">For any queries, mail <a href="mailto:darkglance.developer@gmail.com" className="instructions-link">darkglance.developer@gmail.com</a></p>
             <ul className="instructions-index-list">
               <li><a href="#requirements" className="instructions-index-link">Requirements</a></li>
               <li>
@@ -40,6 +41,16 @@ const Instructions = () => {
                 </ul>
               </li>
               <li><a href="#precautions" className="instructions-index-link">Precautions</a></li>
+              <li>
+                <a href="#mcp-server" className="instructions-index-link">Using the StreamStorm MCP Server</a>
+                <ul className="instructions-index-list">
+                  <li><a href="#mcp-gemini" className="instructions-index-link">Gemini CLI</a></li>
+                  <li><a href="#mcp-claude" className="instructions-index-link">Claude Desktop</a></li>
+                  <li><a href="#mcp-chatgpt" className="instructions-index-link">ChatGPT</a></li>
+                  <li><a href="#mcp-sample-prompts" className="instructions-index-link">Sample Prompts</a></li>
+                  <li><a href="#mcp-available-tools" className="instructions-index-link">Available Tools</a></li>
+                </ul>
+              </li>
             </ul>
           </nav>
 
@@ -350,6 +361,139 @@ const Instructions = () => {
           <ul className="instructions-list">
             <li className="instructions-list-item">The less free RAM you have after clicking <code className="instructions-inline-code">Start Storm</code>, the more likely the storming process will be slower, and the more likely it is to fail. So choose the number of accounts responsibly. For example, if you have 10 GB of free RAM, use only 6-7 GB for storm and keep the rest free, for a smooth flow.</li>
           </ul>
+
+          <h2 id="mcp-server" className="instructions-section-heading">Using the StreamStorm MCP Server</h2>
+          <p className="instructions-paragraph">StreamStorm exposes an MCP (Model Context Protocol) server that allows AI assistants to control the storm programmatically. The MCP server is accessible at <code className="instructions-inline-code">http://localhost:1919/mcp</code> when the application is running.</p>
+          <p className="instructions-paragraph"><strong>You can perform all the actions available in the UI through the MCP server, plus additional tools</strong>, and more advanced storm management capabilities.</p>
+
+          <h3 id="mcp-gemini" className="instructions-step-heading">Gemini CLI</h3>
+          <p className="instructions-paragraph">You can add the StreamStorm MCP server to Gemini CLI using either the configuration file or the command line.</p>
+          <p className="instructions-paragraph"><strong>Option 1: Configuration File</strong></p>
+          <p className="instructions-paragraph">Add the following to your Gemini CLI configuration:</p>
+          <pre className="instructions-code-block">
+            {`{
+  "mcpServers": {
+    "StreamStorm": {
+      "httpUrl": "http://localhost:1919/mcp"
+    }
+  }
+}`}
+          </pre>
+          <p className="instructions-paragraph"><strong>Option 2: Command Line</strong></p>
+          <pre className="instructions-code-block">
+            {`gemini mcp add StreamStorm http://localhost:1919/mcp --transport http --scope user`}
+          </pre>
+
+          <h3 id="mcp-claude" className="instructions-step-heading">Claude Desktop</h3>
+          <p className="instructions-paragraph">Add the following to your Claude Desktop configuration file:</p>
+          <pre className="instructions-code-block">
+            {`{
+  "mcpServers": {
+    "StreamStorm": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "http://localhost:1919/mcp"
+      ]
+    }
+  }
+}`}
+          </pre>
+
+          <h3 id="mcp-chatgpt" className="instructions-step-heading">ChatGPT</h3>
+          <p className="instructions-paragraph">To use StreamStorm with ChatGPT, you need to expose the local server to the internet and configure the ChatGPT app.</p>
+          <ol className="instructions-list">
+            <li className="instructions-list-item">
+              <strong>Expose the server to the internet</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">You need to expose <code className="instructions-inline-code">http://localhost:1919</code> to the internet using a tunneling service like Cloudflare Tunnel or ngrok.</li>
+                <li className="instructions-list-item">For ngrok, run: <code className="instructions-inline-code">ngrok http 1919</code></li>
+                <li className="instructions-list-item">Note down the public URL provided by the tunnel service.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
+              <strong>Enable Developer Mode</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">In ChatGPT, enable developer mode in your settings.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
+              <strong>Create the App</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">Go to Settings → Apps → Create App.</li>
+                <li className="instructions-list-item">Enter name: <code className="instructions-inline-code">StreamStorm</code></li>
+                <li className="instructions-list-item">Add a description for the app.</li>
+                <li className="instructions-list-item">In the URL field, enter: <code className="instructions-inline-code">&lt;your-tunnel-url&gt;/mcp</code></li>
+                <li className="instructions-list-item">Select "No authentication".</li>
+                <li className="instructions-list-item">Check the confirmation checkbox and click Create.</li>
+              </ul>
+            </li>
+          </ol>
+          <div className="instructions-warning">
+            <p className="instructions-warning-text">
+              <strong>Note:</strong> Developer mode must always be enabled, and the StreamStorm app must be selected in the ChatGPT chat field before prompting.
+            </p>
+          </div>
+
+          <h3 id="mcp-sample-prompts" className="instructions-step-heading">Sample Prompts</h3>
+          <p className="instructions-paragraph">Here are some example prompts you can use with AI assistants to control StreamStorm:</p>
+          <ul className="instructions-list">
+            <li className="instructions-list-item"><code className="instructions-inline-code">Start storming on https://www.youtube.com/watch?v=dQw4w9WgXcQ with 5 channels with slow mode 3 seconds</code></li>
+            <li className="instructions-list-item"><code className="instructions-inline-code">Start storming on https://www.youtube.com/watch?v=dQw4w9WgXcQ with 5 channels with slow mode 3 seconds and also subscribe and wait for 30 seconds</code></li>
+            <li className="instructions-list-item"><code className="instructions-inline-code">Start storming on https://www.youtube.com/watch?v=dQw4w9WgXcQ with 3 channels with crazy messages</code></li>
+            <li className="instructions-list-item"><code className="instructions-inline-code">Pause the storm</code></li>
+            <li className="instructions-list-item"><code className="instructions-inline-code">Resume the storm</code></li>
+            <li className="instructions-list-item"><code className="instructions-inline-code">Stop the storm</code></li>
+            <li className="instructions-list-item"><code className="instructions-inline-code">Change slow mode to 2 sec</code></li>
+            <li className="instructions-list-item"><code className="instructions-inline-code">Add 2 more channels to the storm</code></li>
+          </ul>
+          <p className="instructions-paragraph">...and many more! The AI assistant can understand natural language commands and translate them into appropriate tool calls.</p>
+
+          <h3 id="mcp-available-tools" className="instructions-step-heading">Available Tools</h3>
+          <p className="instructions-paragraph">The following tools are available through the MCP server as of 27-12-2025:</p>
+          <div className="instructions-code-block">
+            <ul className="instructions-list" style={{ columnCount: 2, columnGap: '2rem' }}>
+              <li className="instructions-list-item"><code className="instructions-inline-code">add_channels_to_storm</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">ai_generate_channel_names</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">ai_generate_messages</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">change_slow_mode</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">change_storm_messages</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">create_chromium_profiles</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">create_youtube_channels</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">delete_chromium_profiles</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_active_channels</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_ai_provider_keys</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_assigned_profiles</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_available_channels</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_available_profiles</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_channel_info</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_channel_status</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_default_ai_provider</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_logs</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_message_stats</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_storm_channels</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_storm_context</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_storm_history</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_storm_messages</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_storm_status</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_system_metrics</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_system_ram_info</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_system_settings</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">greet_streamstorm</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">health_check</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">kill_instance</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">pause_storm</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">resume_storm</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">save_ai_provider_key</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">set_default_ai_provider</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">start_storm</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">start_storm_dont_wait</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">stop_storm</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">streamstorm_engine_config</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">verify_channels_directory</code></li>
+            </ul>
+          </div>
         </article>
       </div>
     </div>

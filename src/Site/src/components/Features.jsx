@@ -9,8 +9,20 @@ import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import StyleOutlinedIcon from '@mui/icons-material/StyleOutlined';
 import AccountBoxOutlinedIcon from '@mui/icons-material/AccountBoxOutlined';
 import OndemandVideoIcon from '@mui/icons-material/OndemandVideo';
+import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import HubOutlinedIcon from '@mui/icons-material/HubOutlined';
 
 const FEATURES = [
+    {
+        title: "Realtime Dashboard",
+        description: "Monitor storm progress, channel status, and message statistics in real-time with a live updating dashboard.",
+        icon: <DashboardOutlinedIcon sx={{ fontSize: '2rem', color: 'var(--light-red)' }} />,
+    },
+    {
+        title: "Integrated MCP Server",
+        description: "Control StreamStorm programmatically through AI assistants like Gemini, Claude, and ChatGPT via the built-in MCP server.",
+        icon: <HubOutlinedIcon sx={{ fontSize: '2rem', color: 'var(--light-red)' }} />,
+    },
     {
         title: "Multi-Account Management",
         description: "Operate multiple YouTube channels in separate, isolated browser profiles to avoid detection.",
@@ -57,6 +69,7 @@ const FEATURES = [
         icon: <LockOpenOutlinedIcon sx={{ fontSize: '2rem', color: 'var(--light-red)' }} />,
     },
     
+
 ]
 
 const Features = () => {
