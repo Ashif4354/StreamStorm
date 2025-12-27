@@ -24,8 +24,8 @@ from socketio import ASGIApp
 from uvicorn import run as run_uvicorn
 from webview import create_window, start
 
-from StreamStorm.settings import settings
-from StreamStorm.utils.CombinedLifeSpan import combined_lifespan
+from lib.settings import settings
+from lib.utils.CombinedLifeSpan import combined_lifespan
 
 logfire_configure(
     token=settings.logfire_token, 
@@ -38,10 +38,10 @@ if settings.env == "development":
     instrument_pydantic_ai()
     instrument_mcp()
 
-from StreamStorm.api.fastapi_app import app as fastapi_app
-from StreamStorm.socketio.sio import sio
-from StreamStorm.mcp.mcpserver import mcp_app
-from StreamStorm.utils.CustomLogger import custom_logger
+from lib.api.fastapi_app import app as fastapi_app
+from lib.socketio.sio import sio
+from lib.mcp.mcpserver import mcp_app
+from lib.utils.CustomLogger import custom_logger
 
 custom_logger.setup_streamstorm_logging()
 

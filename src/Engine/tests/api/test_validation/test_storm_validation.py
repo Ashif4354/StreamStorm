@@ -9,7 +9,7 @@ from pytest import MonkeyPatch, mark
 from pytest_mock import MockerFixture
 
 from fastapi.responses import Response
-from StreamStorm.core.StreamStorm import StreamStorm
+from lib.core.StreamStorm import StreamStorm
 
 
 logger: Logger = getLogger(f"tests.{__name__}")
@@ -119,7 +119,7 @@ def test_get_channels_data(monkeypatch: MonkeyPatch, ss_instance: StreamStorm, c
     del data["result"]    
     
     if result == 200:
-        from StreamStorm.api.routers import StormRouter
+        from lib.api.routers import StormRouter
         assets_dir: str = join(abspath("."), "tests", "assets_for_tests")
         
         monkeypatch.setattr(StormRouter, "user_data_dir", lambda *args, **kwargs: assets_dir)

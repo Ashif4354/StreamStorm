@@ -4,7 +4,7 @@ from pytest_mock import MockerFixture
 
 from fastapi.testclient import TestClient
 
-from StreamStorm.core.StreamStorm import StreamStorm
+from lib.core.StreamStorm import StreamStorm
 
 
 @fixture(autouse=True)

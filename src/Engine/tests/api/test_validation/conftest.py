@@ -2,8 +2,8 @@ from unittest.mock import MagicMock, AsyncMock
 from pytest import MonkeyPatch, fixture
 from pytest_mock import MockerFixture
 
-from StreamStorm.core.StreamStorm import StreamStorm
-from StreamStorm.api.validation import StormData
+from lib.core.StreamStorm import StreamStorm
+from lib.api.validation import StormData
 
 
 @fixture(autouse=True)

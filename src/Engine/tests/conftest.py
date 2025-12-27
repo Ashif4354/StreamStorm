@@ -7,7 +7,7 @@ from pytest import TempPathFactory, fixture
 from fastapi.testclient import TestClient
 
 
-from StreamStorm.api.fastapi_app import app
+from lib.api.fastapi_app import app
 
 @fixture
 def client():
