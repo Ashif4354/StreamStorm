@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import * as atatus from 'atatus-spa';
 
 import { useAppState } from './AppStateContext';
+import { useStormData } from './StormDataContext';
 
 
 const ServerContext = createContext();
@@ -9,6 +10,7 @@ const ServerContext = createContext();
 const ServerContextProvider = ({ children }) => {
 
     const appState = useAppState();
+    const formControls = useStormData();
 
     const [stormData, setStormData] = useState({});
     const [channelsStatus, setChannelsStatus] = useState({});
@@ -41,6 +43,20 @@ const ServerContextProvider = ({ children }) => {
                 });
         }
     }, [appState.stormInProgress, appState.hostAddress]);
+
+    useEffect(() => {
+        if (serverContextFetched && stormData) {
+            formControls.setVideoURL(stormData.video_url);
+            formControls.setChatURL(stormData.chat_url);
+            formControls.setSubscribe(stormData.subscribe);
+            formControls.setSubscribeAndWait(stormData.subscribe_and_wait);
+            formControls.setSubscribeWaitTime(stormData.subscribe_and_wait_time);
+            formControls.setSlowMode(stormData.slow_mode);
+            formControls.setLoadInBackground(stormData.background);
+            formControls.setMessagesString(stormData.messages.join("\n"));
+            formControls.setMessages(stormData.messages);
+        }        
+    }, [serverContextFetched, stormData])
 
 
     const values = {

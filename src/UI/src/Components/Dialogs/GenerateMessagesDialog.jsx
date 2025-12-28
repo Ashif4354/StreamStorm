@@ -24,14 +24,14 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
     const { colorScheme } = useColorScheme();
     const [hostAddress] = useLocalStorageState("hostAddress");
     const notifications = useNotifications();
-    const { defaultAIProvider, defaultAIModel } = useAppState();
+    const appState = useAppState();
 
     const [prompt, setPrompt] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
     const [helperText, setHelperText] = useState("");
 
-    const isProviderConfigured = defaultAIProvider !== null && defaultAIProvider !== undefined;
+    const isProviderConfigured = appState.defaultAIProvider !== null && appState.defaultAIProvider !== undefined;
 
     const handleSubmit = async () => {
         if (!prompt.trim()) {
@@ -151,7 +151,7 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
                             disabled={loading}
                             sx={inputProps}
                         />
-                        {defaultAIModel && (
+                        {appState.defaultAIModel && (
                             <span
                                 style={{
                                     fontSize: "0.75rem",
@@ -162,7 +162,7 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
                                     display: "block"
                                 }}
                             >
-                                Using model: {defaultAIModel}
+                                Using model: {appState.defaultAIModel}
                             </span>
                         )}
                     </>

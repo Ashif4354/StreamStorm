@@ -7,12 +7,14 @@ import '../Modals.css';
 import CloseButton from '../../Elements/CloseButton';
 import { useCustomMUIProps } from '../../../context/CustomMUIPropsContext';
 import ConfigData from './ConfigData';
+import { useStormData } from '../../../context/StormDataContext';
 
 const ViewConfig = (props) => {
 
     const { open, setOpen } = props;
     const { modalProps } = useCustomMUIProps();
     const { colorScheme } = useColorScheme();
+    const formControls = useStormData();
 
     const modalCloseHandler = () => {
         setOpen(false);
@@ -42,7 +44,7 @@ const ViewConfig = (props) => {
                         </span>
                     </div>
                 </div>
-                <ConfigData />
+                <ConfigData formControls={formControls}/>
             </Box>
         </Modal>
     );

@@ -117,10 +117,12 @@ class StreamStorm(Profiles):
         
     async def set_slow_mode(self, slow_mode: int) -> None:
         self.slow_mode = slow_mode
+        self.storm_context["storm_data"]["slow_mode"] = self.slow_mode
         logger.info(f"Slow mode set to {self.slow_mode} seconds")
 
     async def set_messages(self, messages: list[str]) -> None:
         self.messages = messages
+        self.storm_context["storm_data"]["messages"] = self.messages
         logger.info(f"Messages set to: {self.messages}")
 
 

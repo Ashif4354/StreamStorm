@@ -32,6 +32,8 @@ const ChangeMessages = ({ payload, open, onClose }) => {
 
         allMessages = allMessages.map((message) => message.trim())
 
+        formControls.setMessages(allMessages);
+
         setMessages(allMessages);
         setMessagesError(false);
         setMessagesHelperText("");

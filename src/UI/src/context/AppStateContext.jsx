@@ -36,7 +36,7 @@ const AppStateProvider = ({ children }) => {
                 });
 
                 const data = await response.json();
-                if (data.success) {                    
+                if (data.success) {
                     setDefaultAIProvider(data.defaultProvider ?? null);
                     setDefaultAIModel(data.defaultModel ?? null);
                     setDefaultAIBaseUrl(data.defaultBaseUrl ?? null);

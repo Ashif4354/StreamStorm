@@ -12,14 +12,15 @@ const AppProviders = ({ children }) => {
 
     return (
         <CustomMUIPropsProvider>
-            <DialogsProvider>
-                <NotificationsProvider slotProps={{
-                    snackbar: {
-                        anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
-                        autoHideDuration: 2500,
-                    },
-                }}>
-                    <AppStateProvider>
+            <AppStateProvider>
+                <DialogsProvider>
+                    <NotificationsProvider slotProps={{
+                        snackbar: {
+                            anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                            autoHideDuration: 2500,
+                        },
+                    }}>
+
                         <SocketProvider>
                             <StormDataProvider>
                                 <SystemInfoProvider>
@@ -27,9 +28,9 @@ const AppProviders = ({ children }) => {
                                 </SystemInfoProvider>
                             </StormDataProvider>
                         </SocketProvider>
-                    </AppStateProvider>
-                </NotificationsProvider>
-            </DialogsProvider>
+                    </NotificationsProvider>
+                </DialogsProvider>
+            </AppStateProvider>
         </CustomMUIPropsProvider>
     )
 }
