@@ -1,7 +1,7 @@
 from pydantic_ai.models import Model
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
-from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.anthropic import AnthropicProvider
 from pydantic_ai.providers.google import GoogleProvider
 from pydantic_ai.providers.openai import OpenAIProvider
@@ -12,7 +12,7 @@ from .Base import ModelBase
 class OpenAI(ModelBase):
     def create_model(self, model_name: str, api_key: str, base_url: str) -> Model:
         provider = OpenAIProvider(base_url=base_url, api_key=api_key)
-        model = OpenAIModel(model_name=model_name, provider=provider)
+        model = OpenAIChatModel(model_name=model_name, provider=provider)
         return model
 
 
