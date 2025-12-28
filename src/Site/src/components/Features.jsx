@@ -50,7 +50,7 @@ const FEATURES = [
     },
     {
         title: "In-App System Monitoring",
-        description: "Real-time RAM tracking ensures system stability and dynamically calculates how many channels can be run.",
+        description: "Real-time CPU and Memory tracking ensures system stability and dynamically calculates how many channels can be run.",
         icon: <AnalyticsOutlinedIcon sx={{ fontSize: '2rem', color: 'var(--light-red)' }} />,
     },
     {
