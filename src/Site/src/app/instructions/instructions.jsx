@@ -30,10 +30,18 @@ const Instructions = () => {
                 <ul className="instructions-index-list">
                   <li><a href="#step1" className="instructions-index-link">Step 1. Create Temp Profiles</a></li>
                   <li><a href="#step2" className="instructions-index-link">Step 2. Starting The Storm</a></li>
-                  <li><a href="#storm-controls" className="instructions-index-link">Storm Controls</a></li>
                 </ul>
               </li>
               <li><a href="#creating-channels" className="instructions-index-link">Creating Channels</a></li>
+              <li>
+                <a href="#realtime-dashboard" className="instructions-index-link">Realtime Dashboard</a>
+                <ul className="instructions-index-list">
+                  <li><a href="#dashboard-metrics" className="instructions-index-link">Dashboard Metrics</a></li>
+                  <li><a href="#storm-controls" className="instructions-index-link">Storm Controls</a></li>
+                  <li><a href="#channel-status-menu" className="instructions-index-link">Channel Status Menu</a></li>
+                  <li><a href="#view-configurations-menu" className="instructions-index-link">View Configurations Menu</a></li>
+                </ul>
+              </li>
               <li>
                 <a href="#host-config" className="instructions-index-link">Host Configuration</a>
                 <ul className="instructions-index-list">
@@ -229,6 +237,95 @@ const Instructions = () => {
             </li>
           </ul>
 
+          <h3 id="creating-channels" className="instructions-step-heading">Creating Channels</h3>
+          <p className="instructions-paragraph">First Click on <code className="instructions-inline-code">Manage Environment</code> button</p>
+
+          <h4>Without Logo</h4>
+          <ul className="instructions-list">
+            <li className="instructions-list-item">Do not toggle the logo required switch</li>
+            <li className="instructions-list-item">Enter names of channels separated by a new line</li>
+            <li className="instructions-list-item">Click on the <code className="instructions-inline-code">Create Channels</code> button.</li>
+            <li className="instructions-list-item">This will start creating channels with the names provided without any logo.</li>
+          </ul>
+
+          <h4>With Logo</h4>
+          <p>You can also create channels with logo, either random logo or custom logo provided by you</p>
+          <ul className="instructions-list">
+            <li className="instructions-list-item">Toggle the logo required switch</li>
+
+            <h4>Random Logo</h4>
+            <ul className="instructions-list">
+              <li className="instructions-list-item">Click on Random Logo radio button.</li>
+              <li className="instructions-list-item">Enter names of channels separated by a new line.</li>
+              <li className="instructions-list-item">Click on the <code className="instructions-inline-code">Create Channels</code> button.</li>
+              <li className="instructions-list-item">This will start creating channels with the names provided with random logo from google's logo collection.</li>
+            </ul>
+
+            <h4>Custom Logo</h4>
+            <ul className="instructions-list">
+              <li className="instructions-list-item">Click on <code className="instructions-inline-code">Custom Logo radio button</code>.</li>
+              <li className="instructions-list-item">In this you need not provide channel names in the textbox.</li>
+              <li className="instructions-list-item">You need to have a directory in your local PC with image files with channel name as its name.</li>
+              <li className="instructions-list-item">If you want to create 10 channels with logo, you need to have 10 files in the directory, one for each channel, with the channel name as the file name and the logo as the image.</li>
+              <li className="instructions-list-item">For example, if you have an image file named <code className="instructions-inline-code">Pro Gamer.png</code> in the directory, then a channel named <code className="instructions-inline-code">Pro Gamer</code> with the logo <code className="instructions-inline-code">Pro Gamer.png</code> will be created.</li>
+              <li className="instructions-list-item">Note: only image files with <code className="instructions-inline-code">.png</code> <code className="instructions-inline-code">.jpg</code> <code className="instructions-inline-code">.jpeg</code> extension are supported.</li>
+              <li className="instructions-list-item">Enter the directory path in the textbox provided and click <code className="instructions-inline-code">Validate</code> .</li>
+              <li className="instructions-list-item">After validating, click on the <code className="instructions-inline-code">Create Channels</code> button.</li>
+              <li className="instructions-list-item">This will start creating channels with the names and logo provided.</li>
+              <p className="instructions-warning-text"><strong>Note: ⚠ Custom logo is currently experimental and may not work as expected. We're actively working on fixing the bugs.</strong></p>
+            </ul>
+          </ul>
+
+          <h2 id="realtime-dashboard" className="instructions-section-heading">Realtime Dashboard</h2>
+          <p className="instructions-paragraph">Once you start a storm, the Realtime Dashboard provides comprehensive monitoring and control capabilities. It displays live statistics about your storm and allows you to manage individual instances in real-time.</p>
+
+          <h3 id="dashboard-metrics" className="instructions-step-heading">Dashboard Metrics</h3>
+          <p className="instructions-paragraph">The dashboard displays the following real-time metrics:</p>
+          <ul className="instructions-list">
+            <li className="instructions-list-item">
+              <strong>Storm Status</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">Shows the current state of the storm: <code className="instructions-inline-code">Running</code>, <code className="instructions-inline-code">Paused</code>, or <code className="instructions-inline-code">Stopped</code>.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
+              <strong>Active Storming Instances</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">Displays the number of accounts currently active and sending messages in the chat.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
+              <strong>Dead Instances</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">Shows the number of accounts that have stopped storming due to errors, disconnections, or other issues.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
+              <strong>Total Messages Sent</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">The cumulative count of all messages sent by all active accounts since the storm started.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
+              <strong>Message Rate</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">Shows the current rate of messages being sent per minute across all active instances.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
+              <strong>Storm Duration</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">Displays the total elapsed time since you pressed the Start button.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
+              <strong>Live Log Feed</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">A real-time log stream showing all storm activities, including message sends, errors, and status changes.</li>
+              </ul>
+            </li>
+          </ul>
+
           <h3 id="storm-controls" className="instructions-step-heading">Storm Controls</h3>
           <p className="instructions-paragraph">You can control the storm while it is running by using the following controls:</p>
           <ol className="instructions-list">
@@ -284,44 +381,56 @@ const Instructions = () => {
             </li>
           </ol>
 
-          <h3 id="creating-channels" className="instructions-step-heading">Creating Channels</h3>
-          <p className="instructions-paragraph">First Click on <code className="instructions-inline-code">Manage Environment</code> button</p>
-
-          <h4>Without Logo</h4>
+          <h3 id="channel-status-menu" className="instructions-step-heading">Channel Status Menu</h3>
+          <p className="instructions-paragraph">The Channel Status Menu provides detailed visibility into all your accounts and their current states.</p>
           <ul className="instructions-list">
-            <li className="instructions-list-item">Do not toggle the logo required switch</li>
-            <li className="instructions-list-item">Enter names of channels separated by a new line</li>
-            <li className="instructions-list-item">Click on the <code className="instructions-inline-code">Create Channels</code> button.</li>
-            <li className="instructions-list-item">This will start creating channels with the names provided without any logo.</li>
+            <li className="instructions-list-item">
+              <strong>Opening the Menu</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">Click the <code className="instructions-inline-code">Channel Status</code> button located below the Stop button in the dashboard.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
+              <strong>Information Displayed</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">Lists all accounts/channels associated with your logged-in StreamStorm account.</li>
+                <li className="instructions-list-item">Shows the current status of each channel: <code className="instructions-inline-code">Idle</code>, <code className="instructions-inline-code">Dead</code>, <code className="instructions-inline-code">Getting Ready</code>, <code className="instructions-inline-code">Ready</code>, or <code className="instructions-inline-code">Storming</code>.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
+              <strong>Kill Individual Instance</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">Each channel entry has a <code className="instructions-inline-code">Kill</code> button next to it.</li>
+                <li className="instructions-list-item">Clicking this button will immediately stop that specific instance from storming without affecting other active instances.</li>
+                <li className="instructions-list-item">Useful for removing problematic accounts or freeing up resources during a storm.</li>
+              </ul>
+            </li>
           </ul>
 
-          <h4>With Logo</h4>
-          <p>You can also create channels with logo, either random logo or custom logo provided by you</p>
+          <h3 id="view-configurations-menu" className="instructions-step-heading">View Configurations Menu</h3>
+          <p className="instructions-paragraph">The View Configurations Menu displays all the parameters configured for the current running storm.</p>
           <ul className="instructions-list">
-            <li className="instructions-list-item">Toggle the logo required switch</li>
-
-            <h4>Random Logo</h4>
-            <ul className="instructions-list">
-              <li className="instructions-list-item">Click on Random Logo radio button.</li>
-              <li className="instructions-list-item">Enter names of channels separated by a new line.</li>
-              <li className="instructions-list-item">Click on the <code className="instructions-inline-code">Create Channels</code> button.</li>
-              <li className="instructions-list-item">This will start creating channels with the names provided with random logo from google's logo collection.</li>
-            </ul>
-
-            <h4>Custom Logo</h4>
-            <ul className="instructions-list">
-              <li className="instructions-list-item">Click on <code className="instructions-inline-code">Custom Logo radio button</code>.</li>
-              <li className="instructions-list-item">In this you need not provide channel names in the textbox.</li>
-              <li className="instructions-list-item">You need to have a directory in your local PC with image files with channel name as its name.</li>
-              <li className="instructions-list-item">If you want to create 10 channels with logo, you need to have 10 files in the directory, one for each channel, with the channel name as the file name and the logo as the image.</li>
-              <li className="instructions-list-item">For example, if you have an image file named <code className="instructions-inline-code">Pro Gamer.png</code> in the directory, then a channel named <code className="instructions-inline-code">Pro Gamer</code> with the logo <code className="instructions-inline-code">Pro Gamer.png</code> will be created.</li>
-              <li className="instructions-list-item">Note: only image files with <code className="instructions-inline-code">.png</code> <code className="instructions-inline-code">.jpg</code> <code className="instructions-inline-code">.jpeg</code> extension are supported.</li>
-              <li className="instructions-list-item">Enter the directory path in the textbox provided and click <code className="instructions-inline-code">Validate</code> .</li>
-              <li className="instructions-list-item">After validating, click on the <code className="instructions-inline-code">Create Channels</code> button.</li>
-              <li className="instructions-list-item">This will start creating channels with the names and logo provided.</li>
-              <p className="instructions-warning-text"><strong>Note: ⚠ Custom logo is currently experimental and may not work as expected. We're actively working on fixing the bugs.</strong></p>
-            </ul>
+            <li className="instructions-list-item">
+              <strong>Opening the Menu</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">Click the <code className="instructions-inline-code">View Configurations</code> button located below the Channel Status button in the dashboard.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
+              <strong>Information Displayed</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">Video URL being stormed.</li>
+                <li className="instructions-list-item">Number of channels selected for storming.</li>
+                <li className="instructions-list-item">Current slow mode setting.</li>
+                <li className="instructions-list-item">Subscribe setting status.</li>
+                <li className="instructions-list-item">Subscribe and Wait configuration (if enabled).</li>
+                <li className="instructions-list-item">Load in Background setting status.</li>
+                <li className="instructions-list-item">All configured messages being used for the storm.</li>
+              </ul>
+            </li>
           </ul>
+
+          
 
           <h2 id="host-config" className="instructions-section-heading">Host Configuration</h2>
           <ul className="instructions-list">
