@@ -13,3 +13,4 @@ build/INNO Setup/Output
 .vscode
 dgupdater_release/
 export/windows/StreamStorm.exe
+main2.py
