@@ -1,8 +1,18 @@
 {
   "redirects": [
     {
-      "source": "/r/:id",
+      "source": "/v/:id",
       "destination": "https://www.youtube.com/watch?v=:id",
+      "permanent": false
+    },
+    {
+      "source": "/c/:id",
+      "destination": "https://www.youtube.com/channel/:id/search",
+      "permanent": false
+    },
+    {
+      "source": "/u/:id",
+      "destination": "https://www.youtube.com/:id/search",
       "permanent": false
     }
   ]
