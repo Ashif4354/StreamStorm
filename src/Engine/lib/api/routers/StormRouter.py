@@ -21,6 +21,7 @@ from ..validation import (
 )
 from ...utils.CustomLogger import CustomLogger
 from ...socketio.sio import sio
+from ...settings import settings
 
 cl: CustomLogger = CustomLogger(for_history=True)
 cl.setup_history_logger()
@@ -123,6 +124,7 @@ async def start(data: StormData) -> JSONResponse:
     
     except Exception as e:
         environ.update({"BUSY": "0", "BUSY_REASON": ""})
+        StreamStorm.ss_instance = None
         cl.log_to_history(data, "Storm failed to start")
         
         logger.error(f"Storm failed to start: Exception: {e}")
@@ -134,7 +136,7 @@ async def start(data: StormData) -> JSONResponse:
         content={
             "success": True,
             "message": "Storm started successfully",
-            "channels": StreamStormObj.all_channels
+            "channels": StreamStormObj.context.all_channels
         }
     )
 
@@ -194,14 +196,14 @@ async def pause() -> JSONResponse:
         message (str): Confirmation message
     """
     StreamStorm.ss_instance.pause_event.clear()
-    StreamStorm.ss_instance.storm_context["storm_status"] = "Paused"
+    StreamStorm.ss_instance.context.storm_status = "Paused"
 
     current_channels: list[SeparateInstance] = StreamStorm.each_channel_instances
     available_profiles: int = len(StreamStorm.ss_instance.get_available_temp_profiles())
     
     for index, channel in enumerate(current_channels):
         channel.should_wait = True
-        channel.wait_time = index * (StreamStorm.ss_instance.slow_mode / available_profiles)
+        channel.wait_time = index * (StreamStorm.ss_instance.context.slow_mode / available_profiles)
     
     logger.info("Storm paused successfully")
     await sio.emit('storm_paused', room="streamstorm")
@@ -228,7 +230,7 @@ async def resume() -> JSONResponse:
         message (str): Confirmation message
     """
     StreamStorm.ss_instance.pause_event.set()
-    StreamStorm.ss_instance.storm_context["storm_status"] = "Running"
+    StreamStorm.ss_instance.context.storm_status = "Running"
     
     logger.info("Storm resumed successfully")
     await sio.emit('storm_resumed', room="streamstorm")
@@ -393,10 +395,7 @@ async def get_channels_data(data: GetChannelsData) -> JSONResponse:
             }
         )
 
-    app_data_dir: str = user_data_dir("StreamStorm", "DarkGlance")
-    config_json_path: str = join(app_data_dir, "ChromiumProfiles", "data.json")
-
-    if not exists(config_json_path):
+    if not exists(settings.data_json_path):
         return JSONResponse(
             status_code=404,
             content={
@@ -406,11 +405,11 @@ async def get_channels_data(data: GetChannelsData) -> JSONResponse:
         )
 
     try:
-        async with aio_open(config_json_path, "r", encoding="utf-8") as file:
+        async with aio_open(settings.data_json_path, "r", encoding="utf-8") as file:
             config: dict = loads(await file.read())
             
     except (FileNotFoundError, PermissionError, UnicodeDecodeError, JSONDecodeError) as e:
-        logger.error(f"Error reading config file: {config_json_path}: {e}")
+        logger.error(f"Error reading config file: {settings.data_json_path}: {e}")
         
         return JSONResponse(
             status_code=500,
@@ -419,6 +418,7 @@ async def get_channels_data(data: GetChannelsData) -> JSONResponse:
                 "message": f"Error reading config file, Try creating profiles again: {str(e)}",
             }
         )
+
     except Exception as e:
         logger.error(f"Error parsing config file: {e}")
         
@@ -472,8 +472,8 @@ async def kill_instance(data: KillInstanceData) -> JSONResponse:
                 await instance.page.close()
                 
                 StreamStorm.each_channel_instances.remove(instance)
-                StreamStorm.ss_instance.total_instances -= 1
-                StreamStorm.ss_instance.assigned_profiles[instance.profile_dir] = None
+                StreamStorm.ss_instance.context.total_instances -= 1
+                StreamStorm.ss_instance.context.assigned_profiles[instance.profile_dir] = None
                 
                 await sio.emit('instance_status', {'instance': str(data.index), 'status': '-1'}, room="streamstorm")  # -1 = Idle
                 
@@ -530,7 +530,7 @@ async def get_context() -> JSONResponse:
         status_code=200,
         content={
             "success": True,
-            "context": StreamStorm.ss_instance.storm_context,
+            "context": StreamStorm.ss_instance.context,
             "message": "Context fetched successfully"
         }
     )

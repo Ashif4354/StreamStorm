@@ -1,10 +1,10 @@
-from os.path import join, abspath
 from typing import NoReturn
 from json import load
-from fastapi.testclient import TestClient
+from pathlib import Path
 from logging import Logger, getLogger
-
 from unittest.mock import AsyncMock
+
+from fastapi.testclient import TestClient
 from pytest import MonkeyPatch, mark
 from pytest_mock import MockerFixture
 
@@ -120,9 +120,10 @@ def test_get_channels_data(monkeypatch: MonkeyPatch, ss_instance: StreamStorm, c
     
     if result == 200:
         from lib.api.routers import StormRouter
-        assets_dir: str = join(abspath("."), "tests", "assets_for_tests")
+        # assets_dir: str = join(abspath("."), "tests", "assets_for_tests")
+        data_json_path: str = Path(__file__).parent.parent.parent.resolve() / "assets_for_tests" / "ChromiumProfiles" / "data.json"
         
-        monkeypatch.setattr(StormRouter, "user_data_dir", lambda *args, **kwargs: assets_dir)
+        monkeypatch.setattr(StormRouter.settings, "data_json_path", data_json_path)
     
     response: Response = client.post("/storm/get_channels_data", json=data)
     logger.debug(response.json())

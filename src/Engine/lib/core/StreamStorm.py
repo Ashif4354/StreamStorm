@@ -2,7 +2,7 @@ from asyncio import Task, sleep, Event, create_task, gather, TimeoutError as Asy
 from random import choice
 from os import environ
 from os.path import join
-from typing import Optional
+from typing import Optional, Literal
 from json import loads, JSONDecodeError
 from http.client import RemoteDisconnected
 from urllib3.exceptions import ProtocolError, ReadTimeoutError
@@ -10,6 +10,7 @@ from aiofiles import open as aio_open
 from logging import getLogger, Logger
 from contextlib import suppress
 from datetime import datetime
+from urllib.parse import urlparse, parse_qs, ParseResult
 
 
 from playwright.async_api import (
@@ -22,6 +23,7 @@ from yt_dlp import YoutubeDL
 from ..utils.exceptions import BrowserClosedError, ElementNotFound
 from .SeparateInstance import SeparateInstance
 from .Profiles import Profiles
+from .StormContext import StormContext
 from ..utils.clear_ram import clear_ram
 from ..socketio.sio import sio
 from ..api.validation import StormData
@@ -33,9 +35,8 @@ class StreamStorm(Profiles):
         'url', 'chat_url', 'messages', 'subscribe', 'subscribe_and_wait_time', 
         'slow_mode', 'channels', 'background', 'ready_event', 'pause_event',
         'total_instances', 'ready_to_storm_instances', 'total_channels', 
-        'all_channels', 'assigned_profiles', 'run_stopper_event', 'previous_count',
-        'time_elapsed_since_last_minute', 'message_counter_lock', 'message_count',
-        'storm_context', 'storm_data', 'target_channel', 'message_rate'
+        'all_channels', 'assigned_profiles', 'run_stopper_event', 'message_counter_lock', 'message_count',
+        'storm_context', 'storm_data', 'target_channel', 'message_rate', 'context'
     )
     
     each_channel_instances: list[SeparateInstance] = []
@@ -45,55 +46,105 @@ class StreamStorm(Profiles):
         
         super().__init__()
         
-        self.storm_data: dict = data.model_dump()
-        self.url: str = f"{data.video_url}&hl=en-US&persist_hl=1"
-        self.chat_url: str = f"{data.chat_url}&hl=en-US&persist_hl=1"
-        self.messages: list[str] = data.messages
-        self.subscribe: tuple[bool, bool] = (data.subscribe, data.subscribe_and_wait)
-        self.subscribe_and_wait_time: int = data.subscribe_and_wait_time
-        self.slow_mode: int = data.slow_mode
-        self.channels: list[int] = sorted(data.channels)
-        self.background: bool = data.background
-        self.target_channel: tuple[str, bool] = self.get_channel_url() # channel_url if fetched else video_url. True if channel_url else False
+        self.context: StormContext = StormContext()
+        # self.url: str = f"{data.video_url}&hl=en-US&persist_hl=1"
+        # self.chat_url: str = f"{data.chat_url}&hl=en-US&persist_hl=1"
+        # self.messages: list[str] = data.messages
+        # self.subscribe: tuple[bool, bool] = (data.subscribe, data.subscribe_and_wait)
+        # self.subscribe_and_wait_time: int = data.subscribe_and_wait_time
+        # self.slow_mode: int = data.slow_mode
+        # self.channels: list[int] = sorted(data.channels)
+        # self.background: bool = data.background
+        # self.target_channel: tuple[str, bool] = self.get_channel_url() # channel_url if fetched else video_url. True if channel_url else False
 
         self.ready_event: Event = Event()
         self.pause_event: Event = Event()
         self.run_stopper_event: Event = Event()
 
-        self.total_instances: int = len(data.channels)
-        self.ready_to_storm_instances: int = 0
-        self.total_channels: int = 0
-        self.all_channels: dict[str, dict[str, str]] = {}
+        # self.total_instances: int = len(data.channels)
+        # self.ready_to_storm_instances: int = 0
+        # self.total_channels: int = 0
+        # self.all_channels: dict[str, dict[str, str]] = {}
 
-        self.assigned_profiles: dict[str, int] = {}
+        # self.assigned_profiles: dict[str, int] = {}
         self.message_counter_lock: Lock = Lock()
-        self.message_count: int = 0
-        self.message_rate: float = 0.0
-        self.storm_context: dict = {}
+        # self.message_count: int = 0
+        # self.message_rate: float = 0.0
+        # self.storm_context: dict = {}
+
+        self.init_context(data)
 
         StreamStorm.ss_instance = self
 
-        logger.debug(f"StreamStorm initialized with url: {self.url}, channels: {self.channels}, "
-                    f"messages count: {len(self.messages)}, slow_mode: {self.slow_mode}s, "
-                    f"background: {self.background}")        
+        logger.debug(f"Storm initialized with url: {self.context.video_url}, channels: {self.context.channels}, "
+                    f"messages count: {len(self.context.messages)}, slow_mode: {self.context.slow_mode}s, "
+                    f"background: {self.context.background}")        
         
     async def emit_instance_status(self, index: int, status: int) -> None:
         str_index: str = str(index)
-        self.storm_context["channels_status"][str_index]["status"] = status
+        # self.storm_context["channels_status"][str_index]["status"] = status
+        self.context.all_channels[str_index]["status"] = status
         await sio.emit("instance_status", {"instance": str_index, "status": str(status)}, room="streamstorm")
         
-    async def init_context(self) -> None:
-        self.storm_context["storm_data"] = self.storm_data
-        self.storm_context["channels_status"] = self.all_channels
-        self.storm_context["storm_status"] = "Running"
-        self.storm_context["start_time"] = datetime.now().isoformat()
-        
-    # def set_video_url(self, url: str) -> None:
-    #     video_id: str = url.split("https://www.youtube.com/watch?v=")[1]
-    #     video_id = video_id.split("&")[0]
-    #     video_id = video_id.strip("/")
+    def init_context(self, storm_data: StormData) -> None:
 
-    #     self.url = f"https://streamstorm.darkglance.in/r/{video_id}?hl=en-US&persist_hl=1"
+        self.context.video_url = storm_data.video_url
+        self.context.chat_url = storm_data.chat_url
+        self.context.messages = storm_data.messages
+        self.context.subscribe = (storm_data.subscribe, storm_data.subscribe_and_wait)
+        self.context.subscribe_and_wait_time = storm_data.subscribe_and_wait_time
+        self.context.slow_mode = storm_data.slow_mode
+        self.context.channels = sorted(storm_data.channels)
+        self.context.background = storm_data.background
+        self.context.target_channel = self.get_channel_url()
+        self.context.total_instances = len(storm_data.channels)
+        self.context.ready_to_storm_instances = 0
+        self.context.assigned_profiles = {}
+        self.context.message_count = 0
+        self.context.message_rate = 0.0
+        
+
+    def get_redirect_url(self, url: str, type: Literal["video", "channel", "uploader", "chat"]) -> str:
+        """
+        Redirects to the given url with the given type
+
+        We are redirecting from "https://streamstorm.darkglance.in" because The developer(me) wants to show
+        the traffic came from StreamStorm application in youtube analytics. (Just for fun)
+        """
+
+        parsed_url: ParseResult = urlparse(url)
+        final_url: ParseResult = urlparse("https://streamstorm.darkglance.in")
+
+        if type == "video":
+            video_id: str = parse_qs(parsed_url.query).get("v")[0]
+
+            # url = f"https://streamstorm.darkglance.in/v/{video_id}?hl=en-US&persist_hl=1" 
+            final_url = final_url._replace(path=f"/v/{video_id}")
+
+        elif type == "channel":
+            channel_id: str = parsed_url.path.split("/")[-1]
+
+            # url = f"https://streamstorm.darkglance.in/c/{channel_id}?hl=en-US&persist_hl=1"
+            final_url = final_url._replace(path=f"/c/{channel_id}")
+
+        elif type == "uploader":
+            uploader_id: str = parsed_url.path
+
+            # url = f"https://streamstorm.darkglance.in/u/{uploader_id}?hl=en-US&persist_hl=1"
+            final_url = final_url._replace(path=f"/u/{uploader_id}")
+
+        elif type == "chat":
+            chat_id: str = parse_qs(parsed_url.query).get("v")[0]
+
+            # url = f"https://streamstorm.darkglance.in/ch/{chat_id}?hl=en-US&persist_hl=1"
+            final_url = final_url._replace(path=f"/ch/{chat_id}")
+        
+        final_url = final_url._replace(query="hl=en-US&persist_hl=1")
+        
+        # When redirecting to channel or uploader url it redirect to "/search" page of the channel or uploader url
+        # This is done to load the page faster
+        # This is handled in vercel.json in src/Site
+        return final_url.geturl()
         
     def get_channel_url(self) -> tuple[str, bool]:
         ytdlp_options: dict = {
@@ -104,53 +155,60 @@ class StreamStorm(Profiles):
         
         try:
             with YoutubeDL(ytdlp_options) as ytdlp:
-                info_dict: dict = ytdlp.extract_info(self.url, download=False)
+                info_dict: dict = ytdlp.extract_info(self.context.video_url, download=False)
                 
-                # We are going to /search page because It loads faster than the channel page
-                return (info_dict.get("channel_url") or info_dict.get("uploader_url")) + "/search" , True
+                channel_url: str = info_dict.get("channel_url")
+                if channel_url:
+                    final_url: str = self.get_redirect_url(channel_url, "channel")
+                    return final_url, True
+                
+                uploader_url: str = info_dict.get("uploader_url")
+                if uploader_url:
+                    final_url: str = self.get_redirect_url(uploader_url, "uploader")
+                    return final_url, True
+
+                raise Exception("Channel or uploader url not found")
                 
         except Exception as e:
             logger.error(f"Failed to fetch channel url: {e}")
-            return self.url, False
+            return self.get_redirect_url(self.context.video_url, "video"), False
         
         
         
     async def set_slow_mode(self, slow_mode: int) -> None:
-        self.slow_mode = slow_mode
-        self.storm_context["storm_data"]["slow_mode"] = self.slow_mode
-        logger.info(f"Slow mode set to {self.slow_mode} seconds")
+        self.context.slow_mode = slow_mode
+        logger.info(f"Slow mode set to {self.context.slow_mode} seconds")
 
     async def set_messages(self, messages: list[str]) -> None:
-        self.messages = messages
-        self.storm_context["storm_data"]["messages"] = self.messages
-        logger.info(f"Messages set to: {self.messages}")
+        self.context.messages = messages
+        logger.info(f"Messages set to: {self.context.messages}")
 
 
     async def check_channels_available(self) -> None:
         logger.debug(f"Checking channel availability for profiles in: {self.profiles_dir}")
         
-        try:
-            async with aio_open(join(self.profiles_dir, "data.json"), "r", encoding="utf-8") as file:
-                data: dict = loads(await file.read()) # We are using loads instead of load to avoid blocking the event loop
+        # try:
+        #     async with aio_open(join(self.profiles_dir, "data.json"), "r", encoding="utf-8") as file:
+        #         data: dict = loads(await file.read()) # We are using loads instead of load to avoid blocking the event loop
                 
-        except (FileNotFoundError, PermissionError, UnicodeDecodeError, JSONDecodeError) as e:
-            logger.error("Failed to read data.json - profiles not created yet")
-            raise SystemError("Create profiles first.") from e
+        # except (FileNotFoundError, PermissionError, UnicodeDecodeError, JSONDecodeError) as e:
+        #     logger.error("Failed to read data.json - profiles not created yet")
+        #     raise SystemError("Create profiles first.") from e
             
-        no_of_channels: int = data.get("no_of_channels", 0)
+        # no_of_channels: int = data.get("no_of_channels", 0)
 
-        self.total_channels = no_of_channels
-        channels: dict = data.get("channels", {})
+        # self.total_channels = no_of_channels
+        # channels: dict = data.get("channels", {})
         
-        for channel in channels.values():
-            channel["status"] = -1
+        # for channel in channels.values():
+        #     channel["status"] = -1
         
-        self.all_channels = channels
-        
-        logger.info(f"Found {no_of_channels} channels in config, required: {len(self.channels)}")
+        # self.all_channels = channels
 
-        if no_of_channels < len(self.channels):
-            logger.error(f"Insufficient channels: available={no_of_channels}, required={len(self.channels)}")
+        logger.info(f"Found {self.context.total_channels} channels in config, required: {len(self.context.channels)}")
+
+        if self.context.total_channels < len(self.context.channels):
+            logger.error(f"Insufficient channels: available={self.context.total_channels}, required={len(self.context.channels)}")
             raise SystemError("Not enough channels available in your YouTube Account. Create enough channels first. Then create Profiles again in the app.")
     
     async def get_active_channels(self) -> list[int]:
@@ -158,14 +216,15 @@ class StreamStorm(Profiles):
 
         active_channels.extend(
             channel_index
-            for channel_index in self.assigned_profiles.values()
+            for channel_index in self.context.assigned_profiles.values()
             if channel_index is not None
         )
+
         return active_channels
         
     async def EachChannel(self, index: int, profile_dir: str, wait_time: float = 0) -> None:
         
-        channel_name: str = self.all_channels[str(index)]['name']
+        channel_name: str = self.context.all_channels[str(index)]['name']
 
         logger.info(f"[{index}] [{channel_name}] Using profile: {profile_dir}, Wait time: {wait_time}s")
         profile_dir_name: str=  profile_dir.split("\\")[-1]
@@ -175,7 +234,7 @@ class StreamStorm(Profiles):
             SI = SeparateInstance(
                 index,
                 profile_dir,
-                self.background,
+                self.context.background,
                 profile_dir_name,
                 wait_time
             )
@@ -184,7 +243,7 @@ class StreamStorm(Profiles):
 
             SI.channel_name = channel_name
 
-            self.assigned_profiles[profile_dir_name] = index
+            self.context.assigned_profiles[profile_dir_name] = index
 
             logger.info(f"[{index}] [{channel_name}] Assigned profile {profile_dir_name}")
 
@@ -199,8 +258,8 @@ class StreamStorm(Profiles):
             if not logged_in:
                 logger.debug(f"[{index}] [{channel_name}] Login failed - removing from instances")
                 
-                self.total_instances -= 1
-                self.assigned_profiles[profile_dir_name] = None
+                self.context.total_instances -= 1
+                self.context.assigned_profiles[profile_dir_name] = None
                 
                 StreamStorm.each_channel_instances.remove(SI)
                 
@@ -211,25 +270,25 @@ class StreamStorm(Profiles):
 
             logger.info(f"[{index}] [{channel_name}] Login successful")
 
-            if self.subscribe[0]:
-                logger.debug(f"[{index}] [{channel_name}] Navigating to subscribe URL: {self.url}")
+            if self.context.subscribe[0]:
+                logger.debug(f"[{index}] [{channel_name}] Navigating to subscribe URL: {self.context.video_url}")
                 
-                await SI.go_to_page(self.target_channel[0])
-                await SI.subscribe_to_channel(self.target_channel[1])
+                await SI.go_to_page(self.context.target_channel[0])
+                await SI.subscribe_to_channel(self.context.target_channel[1])
                 
                 logger.info(f"[{index}] [{channel_name}] Subscription attempt completed")
 
             await SI.page.set_viewport_size({"width": 500, "height": 900})
-            logger.info(f"[{index}] [{channel_name}] Navigating to chat URL: {self.chat_url}")
-            await SI.go_to_page(self.chat_url)
+            logger.info(f"[{index}] [{channel_name}] Navigating to chat URL: {self.context.chat_url}")
+            await SI.go_to_page(self.context.chat_url)
             
             self.ready_to_storm_instances += 1
             logger.info(f"[{index}] [{channel_name}] : Ready To Storm")
             await self.emit_instance_status(index, 2)  # 2 = Ready
 
-            if self.subscribe[1]:
-                logger.info(f"[{index}] [{channel_name}] Waiting {self.subscribe_and_wait_time}s after subscription")
-                await sleep(self.subscribe_and_wait_time)
+            if self.context.subscribe[1]:
+                logger.info(f"[{index}] [{channel_name}] Waiting {self.context.subscribe_and_wait_time}s after subscription")
+                await sleep(self.context.subscribe_and_wait_time)
                  
                 
             logger.debug(f"[{index}] [{channel_name}] Waiting for ready event...")
@@ -245,14 +304,14 @@ class StreamStorm(Profiles):
                     SI.should_wait = False
         
                 # input()
-                selected_message = choice(self.messages)
+                selected_message = choice(self.context.messages)
                 logger.debug(f"[{index}] [{channel_name}] Sending message: '{selected_message}'")
                 
                 try:
                     await SI.send_message(selected_message)
                     
                     async with self.message_counter_lock:
-                        self.message_count += 1
+                        self.context.message_count += 1
                         
                     logger.debug(f"[{index}] [{channel_name}] Message sent successfully")
                     
@@ -261,7 +320,7 @@ class StreamStorm(Profiles):
                     logger.error(f"[{index}] [{channel_name}] : Error in finding chat field")
                     await self.emit_instance_status(index, 0)  # 0 = Dead
 
-                    self.assigned_profiles[profile_dir_name] = None
+                    self.context.assigned_profiles[profile_dir_name] = None
                     
                     try:
                         await SI.page.close()
@@ -280,8 +339,8 @@ class StreamStorm(Profiles):
                     await self.emit_instance_status(index, 0)  # 0 = Dead
                     break
                 
-                logger.debug(f"[{index}] [{channel_name}] Sleeping for {self.slow_mode}s before next message")
-                await sleep(self.slow_mode)
+                logger.debug(f"[{index}] [{channel_name}] Sleeping for {self.context.slow_mode}s before next message")
+                await sleep(self.context.slow_mode)
 
         except (
             RemoteDisconnected,
@@ -302,22 +361,24 @@ class StreamStorm(Profiles):
     
     async def messages_handler(self) -> None:
         time_frame: int = 2 # time frame in seconds to send message count updates
-        self.previous_count: int = 0
-        self.time_elapsed_since_last_minute: int = 0 # in seconds
+        previous_count: int = 0
+        time_elapsed_since_last_minute: int = 0 # in seconds
         
         logger.debug("#### Starting message handler...")
         await self.ready_event.wait()  # Wait for the ready event to be set before starting the storming    
         
         async def reset_message_count() -> None:
+            nonlocal previous_count, time_elapsed_since_last_minute
+            
             while StreamStorm.ss_instance is not None:
                 await sleep(60) # asyncio.sleep
                 
                 async with self.message_counter_lock:
-                    self.previous_count = self.message_count
+                    previous_count = self.message_count
                     
-                self.time_elapsed_since_last_minute = 0  # Reset time elapsed every minute
+                time_elapsed_since_last_minute = 0  # Reset time elapsed every minute
                 
-                logger.debug(f"Message count for the last minute reset to {self.previous_count}")
+                logger.debug(f"Message count for the last minute reset to {previous_count}")
                 
                 
         create_task(reset_message_count())
@@ -325,15 +386,15 @@ class StreamStorm(Profiles):
         while StreamStorm.ss_instance is not None:
             
             async with self.message_counter_lock:
-                current_count: int = self.message_count - self.previous_count            
+                current_count: int = self.message_count - previous_count            
             
-            await sio.emit('total_messages', {'total_messages': self.message_count}, room="streamstorm")
+            await sio.emit('total_messages', {'total_messages': self.context.message_count}, room="streamstorm")
             
-            self.time_elapsed_since_last_minute += time_frame
+            time_elapsed_since_last_minute += time_frame
             
-            self.message_rate = ((current_count / self.time_elapsed_since_last_minute) * 60) if self.time_elapsed_since_last_minute > 0 else 0.0
+            self.context.message_rate = ((current_count / time_elapsed_since_last_minute) * 60) if time_elapsed_since_last_minute > 0 else 0.0
             
-            await sio.emit('messages_rate', {'message_rate': self.message_rate}, room="streamstorm")
+            await sio.emit('messages_rate', {'message_rate': self.context.message_rate}, room="streamstorm")
             await sleep(time_frame) # asyncio.sleep
             
         # I know the time may have a difference of 1-3 seconds but it's not a big deal.
@@ -345,33 +406,28 @@ class StreamStorm(Profiles):
         clear_ram()       
 
         self.ready_event.clear()  # Wait for the ready event to be set before starting the storming
-        self.ready_to_storm_instances = 0
+        # self.context.ready_to_storm_instances = 0
         
         await self.check_channels_available()
         
-        await self.init_context()
-        
-        if self.channels[-1] > self.total_channels:
+        if self.context.channels[-1] > self.context.total_channels:
             raise SystemError("You have selected more channels than available channels in your YouTube channel. Create enough channels first.")
         
         
         temp_profiles: list[str] = self.get_available_temp_profiles()
         no_of_temp_profiles: int = len(temp_profiles)
         
-        self.assigned_profiles = {profile: None for profile in temp_profiles}
+        self.context.assigned_profiles = {profile: None for profile in temp_profiles}      
         
-        
-        
-        if no_of_temp_profiles < len(self.channels):
-            raise SystemError("Not enough temp profiles available. Create Enough profiles first.")       
-        
+        if no_of_temp_profiles < len(self.context.channels):
+            raise SystemError("Not enough temp profiles available. Create Enough profiles first.")     
 
         async def start_each_worker() -> None:
             
             await sleep(3)  # Small delay to ensure everything is set up in UI before starting workers
 
             async def wait_for_all_worker_to_be_ready() -> None:
-                while self.ready_to_storm_instances < self.total_instances:
+                while self.context.ready_to_storm_instances < self.context.total_instances:
                     await sleep(1)
                 logger.info(f"All {self.total_instances} instances ready - starting storm")
                 self.ready_event.set()  # Set the event to signal that all instances are ready
@@ -380,12 +436,12 @@ class StreamStorm(Profiles):
             create_task(self.messages_handler())
             
             tasks: list[Task] = []
-            for index in range(len(self.channels)):
+            for index in range(len(self.context.channels)):
                 profile_dir: str = join(self.profiles_dir, temp_profiles[index])
-                wait_time: float = self.get_start_storm_wait_time(index, no_of_temp_profiles, self.slow_mode)
+                wait_time: float = self.get_start_storm_wait_time(index, no_of_temp_profiles, self.context.slow_mode)
 
                 # executor.submit(self.EachChannel, self.channels[index], profile_dir, wait_time)
-                task: Task = create_task(self.EachChannel(self.channels[index], profile_dir, wait_time))
+                task: Task = create_task(self.EachChannel(self.context.channels[index], profile_dir, wait_time))
                 tasks.append(task)
                 await sleep(0.2)  # Small delay to avoid instant spike of the cpu load
 
@@ -395,7 +451,7 @@ class StreamStorm(Profiles):
             self.run_stopper_event.clear()
             StreamStorm.ss_instance = None
             StreamStorm.each_channel_instances.clear()
-            logger.debug("All Coroutines completed")
+            logger.debug("All Instances completed")
 
         create_task(start_each_worker())
     
@@ -404,7 +460,8 @@ class StreamStorm(Profiles):
         async def get_profiles() -> tuple[bool, list[str]]:
             count: int = 0
             available_profiles: list[str] = []
-            for key, value in self.assigned_profiles.items():
+
+            for key, value in self.context.assigned_profiles.items():
                 if value is None:
                     count += 1
                     available_profiles.append(key)
@@ -413,11 +470,12 @@ class StreamStorm(Profiles):
 
         enough_profiles, available_profiles = await get_profiles()
 
-        already_running_channels: list[int] = self.assigned_profiles.values()
+        already_running_channels: list[int] = self.context.assigned_profiles.values()
 
         for channel in channels:
             if channel in already_running_channels:
-                raise SystemError(f"Channel {channel} : {self.all_channels[str(channel)]['name']} is already running.")
+                raise SystemError(f"Channel {channel} : {self.context.all_channels[str(channel)]['name']} is already running.")
+                
         if not enough_profiles:
             raise SystemError("Not enough available profiles to start more channels.")
         
@@ -425,8 +483,8 @@ class StreamStorm(Profiles):
             
             tasks: list[Task] = []   
             for index in range(len(channels)):
-                profile_dir: str = join(self.profiles_dir, available_profiles[index])
-                wait_time: float = self.get_start_storm_wait_time(index, len(self.get_available_temp_profiles()), self.slow_mode)
+                profile_dir: str = join(self.context.profiles_dir, available_profiles[index])
+                wait_time: float = self.get_start_storm_wait_time(index, len(self.get_available_temp_profiles()), self.context.slow_mode)
 
                 task: Task = create_task(self.EachChannel(channels[index], profile_dir, wait_time))
                 tasks.append(task)

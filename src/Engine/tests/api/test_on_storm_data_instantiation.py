@@ -43,20 +43,20 @@ def test_storm_data_instantiated(client: TestClient):
     response = client.post("/storm/start", json=payload)
     assert response.status_code == 200
     
-    assert StreamStorm.ss_instance.url == f"{video_url}&hl=en-US&persist_hl=1"
-    assert StreamStorm.ss_instance.chat_url == f"{chat_url}&hl=en-US&persist_hl=1"
-    assert StreamStorm.ss_instance.messages == messages
-    assert StreamStorm.ss_instance.subscribe == (subscribe, subscribe_and_wait)
-    assert StreamStorm.ss_instance.subscribe_and_wait_time == subscribe_and_wait_time
-    assert StreamStorm.ss_instance.slow_mode == slow_mode
-    assert StreamStorm.ss_instance.channels == channels
-    assert StreamStorm.ss_instance.background == background
+    assert StreamStorm.ss_instance.context.video_url == video_url
+    assert StreamStorm.ss_instance.context.chat_url == chat_url
+    assert StreamStorm.ss_instance.context.messages == messages
+    assert StreamStorm.ss_instance.context.subscribe == (subscribe, subscribe_and_wait)
+    assert StreamStorm.ss_instance.context.subscribe_and_wait_time == subscribe_and_wait_time
+    assert StreamStorm.ss_instance.context.slow_mode == slow_mode
+    assert StreamStorm.ss_instance.context.channels == channels
+    assert StreamStorm.ss_instance.context.background == background
     
     assert not StreamStorm.ss_instance.ready_event.is_set()
     assert StreamStorm.ss_instance.pause_event.is_set()
     assert not StreamStorm.ss_instance.run_stopper_event.is_set()
     
-    assert StreamStorm.ss_instance.total_instances == len(channels)
+    assert StreamStorm.ss_instance.context.total_instances == len(channels)
     
     
     

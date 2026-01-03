@@ -173,6 +173,7 @@ class UndetectedDrivers(Selenium):
         logged_in: bool = False
 
         default_tab: str = self.driver.current_window_handle
+        
         try:
             while not logged_in:
                 tabs: list[str] = self.driver.window_handles

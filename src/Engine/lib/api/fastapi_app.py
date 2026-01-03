@@ -5,12 +5,10 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from logfire import instrument_fastapi, instrument_pydantic_ai
 from psutil import virtual_memory
 from selenium.common.exceptions import SessionNotCreatedException
 
 from ..settings import settings
-from ..core.StreamStorm import StreamStorm
 from ..utils.CustomLogger import custom_logger
 from .lib.exception_handlers import (
     common_exception_handler,
@@ -137,6 +135,7 @@ async def root() -> JSONResponse:
     """
     Check if StreamStorm engine is running
     """
+    
     return JSONResponse(
         status_code=200,
         content={"success": True, "message": "I am the StreamStorm Engine"},
@@ -155,6 +154,7 @@ async def get_ram_info() -> JSONResponse:
         free (float): Available RAM in gigabytes
         total (float): Total RAM in gigabytes
     """
+
     return JSONResponse(
         status_code=200,
         content={
@@ -174,6 +174,7 @@ async def status() -> JSONResponse:
         version (str): StreamStorm engine version
         log_file_path (str): Path to the StreamStorm engine log file for current session
     """
+
     response: dict = {
         "success": True,
         "version": settings.version,
