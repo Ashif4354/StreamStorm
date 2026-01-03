@@ -205,6 +205,10 @@ class StreamStorm(Profiles):
         
         # self.all_channels = channels
 
+        if self.context.all_channels == {}:
+            logger.error("Failed to read data.json - profiles not created yet")
+            raise SystemError("Create profiles first.")
+
         logger.info(f"Found {self.context.total_channels} channels in config, required: {len(self.context.channels)}")
 
         if self.context.total_channels < len(self.context.channels):
@@ -282,7 +286,7 @@ class StreamStorm(Profiles):
             logger.info(f"[{index}] [{channel_name}] Navigating to chat URL: {self.context.chat_url}")
             await SI.go_to_page(self.context.chat_url)
             
-            self.ready_to_storm_instances += 1
+            self.context.ready_to_storm_instances += 1
             logger.info(f"[{index}] [{channel_name}] : Ready To Storm")
             await self.emit_instance_status(index, 2)  # 2 = Ready
 
@@ -374,7 +378,7 @@ class StreamStorm(Profiles):
                 await sleep(60) # asyncio.sleep
                 
                 async with self.message_counter_lock:
-                    previous_count = self.message_count
+                    previous_count = self.context.message_count
                     
                 time_elapsed_since_last_minute = 0  # Reset time elapsed every minute
                 
@@ -386,7 +390,7 @@ class StreamStorm(Profiles):
         while StreamStorm.ss_instance is not None:
             
             async with self.message_counter_lock:
-                current_count: int = self.message_count - previous_count            
+                current_count: int = self.context.message_count - previous_count            
             
             await sio.emit('total_messages', {'total_messages': self.context.message_count}, room="streamstorm")
             
@@ -429,7 +433,7 @@ class StreamStorm(Profiles):
             async def wait_for_all_worker_to_be_ready() -> None:
                 while self.context.ready_to_storm_instances < self.context.total_instances:
                     await sleep(1)
-                logger.info(f"All {self.total_instances} instances ready - starting storm")
+                logger.info(f"All {self.context.total_instances} instances ready - starting storm")
                 self.ready_event.set()  # Set the event to signal that all instances are ready
 
             create_task(wait_for_all_worker_to_be_ready())
@@ -483,7 +487,7 @@ class StreamStorm(Profiles):
             
             tasks: list[Task] = []   
             for index in range(len(channels)):
-                profile_dir: str = join(self.context.profiles_dir, available_profiles[index])
+                profile_dir: str = join(self.profiles_dir, available_profiles[index])
                 wait_time: float = self.get_start_storm_wait_time(index, len(self.get_available_temp_profiles()), self.context.slow_mode)
 
                 task: Task = create_task(self.EachChannel(channels[index], profile_dir, wait_time))

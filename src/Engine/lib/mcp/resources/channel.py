@@ -46,7 +46,7 @@ async def get_channel_status(channel_id: int) -> dict[str, Any]:
     
     channel_id_str = str(channel_id)
     
-    if channel_id_str not in ss_instance.all_channels:
+    if channel_id_str not in ss_instance.context.all_channels:
         return {
             "channel_id": channel_id,
             "status": None,
@@ -55,7 +55,7 @@ async def get_channel_status(channel_id: int) -> dict[str, Any]:
             "storm_running": True
         }
     
-    channel_data = ss_instance.all_channels[channel_id_str]
+    channel_data = ss_instance.context.all_channels[channel_id_str]
     status = channel_data.get("status", -1)
     
     return {
@@ -107,7 +107,7 @@ async def get_channel_info(channel_id: int) -> dict[str, Any]:
     
     channel_id_str = str(channel_id)
     
-    if channel_id_str not in ss_instance.all_channels:
+    if channel_id_str not in ss_instance.context.all_channels:
         return {
             "channel_id": channel_id,
             "name": None,
@@ -118,7 +118,7 @@ async def get_channel_info(channel_id: int) -> dict[str, Any]:
             "storm_running": True
         }
     
-    channel_data = ss_instance.all_channels[channel_id_str]
+    channel_data = ss_instance.context.all_channels[channel_id_str]
     status = channel_data.get("status", -1)
     
     return {

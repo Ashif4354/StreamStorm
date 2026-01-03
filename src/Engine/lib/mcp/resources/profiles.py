@@ -50,8 +50,8 @@ async def get_assigned_profiles() -> dict[str, Any]:
         }
     
     return {
-        "assigned": ss_instance.assigned_profiles,
-        "count": len(ss_instance.assigned_profiles),
+        "assigned": ss_instance.context.assigned_profiles,
+        "count": len(ss_instance.context.assigned_profiles),
         "storm_running": True
     }
 
