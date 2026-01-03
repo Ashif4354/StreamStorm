@@ -578,7 +578,6 @@ const Instructions = () => {
               <li className="instructions-list-item"><code className="instructions-inline-code">get_available_profiles</code></li>
               <li className="instructions-list-item"><code className="instructions-inline-code">get_channel_info</code></li>
               <li className="instructions-list-item"><code className="instructions-inline-code">get_channel_status</code></li>
-              <li className="instructions-list-item"><code className="instructions-inline-code">get_default_ai_provider</code></li>
               <li className="instructions-list-item"><code className="instructions-inline-code">get_logs</code></li>
               <li className="instructions-list-item"><code className="instructions-inline-code">get_message_stats</code></li>
               <li className="instructions-list-item"><code className="instructions-inline-code">get_storm_channels</code></li>
@@ -596,12 +595,13 @@ const Instructions = () => {
               <li className="instructions-list-item"><code className="instructions-inline-code">resume_storm</code></li>
               <li className="instructions-list-item"><code className="instructions-inline-code">save_ai_provider_key</code></li>
               <li className="instructions-list-item"><code className="instructions-inline-code">set_default_ai_provider</code></li>
+              <li className="instructions-list-item"><code className="instructions-inline-code">get_settings</code></li>
               <li className="instructions-list-item"><code className="instructions-inline-code">start_storm</code></li>
               <li className="instructions-list-item"><code className="instructions-inline-code">start_storm_dont_wait</code></li>
               <li className="instructions-list-item"><code className="instructions-inline-code">stop_storm</code></li>
-              <li className="instructions-list-item"><code className="instructions-inline-code">streamstorm_engine_config</code></li>
               <li className="instructions-list-item"><code className="instructions-inline-code">verify_channels_directory</code></li>
             </ul>
+
           </div>
         </article>
       </div>

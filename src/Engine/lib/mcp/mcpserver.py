@@ -321,33 +321,40 @@ async def tool_get_ai_provider_keys() -> dict[str, Any]:
         return {"success": False, "message": f"Error fetching AI keys: {str(e)}"}
 
 
-@mcp.tool(name="get_default_ai_provider", tags={"settings", "ai"})
-async def tool_get_default_ai_provider() -> dict[str, Any]:
+@mcp.tool(name="get_settings", tags={"settings", "system", "config"})
+async def tool_get_settings() -> dict[str, Any]:
     """
-    Get the current default AI provider configuration.
+    Get all application settings including engine config and default AI provider.
     
-    Returns the currently selected default AI provider along with
-    its model and base URL settings.
+    Returns engine configuration (version, log file path) and 
+    default AI provider settings under the 'ai' sub-key.
     
     Returns:
         success (bool): True if the request was successful
-        defaultProvider (str): Currently selected default provider
-        defaultModel (str): Currently selected model for the default provider
-        defaultBaseUrl (str): Base URL for the default provider API
+        version (str): StreamStorm engine version
+        log_file_path (str): Path to the StreamStorm engine log file
+        ai (dict): Default AI provider settings
+            - defaultProvider (str): Currently selected default provider
+            - defaultModel (str): Currently selected model for the default provider
+            - defaultBaseUrl (str): Base URL for the default provider API
     """
     from ..settings import settings
     
     try:
         return {
             "success": True,
-            "defaultProvider": settings.ai.defaultProvider,
-            "defaultModel": settings.ai.defaultModel,
-            "defaultBaseUrl": settings.ai.defaultBaseUrl,
+            "version": settings.version,
+            "log_file_path": settings.log_file_path,
+            "ai": {
+                "defaultProvider": settings.ai.defaultProvider,
+                "defaultModel": settings.ai.defaultModel,
+                "defaultBaseUrl": settings.ai.defaultBaseUrl,
+            },
         }
     except Exception as e:
         return {
             "success": False,
-            "message": f"Error fetching default provider: {str(e)}",
+            "message": f"Error fetching settings: {str(e)}",
         }
 
 
@@ -389,27 +396,6 @@ async def tool_get_system_ram_info() -> dict[str, Any]:
     
     return await to_thread(get_ram_info)
 
-
-@mcp.tool(name="streamstorm_engine_config", tags={"system", "config"})
-async def tool_streamstorm_engine_config() -> dict[str, Any]:
-    """
-    Get StreamStorm engine config and version.
-    
-    Returns engine configuration information including version
-    and log file path for the current session.
-    
-    Returns:
-        success (bool): True if the request was successful
-        version (str): StreamStorm engine version
-        log_file_path (str): Path to the StreamStorm engine log file
-    """
-    from ..settings import settings
-    
-    return {
-        "success": True,
-        "version": settings.version,
-        "log_file_path": settings.log_file_path,
-    }
 
 
 @mcp.tool(name="get_storm_history", tags={"storm", "history"})

@@ -3,6 +3,7 @@ import { createContext, useContext } from 'react';
 
 import { useLocalStorageState } from "@toolpad/core/useLocalStorageState";
 import { DEFAULT_HOST_ADDRESS } from '../lib/Constants';
+import * as atatus from "atatus-spa";
 
 
 const AppStateContext = createContext();
@@ -22,13 +23,13 @@ const AppStateProvider = ({ children }) => {
     const [defaultAIProvider, setDefaultAIProvider] = useState(null);
     const [defaultAIModel, setDefaultAIModel] = useState(null);
     const [defaultAIBaseUrl, setDefaultAIBaseUrl] = useState(null);
-    const [aiSettingsLoading, setAiSettingsLoading] = useState(true);
+    const [settingsLoading, setSettingsLoading] = useState(true);
 
-    // Fetch default AI settings on app startup
+    // Fetch all settings (engine config + AI defaults) on app startup
     useEffect(() => {
-        const fetchDefaultAISettings = async () => {
+        const fetchSettings = async () => {
             try {
-                const response = await fetch(`${hostAddress}/settings/ai/default`, {
+                const response = await fetch(`${hostAddress}/settings`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -37,21 +38,32 @@ const AppStateProvider = ({ children }) => {
 
                 const data = await response.json();
                 if (data.success) {
-                    setDefaultAIProvider(data.defaultProvider ?? null);
-                    setDefaultAIModel(data.defaultModel ?? null);
-                    setDefaultAIBaseUrl(data.defaultBaseUrl ?? null);
+                    // Set engine config
+                    setEngineVersion(data.version);
+                    setLogFilePath(data.log_file_path);
+
+                    // Set AI defaults from 'ai' sub-key
+                    if (data.ai) {
+                        setDefaultAIProvider(data.ai.defaultProvider ?? null);
+                        setDefaultAIModel(data.ai.defaultModel ?? null);
+                        setDefaultAIBaseUrl(data.ai.defaultBaseUrl ?? null);
+                    }
+                } else {
+                    console.error("Failed to fetch settings:", data.message);
+                    atatus.notify(data.message, {}, ['settings_fetch_failed']);
                 }
             } catch (error) {
-                console.error('Failed to fetch default AI settings:', error);
+                console.error('Failed to fetch settings:', error);
+                atatus.notify(error, {}, ['settings_fetch_error']);
             } finally {
-                setAiSettingsLoading(false);
+                setSettingsLoading(false);
             }
         };
 
         if (hostAddress) {
-            fetchDefaultAISettings();
+            fetchSettings();
         } else {
-            setAiSettingsLoading(false);
+            setSettingsLoading(false);
         }
     }, [hostAddress]);
 
@@ -62,7 +74,7 @@ const AppStateProvider = ({ children }) => {
         defaultAIProvider, setDefaultAIProvider,
         defaultAIModel, setDefaultAIModel,
         defaultAIBaseUrl, setDefaultAIBaseUrl,
-        aiSettingsLoading
+        settingsLoading
     };
 
     return (

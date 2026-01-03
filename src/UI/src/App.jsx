@@ -8,17 +8,12 @@ import Header from "./Components/Sections/Header/Header";
 import Footer from "./Components/Sections/Footer/Footer";
 import Main from "./Components/Sections/Main/Main";
 import { MAX_LOGS } from './lib/Constants';
-import fetchConfig from './lib/FetchConfig';
 
 const App = () => {
 
     const { colorScheme } = useColorScheme();
     const { socket, socketConnected } = useSocket();
     const appState = useAppState();
-
-    useEffect(() => {
-        fetchConfig(appState);
-    }, [])
 
     useEffect(() => {
         if (!socket || !socket.connected || !socketConnected) return;

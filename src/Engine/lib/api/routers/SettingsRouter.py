@@ -13,6 +13,49 @@ logger: Logger = getLogger(f"fastapi.{__name__}")
 router: APIRouter = APIRouter(prefix="/settings", tags=["Settings"])
 
 
+@router.get("/", operation_id="get_settings", summary="Get all application settings including engine config and default AI provider.")
+def get_settings() -> JSONResponse:
+    """
+    Get all application settings.
+    
+    Returns engine configuration (version, log file path) and 
+    default AI provider settings under the 'ai' sub-key.
+    
+    Returns:
+        success (bool): True if the request was successful
+        version (str): StreamStorm engine version
+        log_file_path (str): Path to the StreamStorm engine log file for current session
+        ai (dict): Default AI provider settings
+            - defaultProvider (str): Currently selected default AI provider
+            - defaultModel (str): Currently selected model for the default provider
+            - defaultBaseUrl (str): Base URL for the default provider API
+    """
+    logger.debug("Fetching application settings")
+
+    try:
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "version": settings.version,
+                "log_file_path": settings.log_file_path,
+                "ai": {
+                    "defaultProvider": settings.ai.defaultProvider,
+                    "defaultModel": settings.ai.defaultModel,
+                    "defaultBaseUrl": settings.ai.defaultBaseUrl,
+                },
+            },
+        )
+
+    except Exception as e:
+        logger.error(f"Error fetching settings: {e}")
+
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "message": f"Error fetching settings: {str(e)}"},
+        )
+
+
 @router.get("/ai/keys", operation_id="get_ai_provider_keys", summary="Get all AI provider configurations and keys.")
 def get_ai_keys() -> JSONResponse:
     """
@@ -111,44 +154,6 @@ def save_ai_key(
             content={"success": False, "message": f"Error saving settings: {str(e)}"},
         )
 
-
-@router.get("/ai/default", operation_id="get_default_ai_provider", summary="Get the current default AI provider configuration.")
-def get_default_provider() -> JSONResponse:
-    """
-    Get the current default AI provider configuration.
-    
-    Returns the currently selected default AI provider along with
-    its model and base URL settings.
-    
-    Returns:
-        success (bool): True if the request was successful
-        defaultProvider (str): Currently selected default provider
-        defaultModel (str): Currently selected model for the default provider
-        defaultBaseUrl (str): Base URL for the default provider API
-    """
-    logger.debug("Fetching default AI provider")
-
-    try:
-        return JSONResponse(
-            status_code=200,
-            content={
-                "success": True,
-                "defaultProvider": settings.ai.defaultProvider,
-                "defaultModel": settings.ai.defaultModel,
-                "defaultBaseUrl": settings.ai.defaultBaseUrl,
-            },
-        )
-
-    except Exception as e:
-        logger.error(f"Error fetching default provider: {e}")
-
-        return JSONResponse(
-            status_code=500,
-            content={
-                "success": False,
-                "message": f"Error fetching default provider: {str(e)}",
-            },
-        )
 
 
 @router.post("/ai/default", operation_id="set_default_ai_provider", summary="Set the default AI provider for message generation.")

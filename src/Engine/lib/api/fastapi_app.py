@@ -164,24 +164,4 @@ async def get_ram_info() -> JSONResponse:
     )
 
 
-@app.get("/config", operation_id="streamstorm_engine_config", summary="Get StreamStorm engine config and version.")
-async def status() -> JSONResponse:
-    """
-    Get StreamStorm engine config like engine version and log file path
-
-    Returns:
-        success (bool): True if the request was successful
-        version (str): StreamStorm engine version
-        log_file_path (str): Path to the StreamStorm engine log file for current session
-    """
-
-    response: dict = {
-        "success": True,
-        "version": settings.version,
-        "log_file_path": settings.log_file_path,
-    }
-
-    return JSONResponse(status_code=200, content=response)
-
-
 __all__: list[str] = ["app"]
