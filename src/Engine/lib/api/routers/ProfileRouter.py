@@ -1,4 +1,3 @@
-from os import environ
 from logging import getLogger, Logger
 from fastapi import APIRouter
 from fastapi.concurrency import run_in_threadpool
@@ -6,6 +5,7 @@ from fastapi.responses import JSONResponse
 
 from ..validation import ProfileData
 from ...core.Profiles import Profiles
+from ...core.EngineContext import EngineContext
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
 
@@ -27,7 +27,7 @@ async def create_profiles(data: ProfileData) -> dict:
         success (bool): True if profiles were created successfully
         message (str): Confirmation message
     """
-    environ.update({"BUSY": "1", "BUSY_REASON": "Creating profiles"})
+    EngineContext.set_busy("Creating profiles")
 
     profiles: Profiles = Profiles()
     
@@ -35,7 +35,7 @@ async def create_profiles(data: ProfileData) -> dict:
         await run_in_threadpool(profiles.create_profiles, data.count)
         logger.info(f"Created {data.count} profiles")
     finally:
-        environ.update({"BUSY": "0", "BUSY_REASON": ""})
+        EngineContext.reset()
     
     return JSONResponse(
         status_code=200, 
@@ -57,14 +57,14 @@ async def delete_all_profiles() -> dict:
         success (bool): True if profiles were deleted successfully
         message (str): Confirmation message
     """
-    environ.update({"BUSY": "1", "BUSY_REASON": "Deleting profiles"})
+    EngineContext.set_busy("Deleting profiles")
 
     profiles: Profiles = Profiles()
 
     try:
         await run_in_threadpool(profiles.delete_all_temp_profiles)
     finally:
-        environ.update({"BUSY": "0", "BUSY_REASON": ""})
+        EngineContext.reset()
 
     return JSONResponse(
         status_code=200, 

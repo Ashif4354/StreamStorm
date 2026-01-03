@@ -1,6 +1,5 @@
 from asyncio import Task, sleep, Event, create_task, gather, TimeoutError as AsyncTimeoutError, Lock
 from random import choice
-from os import environ
 from os.path import join
 from typing import Optional, Literal
 from json import loads, JSONDecodeError
@@ -450,12 +449,8 @@ class StreamStorm(Profiles):
                 await sleep(0.2)  # Small delay to avoid instant spike of the cpu load
 
             await gather(*tasks)  # Wait for all tasks to complete
-            environ.update({"BUSY": "0"})
 
-            self.run_stopper_event.clear()
-            StreamStorm.ss_instance = None
-            StreamStorm.each_channel_instances.clear()
-            logger.debug("All Instances completed")
+            logger.debug("Initial storm instances completed")
 
         create_task(start_each_worker())
     
@@ -495,7 +490,7 @@ class StreamStorm(Profiles):
                 await sleep(0.2)
 
             await gather(*tasks)
-            logger.debug("All Coroutines completed")
+            logger.debug("All added instances completed")
 
         create_task(start_each_worker())       
 

@@ -3,6 +3,7 @@ from asyncio import sleep
 from logging import getLogger, Logger
 
 from ..core.StreamStorm import StreamStorm
+from ..core.EngineContext import EngineContext
 from ..socketio.sio import sio
 
 logger: Logger = getLogger(f"streamstorm.{__name__}")
@@ -28,8 +29,10 @@ async def background_storm_stopper() -> NoReturn:
                 logger.debug("StreamStorm instance is marked dead by: Status length checker")
 
             if not any(statuses):
+                logger.debug("Resetting StreamStorm instance and clearing each channel instances")
                 StreamStorm.ss_instance = None
                 StreamStorm.each_channel_instances.clear()
+                EngineContext.reset()
                 
                 await sio.emit('storm_stopped', room="streamstorm")                
                 

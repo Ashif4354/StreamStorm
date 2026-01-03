@@ -1,5 +1,4 @@
 from logging import Logger, getLogger
-from os import environ
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -7,6 +6,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
 from ...core.StreamStorm import StreamStorm
+from ...core.EngineContext import EngineContext
 from ...settings import settings
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
@@ -62,12 +62,12 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
 
         if method == "POST":
             if path in settings.busy_endpoints:
-                if environ.get("BUSY") == "1":
+                if EngineContext.is_busy():
                     return JSONResponse(
                         status_code=429,  # Too Many Requests
                         content={
                             "success": False,
-                            "message": f"Engine is Busy: {environ.get('BUSY_REASON')}",
+                            "message": f"Engine is Busy: {EngineContext.get_busy_reason()}",
                         },
                         headers=settings.cors_headers,
                     )

@@ -5,9 +5,7 @@ path.insert(0, str(Path(__file__).parent.parent.parent.resolve()))
 
 from os import environ
 
-environ.update({"BUSY": "0"})
-environ.update({"BUSY_REASON": ""})
-
+# Graphics settings for headless browser support
 environ.update({"LIBGL_ALWAYS_SOFTWARE": "1"})
 environ.update({"QT_OPENGL": "software"})
 environ.update(
@@ -18,3 +16,4 @@ environ.update(
 
 
 __all__: list[str] = []
+

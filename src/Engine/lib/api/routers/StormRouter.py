@@ -1,5 +1,4 @@
 from logging import getLogger, Logger
-from os import environ
 from os.path import join, exists
 from json import JSONDecodeError, loads
 from asyncio import gather
@@ -11,6 +10,7 @@ from aiofiles import open as aio_open
 
 from ...core.StreamStorm import StreamStorm
 from ...core.SeparateInstance import SeparateInstance
+from ...core.EngineContext import EngineContext
 from ..validation import (
     StormData,
     ChangeMessagesData,
@@ -106,8 +106,8 @@ async def start(data: StormData) -> JSONResponse:
     StreamStormObj.pause_event.set()  # Set the pause event to allow storming to start immediately
     StreamStormObj.run_stopper_event.clear()  # Clear the run stopper event to wait for instances to be ready before starting
 
-    environ.update({"BUSY": "1", "BUSY_REASON": "Storming in progress"})
-    logger.debug("Environment updated to BUSY state")
+    EngineContext.set_busy("Storming in progress")
+    logger.debug("EngineContext updated to BUSY state")
 
     try:
         await StreamStormObj.start()
@@ -115,7 +115,7 @@ async def start(data: StormData) -> JSONResponse:
         logger.info("Storm started successfully")
         
     except SystemError as e:
-        environ.update({"BUSY": "0", "BUSY_REASON": ""})
+        EngineContext.reset()
         StreamStorm.ss_instance = None
         cl.log_to_history(data, "Storm failed to start")
         
@@ -123,7 +123,7 @@ async def start(data: StormData) -> JSONResponse:
         raise e
     
     except Exception as e:
-        environ.update({"BUSY": "0", "BUSY_REASON": ""})
+        EngineContext.reset()
         StreamStorm.ss_instance = None
         cl.log_to_history(data, "Storm failed to start")
         
@@ -167,7 +167,7 @@ async def stop() -> JSONResponse:
 
     StreamStorm.ss_instance = None
 
-    environ.update({"BUSY": "0"})
+    EngineContext.reset()
 
     logger.info("Storm stopped successfully")
     await sio.emit('storm_stopped', room="streamstorm")
