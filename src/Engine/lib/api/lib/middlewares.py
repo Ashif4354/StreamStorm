@@ -78,6 +78,7 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
                         status_code=409,  # Conflict
                         content={
                             "success": False,
+                            "storm": False,
                             "message": "No storm is running. Start a storm first.",
                         },
                         headers=settings.cors_headers,
@@ -97,6 +98,7 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
                 status_code=409,  # Conflict
                 content={
                     "success": False,
+                    "storm": False,
                     "message": "No storm is running. Start a storm first.",
                 },
                 headers=settings.cors_headers,

@@ -415,6 +415,8 @@ class StreamStorm(Profiles):
             
             await sleep(3)  # Small delay to ensure everything is set up in UI before starting workers
 
+            await sio.emit("storm_started", room="streamstorm") # Emit storm started event to UI so that any extra connected clients know that the storm has started and will be able to hop in.
+
             async def wait_for_all_worker_to_be_ready() -> None:
                 while self.context.ready_to_storm_instances < self.context.total_instances:
                     await sleep(1)

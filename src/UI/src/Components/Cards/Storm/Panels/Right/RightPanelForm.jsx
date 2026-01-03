@@ -5,6 +5,7 @@ import { Switch, Button, Divider, Tooltip } from "@mui/material";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { RefreshCw, Users, StopCircle } from 'lucide-react';
 import { logEvent } from "firebase/analytics";
+import { useDialogs } from "@toolpad/core/useDialogs";
 
 import "./RightPanel.css";
 import { analytics } from "../../../../../config/firebase";
@@ -16,14 +17,18 @@ import { useCustomMUIProps } from '../../../../../context/CustomMUIPropsContext'
 import { useAppState } from '../../../../../context/AppStateContext';
 import ManageProfilesModal from "../../../../Modals/ManageProfiles/ManageProfiles";
 import LogsModal from "../../../../Modals/Logs/Logs";
+import { useSocket } from '../../../../../context/SocketContext';
+import AreYouSure from "../../../../Dialogs/AreYouSure";
 
 const RightPanelForm = () => {
 
     const { colorScheme } = useColorScheme();
+    const { socket, socketConnected } = useSocket();
     const { btnProps } = useCustomMUIProps();
     const formControls = useStormData();
     const systemInfoControls = useSystemInfo();
     const appState = useAppState();
+    const dialogs = useDialogs();
 
     const [stopping, setStopping] = useState(false);
     const [manageProfilesOpen, setManageProfilesOpen] = useState(false);
@@ -37,6 +42,12 @@ const RightPanelForm = () => {
 
     const onStopHandler = async () => {
         formControls.SC.current.stopStorm2(setStopping);
+    }
+
+    const askToJoinStartedStorm = async () => {
+        return await dialogs.open(AreYouSure, {
+            text: <span>A Storm has just begun. Do you wanna hop in?</span>
+        });
     }
 
     useEffect(() => {
@@ -53,6 +64,21 @@ const RightPanelForm = () => {
             logEvent(analytics, "logs_open");
         }
     }, [manageProfilesOpen, logsOpen]);
+
+    useEffect(() => {
+        if (!socket || !socket.connected || !socketConnected) return;
+
+        socket.on("storm_started", async () => {
+            const confirmed = await askToJoinStartedStorm();
+            if (!confirmed) return;
+            appState.setStormInProgress(true);
+        });
+
+        return () => {
+            socket.off("storm_started");
+        }
+        
+    }, [socket, socketConnected]);
 
     return (
         <div className="right-panel-container">

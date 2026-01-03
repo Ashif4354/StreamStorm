@@ -3,6 +3,7 @@ import * as atatus from 'atatus-spa';
 
 import { useAppState } from './AppStateContext';
 import { useStormData } from './StormDataContext';
+import { useNotifications } from '@toolpad/core/useNotifications';
 
 
 const ServerContext = createContext();
@@ -11,6 +12,7 @@ const ServerContextProvider = ({ children }) => {
 
     const appState = useAppState();
     const formControls = useStormData();
+    const notifications = useNotifications();
 
     const [stormData, setStormData] = useState({});
     const [channelsStatus, setChannelsStatus] = useState({});
@@ -46,7 +48,14 @@ const ServerContextProvider = ({ children }) => {
                         setStartTime(new Date(data.context.start_time).getTime());
                         setServerContextFetched(true);
                     } else {
-                        console.error("Failed to fetch server context:", data.message);
+                        if (!data.storm) {
+                            appState.setStormInProgress(false);
+
+                            notifications.show("The storm has ended", {
+                                severity: "warning",
+                                autoHideDuration: 3000,
+                            });
+                        }
                     }
                 })
                 .catch(error => {
