@@ -2,13 +2,10 @@ from asyncio import Task, sleep, Event, create_task, gather, TimeoutError as Asy
 from random import choice
 from os.path import join
 from typing import Optional, Literal
-from json import loads, JSONDecodeError
 from http.client import RemoteDisconnected
 from urllib3.exceptions import ProtocolError, ReadTimeoutError
-from aiofiles import open as aio_open
 from logging import getLogger, Logger
 from contextlib import suppress
-from datetime import datetime
 from urllib.parse import urlparse, parse_qs, ParseResult
 
 
@@ -31,11 +28,8 @@ logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 class StreamStorm(Profiles):
     __slots__: tuple[str, ...] = (
-        'url', 'chat_url', 'messages', 'subscribe', 'subscribe_and_wait_time', 
-        'slow_mode', 'channels', 'background', 'ready_event', 'pause_event',
-        'total_instances', 'ready_to_storm_instances', 'total_channels', 
-        'all_channels', 'assigned_profiles', 'run_stopper_event', 'message_counter_lock', 'message_count',
-        'storm_context', 'storm_data', 'target_channel', 'message_rate', 'context'
+        'ready_event', 'pause_event', 'run_stopper_event', 
+        'message_counter_lock', 'context'
     )
     
     each_channel_instances: list[SeparateInstance] = []
@@ -46,30 +40,10 @@ class StreamStorm(Profiles):
         super().__init__()
         
         self.context: StormContext = StormContext()
-        # self.url: str = f"{data.video_url}&hl=en-US&persist_hl=1"
-        # self.chat_url: str = f"{data.chat_url}&hl=en-US&persist_hl=1"
-        # self.messages: list[str] = data.messages
-        # self.subscribe: tuple[bool, bool] = (data.subscribe, data.subscribe_and_wait)
-        # self.subscribe_and_wait_time: int = data.subscribe_and_wait_time
-        # self.slow_mode: int = data.slow_mode
-        # self.channels: list[int] = sorted(data.channels)
-        # self.background: bool = data.background
-        # self.target_channel: tuple[str, bool] = self.get_channel_url() # channel_url if fetched else video_url. True if channel_url else False
-
         self.ready_event: Event = Event()
         self.pause_event: Event = Event()
         self.run_stopper_event: Event = Event()
-
-        # self.total_instances: int = len(data.channels)
-        # self.ready_to_storm_instances: int = 0
-        # self.total_channels: int = 0
-        # self.all_channels: dict[str, dict[str, str]] = {}
-
-        # self.assigned_profiles: dict[str, int] = {}
         self.message_counter_lock: Lock = Lock()
-        # self.message_count: int = 0
-        # self.message_rate: float = 0.0
-        # self.storm_context: dict = {}
 
         self.init_context(data)
 
@@ -81,7 +55,6 @@ class StreamStorm(Profiles):
         
     async def emit_instance_status(self, index: int, status: int) -> None:
         str_index: str = str(index)
-        # self.storm_context["channels_status"][str_index]["status"] = status
         self.context.all_channels[str_index]["status"] = status
         await sio.emit("instance_status", {"instance": str_index, "status": str(status)}, room="streamstorm")
         
@@ -340,7 +313,14 @@ class StreamStorm(Profiles):
                 except Exception as e:
                     logger.error(f"[{index}] [{channel_name}] : New Error ({type(e).__name__}): {e}")
                     await self.emit_instance_status(index, 0)  # 0 = Dead
-                    break
+                    self.context.assigned_profiles[profile_dir_name] = None
+
+                    try:
+                        await SI.page.close()
+                    except PlaywrightError as e:
+                        logger.error(f"[{index}] [{channel_name}] : Error closing page: {e}")
+                    finally:
+                        break
                 
                 logger.debug(f"[{index}] [{channel_name}] Sleeping for {self.context.slow_mode}s before next message")
                 await sleep(self.context.slow_mode)
@@ -358,6 +338,12 @@ class StreamStorm(Profiles):
         ) as e:
             logger.error(f"[{index}] [{channel_name}] : Error: {e}")
             await self.emit_instance_status(index, 0)  # 0 = Dead
+            self.context.assigned_profiles[profile_dir_name] = None
+
+            try:
+                await SI.page.close()
+            except PlaywrightError as e:
+                logger.error(f"[{index}] [{channel_name}] : Error closing page: {e}")
         
     def get_start_storm_wait_time(self, index, no_of_profiles, slow_mode) -> float:
         return index * (slow_mode / no_of_profiles)
