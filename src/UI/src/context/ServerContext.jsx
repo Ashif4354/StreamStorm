@@ -18,6 +18,18 @@ const ServerContextProvider = ({ children }) => {
     const [startTime, setStartTime] = useState(Date.now());
     const [serverContextFetched, setServerContextFetched] = useState(false);
 
+    const setFormControls = (context) => {
+        formControls.setVideoURL(context.video_url);
+        formControls.setSubscribe(context.subscribe[0]);
+        formControls.setSubscribeAndWait(context.subscribe[1]);
+        formControls.setSubscribeWaitTime(context.subscribe_and_wait_time);
+        formControls.setSlowMode(context.slow_mode);
+        formControls.setLoadInBackground(context.background);
+        formControls.setMessagesString(context.messages.join("\n"));
+        formControls.setMessages(context.messages);
+        formControls.setChannels(context.channels);
+    }
+
 
     useEffect(() => {
         if (appState.stormInProgress) {
@@ -27,8 +39,8 @@ const ServerContextProvider = ({ children }) => {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        setStormData(data.context.storm_data);
-                        setChannelsStatus(data.context.channels_status);
+                        setFormControls(data.context);
+                        setChannelsStatus(data.context.all_channels);
                         setStormStatus(data.context.storm_status);
                         // setStartTime(data.context.start_time);
                         setStartTime(new Date(data.context.start_time).getTime());
@@ -43,20 +55,6 @@ const ServerContextProvider = ({ children }) => {
                 });
         }
     }, [appState.stormInProgress, appState.hostAddress]);
-
-    useEffect(() => {
-        if (serverContextFetched && stormData) {
-            formControls.setVideoURL(stormData.video_url);
-            formControls.setChatURL(stormData.chat_url);
-            formControls.setSubscribe(stormData.subscribe);
-            formControls.setSubscribeAndWait(stormData.subscribe_and_wait);
-            formControls.setSubscribeWaitTime(stormData.subscribe_and_wait_time);
-            formControls.setSlowMode(stormData.slow_mode);
-            formControls.setLoadInBackground(stormData.background);
-            formControls.setMessagesString(stormData.messages.join("\n"));
-            formControls.setMessages(stormData.messages);
-        }        
-    }, [serverContextFetched, stormData])
 
 
     const values = {

@@ -3,14 +3,9 @@ import { Link, Users, Clock, UserCheck, Package } from "lucide-react";
 import TextBasedConfig from "./TextBasedConfig";
 import ChipBasedConfig from "./ChipBasedConfig";
 import MessagesConfig from "./MessagesConfig";
-import { useStormData } from "../../../context/StormDataContext";
-import { useServerContext } from "../../../context/ServerContext";
-
 const ConfigData = (props) => {
 
     const formControls = props.formControls;
-
-    const { stormData } = useServerContext();
 
     return (
         <div className='config-data-container'>
@@ -18,7 +13,7 @@ const ConfigData = (props) => {
             <TextBasedConfig
                 icon={<Users size={16} />}
                 title="Channels initially"
-                value={`${stormData.channels.length} ${formControls.channelSelection ? `(${formControls.channelSelection})` : ""}`}
+                value={`${formControls.channels.length} ${formControls.channelSelection ? `(${formControls.channelSelection})` : ""}`}
             />
             <TextBasedConfig icon={<Clock size={16} />} title="Slow Mode" value={`${formControls.slowMode}s`} />
             <ChipBasedConfig icon={<UserCheck size={16} />} title="Subscribe" value="Enabled" disabled={!formControls.subscribe} />

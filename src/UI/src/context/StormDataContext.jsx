@@ -52,6 +52,8 @@ const StormDataProvider = ({ children }) => {
     const [endChannelIndexError, setEndChannelIndexError] = useState(false);
     const [endChannelIndexHelperText, setEndChannelIndexHelperText] = useState("");
 
+    const [channels, setChannels] = useState([]);
+
     const [advancedSelectedChannels, setAdvancedSelectedChannels] = useState([]);
     const [advancedChannelsErrorText, setAdvancedChannelsErrorText] = useState("");
 
@@ -60,6 +62,7 @@ const StormDataProvider = ({ children }) => {
     const [engineVersion, setEngineVersion] = useState('...');  
 
     const getChannels = () => {
+        let channels;
         const getRange = (start, end) => {
             const range = [];
             
@@ -71,12 +74,15 @@ const StormDataProvider = ({ children }) => {
         }
 
         if (channelSelection === 'basic') {
-            return getRange(1, noOfChannels);
+            channels = getRange(1, noOfChannels);
         } else if (channelSelection === 'intermediate') {
-            return getRange(startChannelIndex, endChannelIndex);
+            channels = getRange(startChannelIndex, endChannelIndex);
         } else if (channelSelection === 'advanced') {
-            return advancedSelectedChannels;
-        }
+            channels = advancedSelectedChannels;
+        }   
+
+        setChannels(channels);
+        return channels;
     }
 
     const formControls = {
@@ -91,7 +97,7 @@ const StormDataProvider = ({ children }) => {
         startChannelIndex, setStartChannelIndex, startChannelIndexError, setStartChannelIndexError, startChannelIndexHelperText, setStartChannelIndexHelperText,
         endChannelIndex, setEndChannelIndex, endChannelIndexError, setEndChannelIndexError, endChannelIndexHelperText, setEndChannelIndexHelperText,
         advancedSelectedChannels, setAdvancedSelectedChannels, advancedChannelsErrorText, setAdvancedChannelsErrorText,
-        loadInBackground, setLoadInBackground, errorText, setErrorText,
+        loadInBackground, setLoadInBackground, errorText, setErrorText, channels, setChannels,
         hostAddress, SC, engineVersion, setEngineVersion,
 
         getStormData: () => {

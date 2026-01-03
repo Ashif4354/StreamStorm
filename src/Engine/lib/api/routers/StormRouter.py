@@ -530,7 +530,7 @@ async def get_context() -> JSONResponse:
         status_code=200,
         content={
             "success": True,
-            "context": StreamStorm.ss_instance.context,
+            "context": StreamStorm.ss_instance.context.model_dump(),
             "message": "Context fetched successfully"
         }
     )
