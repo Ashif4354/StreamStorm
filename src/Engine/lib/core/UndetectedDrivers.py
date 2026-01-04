@@ -19,18 +19,18 @@ from .Selenium import Selenium
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 class UndetectedDrivers(Selenium):
-    __slots__: tuple[str, ...] = ('base_profile_dir', 'youtube_login_url', 'config_json_path')
+    __slots__: tuple[str, ...] = ('base_profile_dir', 'youtube_login_url', 'data_json_path')
     
     def __init__(self, base_profile_dir: str) -> None:
         self.base_profile_dir: str = base_profile_dir
         logger.debug(f"Base profile directory: {self.base_profile_dir}")
         
         self.youtube_login_url: str = "https://accounts.google.com/ServiceLogin?service=youtube"
-        self.config_json_path: str = join(dirname(normpath(self.base_profile_dir)), "data.json")
+        self.data_json_path: str = join(dirname(normpath(self.base_profile_dir)), "data.json")
         
         super().__init__(base_profile_dir, background=False)
 
-    def initiate_config_json(self, no_of_channels: int = 0, channels: dict[int, dict[str, str]] = None) -> None:
+    def initiate_data_json(self, no_of_channels: int = 0, channels: dict[int, dict[str, str]] = None) -> None:
 
         data: dict = {
             "no_of_channels": no_of_channels,
@@ -38,7 +38,7 @@ class UndetectedDrivers(Selenium):
         }
         
         try:
-            with open(self.config_json_path, "w", encoding="utf-8") as file:
+            with open(self.data_json_path, "w", encoding="utf-8") as file:
                 dump(data, file, indent=4)
         except Exception as e:
             logger.error(f"Failed to create data.json: {e}")
@@ -103,7 +103,7 @@ class UndetectedDrivers(Selenium):
         if total_channels == 0:
             raise SystemError("No YouTube channels found. Add at least one channel to your YouTube Account.")
         
-        self.initiate_config_json(total_channels, channels)
+        self.initiate_data_json(total_channels, channels)
         
         
     def create_channel(self, name: str, logo: bool = True, random_logo: bool = False, logo_uri: str = None) -> bool:
