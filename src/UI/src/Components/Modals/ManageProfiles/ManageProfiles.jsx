@@ -36,13 +36,15 @@ const ManageProfiles = (props) => {
                     </div>
                 </div>
 
-                <CreateChannels />
-                <Divider sx={{ margin: '2rem 0' }} />
                 <CreateProfiles />
 
-                <Divider sx={{ margin: '2rem 0' }} />
+                {/* <Divider sx={{ margin: '2rem 0' }} />
 
-                <DeleteAllProfiles />
+                <DeleteAllProfiles /> */}
+
+                <Divider sx={{ margin: '2rem 0' }} />
+                
+                <CreateChannels />
             </Box>
         </Modal>
     );

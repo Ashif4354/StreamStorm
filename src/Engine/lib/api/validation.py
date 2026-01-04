@@ -410,6 +410,20 @@ class GenerateMessagesRequest(BaseModel):
         return value.strip()
 
 
+class GeneralSettingsData(BaseModel):
+    """Model for updating general application settings"""
+    login_method: str = Field(
+        ...,
+        description="Login method to use - 'cookies' (faster, lower disk usage) or 'profiles' (persistent sessions, more disk space)"
+    )
+    
+    @field_validator("login_method")
+    def validate_login_method(cls, value: str) -> str:
+        if value not in {"cookies", "profiles"}:
+            raise ValueError("login_method must be 'cookies' or 'profiles'")
+        return value
+
+
 __all__ : list[str] = [
     "StormData",
     "ProfileData",
@@ -423,5 +437,6 @@ __all__ : list[str] = [
     "AIProviderKeyData",
     "SetDefaultProviderData",
     "GenerateMessagesRequest",
+    "GeneralSettingsData",
     "Validate"
 ]

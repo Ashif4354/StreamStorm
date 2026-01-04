@@ -23,9 +23,13 @@ const AppStateProvider = ({ children }) => {
     const [defaultAIProvider, setDefaultAIProvider] = useState(null);
     const [defaultAIModel, setDefaultAIModel] = useState(null);
     const [defaultAIBaseUrl, setDefaultAIBaseUrl] = useState(null);
+
+    // General settings (stored in app state, synced with backend)
+    const [loginMethod, setLoginMethod] = useState('cookies');
+
     const [settingsLoading, setSettingsLoading] = useState(true);
 
-    // Fetch all settings (engine config + AI defaults) on app startup
+    // Fetch all settings (engine config + AI defaults + general) on app startup
     useEffect(() => {
         const fetchSettings = async () => {
             try {
@@ -47,6 +51,11 @@ const AppStateProvider = ({ children }) => {
                         setDefaultAIProvider(data.ai.defaultProvider ?? null);
                         setDefaultAIModel(data.ai.defaultModel ?? null);
                         setDefaultAIBaseUrl(data.ai.defaultBaseUrl ?? null);
+                    }
+
+                    // Set general settings from 'general' sub-key
+                    if (data.general) {
+                        setLoginMethod(data.general.login_method ?? 'cookies');
                     }
                 } else {
                     console.error("Failed to fetch settings:", data.message);
@@ -74,6 +83,8 @@ const AppStateProvider = ({ children }) => {
         defaultAIProvider, setDefaultAIProvider,
         defaultAIModel, setDefaultAIModel,
         defaultAIBaseUrl, setDefaultAIBaseUrl,
+        // General Settings
+        loginMethod, setLoginMethod,
         settingsLoading
     };
 

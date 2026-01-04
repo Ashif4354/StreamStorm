@@ -84,8 +84,9 @@ class Settings(BaseSettings):
 
     app_data_dir: Path = APP_DATA_DIR
     settings_file_path: Path = SETTINGS_FILE_PATH
-    data_json_path: Path = APP_DATA_DIR / "Environment" / "data.json"
-    cookies_path: Path = APP_DATA_DIR / "Environment" / "cookies.json"
+    environment_dir: Path = APP_DATA_DIR / "Environment"
+    data_json_path: Path = environment_dir / "data.json"
+    cookies_path: Path = environment_dir / "cookies.json"
     log_file_path: str = "" # Will be set by CustomLogger during logging setup
 
     login_method: Literal["cookies", "profiles"] = "cookies"
@@ -146,6 +147,7 @@ class Settings(BaseSettings):
         settings = read_settings_json()
         data["saved_settings"] = settings
         data["ai"] = settings.ai
+        data["login_method"] = settings.login_method
 
         return data
 
@@ -154,6 +156,7 @@ class Settings(BaseSettings):
         settings_json_content: dict = self.saved_settings.model_dump()
 
         settings_json_content["ai"] = self.ai.model_dump()
+        settings_json_content["login_method"] = self.login_method
 
         write_settings_json(settings_json_content)  
 

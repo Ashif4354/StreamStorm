@@ -1,11 +1,13 @@
 from logging import Logger, getLogger
+from shutil import rmtree
 from typing import Literal
+from os.path import exists
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from ...settings.SavedSettings import AISettings
-from ..validation import AIProviderKeyData, SetDefaultProviderData
+from ..validation import AIProviderKeyData, SetDefaultProviderData, GeneralSettingsData
 from ...settings import settings
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
@@ -13,13 +15,103 @@ logger: Logger = getLogger(f"fastapi.{__name__}")
 router: APIRouter = APIRouter(prefix="/settings", tags=["Settings"])
 
 
-@router.get("/", operation_id="get_settings", summary="Get all application settings including engine config and default AI provider.")
+@router.post("/general", operation_id="set_general_settings", summary="Update general application settings.")
+def set_general_settings(data: GeneralSettingsData) -> JSONResponse:
+    """
+    Update general application settings.
+    
+    Args:
+        data.login_method (str): Login method to use - 'cookies' or 'profiles'
+    
+    Returns:
+        success (bool): True if settings were saved successfully
+        message (str): Confirmation message
+        login_method (str): Updated login method
+    """
+    logger.info(f"Updating general settings: login_method={data.login_method}")
+
+    try:
+        settings.login_method = data.login_method
+
+        logger.info(f"General settings updated: login_method={settings.login_method}")
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "message": "Settings saved successfully",
+                "login_method": settings.login_method,
+            },
+        )
+
+    except Exception as e:
+        logger.error(f"Error updating general settings: {e}")
+
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "message": f"Error saving settings: {str(e)}"},
+        )
+
+
+@router.delete("/general/clear-login-data", operation_id="clear_login_data", summary="Clear all login data including cookies and profiles.")
+def clear_login_data() -> JSONResponse:
+    """
+    Clear all login data from the Environment directory.
+    
+    This removes:
+    - cookies.json (saved browser cookies)
+    - All temp profiles
+    - Base profile
+    - data.json (channel data)
+    
+    Returns:
+        success (bool): True if data was cleared successfully
+        message (str): Confirmation or error message
+    """
+    logger.info("Clearing all login data from Environment directory")
+    
+    try:
+        environment_dir = settings.environment_dir
+        
+        if not exists(environment_dir):
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "success": True,
+                    "message": "No login data found to clear",
+                },
+            )
+        
+        # Remove the entire Environment directory and its contents
+        rmtree(environment_dir)
+        logger.info(f"Cleared Environment directory: {environment_dir}")
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "message": "All login data cleared successfully",
+            },
+        )
+    
+    except Exception as e:
+        logger.error(f"Error clearing login data: {e}")
+        
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "message": f"Error clearing login data: {str(e)}"},
+        )
+
+
+
+@router.get("/", operation_id="get_settings", summary="Get all application settings including engine config, AI provider, and general settings.")
 def get_settings() -> JSONResponse:
     """
     Get all application settings.
     
-    Returns engine configuration (version, log file path) and 
-    default AI provider settings under the 'ai' sub-key.
+    Returns engine configuration (version, log file path), 
+    default AI provider settings under the 'ai' sub-key,
+    and general settings under the 'general' sub-key.
     
     Returns:
         success (bool): True if the request was successful
@@ -29,6 +121,8 @@ def get_settings() -> JSONResponse:
             - defaultProvider (str): Currently selected default AI provider
             - defaultModel (str): Currently selected model for the default provider
             - defaultBaseUrl (str): Base URL for the default provider API
+        general (dict): General application settings
+            - login_method (str): Current login method ('cookies' or 'profiles')
     """
     logger.debug("Fetching application settings")
 
@@ -43,6 +137,9 @@ def get_settings() -> JSONResponse:
                     "defaultProvider": settings.ai.defaultProvider,
                     "defaultModel": settings.ai.defaultModel,
                     "defaultBaseUrl": settings.ai.defaultBaseUrl,
+                },
+                "general": {
+                    "login_method": settings.login_method,
                 },
             },
         )

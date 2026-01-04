@@ -11,7 +11,7 @@ import { useCustomMUIProps } from '../../../context/CustomMUIPropsContext';
 import { useAppState } from '../../../context/AppStateContext';
 import * as atatus from 'atatus-spa';
 
-import GeneralSettings from './Sections/GeneralSettings';
+import GeneralSettings from './Sections/GeneralSettings/GeneralSettings';
 import HostSettings from './Sections/HostSettings';
 import AppearanceSettings from './Sections/AppearanceSettings';
 import ApiKeysSettings from './Sections/ApiKeysSettings';
@@ -118,7 +118,7 @@ const Settings = (props) => {
             <Box sx={{
                 ...modalProps,
                 minWidth: '200px',
-                maxWidth: '700px',
+                maxWidth: '750px',
                 width: verticalTab ? '70%' : '90%',
                 height: '60vh',
                 display: 'flex',
