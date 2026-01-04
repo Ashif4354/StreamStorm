@@ -7,37 +7,30 @@ import Log from './Log';
 
 const LogsContainer = () => {
     const { logs } = useAppState();
-    const scrollRef = useRef(null);
+    const bottomRef = useRef(null);
 
     useEffect(() => {
-        const element = scrollRef.current;
-        if (element) {
-            element.scrollTop = element.scrollHeight;
-        }
+        // Scroll to bottom when new logs arrive
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [logs]);
 
     return (
         <Box
-            ref={scrollRef}
             sx={{
                 height: '100%',
-                // overflow: 'scroll',
                 p: 2,
                 "&.MuiBox-root": {
                     padding: "0",
                 }
             }}
         >
-            <Stack
-                sx={{
-                    overflow: 'scroll',
-                }}
-            >
+            <Stack>
                 {
                     logs.map((log, index) => (
                         <Log key={index} log={log} />
                     ))
                 }
+                <div ref={bottomRef} />
             </Stack>
         </Box>
     );
