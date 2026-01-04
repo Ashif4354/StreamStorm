@@ -1,4 +1,5 @@
 from logging import Logger, getLogger
+from json import dump
 
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
@@ -9,6 +10,7 @@ from selenium.webdriver.common.keys import Keys
 
 from ..utils.exceptions import BrowserClosedError, ElementNotFound
 from .BrowserAutomator import BrowserAutomator
+from ..settings import settings
         
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
@@ -135,8 +137,17 @@ class Selenium(BrowserAutomator):
             logger.debug("Message typed and Enter pressed")
         else:
             logger.debug("Message typed")
+
+    def save_cookies(self) -> None:
+        cookies: list[dict] = self.driver.get_cookies()
+
+        try:
+            with open(settings.cookies_path, "w", encoding="utf-8") as file:
+                dump(cookies, file, indent=4)
+                logger.info(f"Cookies saved to {settings.cookies_path}")
         
-          
+        except Exception as e:
+            logger.error(f"Failed to save cookies: {e}")
     
         
         

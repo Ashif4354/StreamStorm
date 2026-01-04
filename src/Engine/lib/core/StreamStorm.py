@@ -7,7 +7,7 @@ from urllib3.exceptions import ProtocolError, ReadTimeoutError
 from logging import getLogger, Logger
 from contextlib import suppress
 from urllib.parse import urlparse, parse_qs, ParseResult
-
+from json import load, JSONDecodeError
 
 from playwright.async_api import (
     Error as PlaywrightError, 
@@ -23,13 +23,14 @@ from .StormContext import StormContext
 from ..utils.clear_ram import clear_ram
 from ..socketio.sio import sio
 from ..api.validation import StormData
+from ..settings import settings
 
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 class StreamStorm(Profiles):
     __slots__: tuple[str, ...] = (
         'ready_event', 'pause_event', 'run_stopper_event', 
-        'message_counter_lock', 'context'
+        'message_counter_lock', 'context', 'cookies'
     )
     
     each_channel_instances: list[SeparateInstance] = []
@@ -46,6 +47,7 @@ class StreamStorm(Profiles):
         self.message_counter_lock: Lock = Lock()
 
         self.init_context(data)
+        self.load_cookies()
 
         StreamStorm.ss_instance = self
 
@@ -74,6 +76,18 @@ class StreamStorm(Profiles):
         self.context.assigned_profiles = {}
         self.context.message_count = 0
         self.context.message_rate = 0.0
+        
+
+    def load_cookies(self) -> None:
+        try:
+            with open(settings.cookies_path, "r") as f:
+                self.cookies = load(f)
+                
+        except (FileNotFoundError, JSONDecodeError):
+            if settings.login_method == "cookies":
+                raise SystemError("Cookies not found: Login again")
+            else:
+                self.cookies = {}
         
 
     def get_redirect_url(self, url: str, type: Literal["video", "channel", "uploader", "chat"]) -> str:
@@ -151,6 +165,7 @@ class StreamStorm(Profiles):
         self.context.slow_mode = slow_mode
         logger.info(f"Slow mode set to {self.context.slow_mode} seconds")
 
+
     async def set_messages(self, messages: list[str]) -> None:
         self.context.messages = messages
         logger.info(f"Messages set to: {self.context.messages}")
@@ -158,28 +173,10 @@ class StreamStorm(Profiles):
 
     async def check_channels_available(self) -> None:
         logger.debug(f"Checking channel availability for profiles in: {self.profiles_dir}")
-        
-        # try:
-        #     async with aio_open(join(self.profiles_dir, "data.json"), "r", encoding="utf-8") as file:
-        #         data: dict = loads(await file.read()) # We are using loads instead of load to avoid blocking the event loop
-                
-        # except (FileNotFoundError, PermissionError, UnicodeDecodeError, JSONDecodeError) as e:
-        #     logger.error("Failed to read data.json - profiles not created yet")
-        #     raise SystemError("Create profiles first.") from e
-            
-        # no_of_channels: int = data.get("no_of_channels", 0)
-
-        # self.total_channels = no_of_channels
-        # channels: dict = data.get("channels", {})
-        
-        # for channel in channels.values():
-        #     channel["status"] = -1
-        
-        # self.all_channels = channels
 
         if self.context.all_channels == {}:
-            logger.error("Failed to read data.json - profiles not created yet")
-            raise SystemError("Create profiles first.")
+            logger.error("Failed to read data.json - Not logged in")
+            raise SystemError("Login first.")
 
         logger.info(f"Found {self.context.total_channels} channels in config, required: {len(self.context.channels)}")
 
@@ -187,6 +184,7 @@ class StreamStorm(Profiles):
             logger.error(f"Insufficient channels: available={self.context.total_channels}, required={len(self.context.channels)}")
             raise SystemError("Not enough channels available in your YouTube Account. Create enough channels first. Then create Profiles again in the app.")
     
+
     async def get_active_channels(self) -> list[int]:
         active_channels: list[int] = []
 
@@ -198,9 +196,7 @@ class StreamStorm(Profiles):
 
         return active_channels
         
-    async def EachChannel(self, index: int, profile_dir: str, wait_time: float = 0) -> None:
-        
-        channel_name: str = self.context.all_channels[str(index)]['name']
+    async def EachChannel(self, index: int, channel_name: str, profile_dir: str, wait_time: float = 0) -> None:
 
         logger.info(f"[{index}] [{channel_name}] Using profile: {profile_dir}, Wait time: {wait_time}s")
         profile_dir_name: str=  profile_dir.split("\\")[-1]
@@ -212,7 +208,8 @@ class StreamStorm(Profiles):
                 profile_dir,
                 self.context.background,
                 profile_dir_name,
-                wait_time
+                wait_time,
+                self.cookies
             )
             
             await self.emit_instance_status(index, 1)  # 1 = Getting Ready
@@ -345,8 +342,8 @@ class StreamStorm(Profiles):
             except PlaywrightError as e:
                 logger.error(f"[{index}] [{channel_name}] : Error closing page: {e}")
         
-    def get_start_storm_wait_time(self, index, no_of_profiles, slow_mode) -> float:
-        return index * (slow_mode / no_of_profiles)
+    def get_start_storm_wait_time(self, index) -> float:
+        return index * (self.context.slow_mode / self.context.total_instances)
     
     async def messages_handler(self) -> None:
         time_frame: int = 2 # time frame in seconds to send message count updates
@@ -403,7 +400,7 @@ class StreamStorm(Profiles):
             raise SystemError("You have selected more channels than available channels in your YouTube channel. Create enough channels first.")
         
         
-        temp_profiles: list[str] = self.get_available_temp_profiles()
+        temp_profiles: list[str] = self.get_available_temp_profiles(total_channels=self.context.total_channels)
         no_of_temp_profiles: int = len(temp_profiles)
         
         self.context.assigned_profiles = {profile: None for profile in temp_profiles}      
@@ -429,10 +426,12 @@ class StreamStorm(Profiles):
             tasks: list[Task] = []
             for index in range(len(self.context.channels)):
                 profile_dir: str = join(self.profiles_dir, temp_profiles[index])
-                wait_time: float = self.get_start_storm_wait_time(index, no_of_temp_profiles, self.context.slow_mode)
+                channel_name: str = self.context.all_channels[str(self.context.channels[index])]['name']
+                wait_time: float = self.get_start_storm_wait_time(index)
+   
+                logger.debug(f"[{index}] [{channel_name}] Wait time: {wait_time}")
 
-                # executor.submit(self.EachChannel, self.channels[index], profile_dir, wait_time)
-                task: Task = create_task(self.EachChannel(self.context.channels[index], profile_dir, wait_time))
+                task: Task = create_task(self.EachChannel(self.context.channels[index], channel_name, profile_dir, wait_time))
                 tasks.append(task)
                 await sleep(0.2)  # Small delay to avoid instant spike of the cpu load
 
@@ -465,15 +464,20 @@ class StreamStorm(Profiles):
                 
         if not enough_profiles:
             raise SystemError("Not enough available profiles to start more channels.")
+
+        self.context.total_instances += len(channels)
         
         async def start_each_worker() -> None:  
             
             tasks: list[Task] = []   
             for index in range(len(channels)):
                 profile_dir: str = join(self.profiles_dir, available_profiles[index])
-                wait_time: float = self.get_start_storm_wait_time(index, len(self.get_available_temp_profiles()), self.context.slow_mode)
+                channel_name: str = self.context.all_channels[str(channels[index])]['name']
+                wait_time: float = self.get_start_storm_wait_time(index)
 
-                task: Task = create_task(self.EachChannel(channels[index], profile_dir, wait_time))
+                logger.debug(f"[{index}] [{channel_name}] Wait time: {wait_time}")
+
+                task: Task = create_task(self.EachChannel(channels[index], channel_name, profile_dir, wait_time))
                 tasks.append(task)
                 await sleep(0.2)
 

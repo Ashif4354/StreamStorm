@@ -4,6 +4,7 @@ from os.path import exists
 from platform import system
 from json import JSONDecodeError, dumps, loads
 from logging import Logger, getLogger
+from typing import Literal
 
 from platformdirs import user_data_dir
 from pydantic import model_validator, Field
@@ -84,7 +85,10 @@ class Settings(BaseSettings):
     app_data_dir: Path = APP_DATA_DIR
     settings_file_path: Path = SETTINGS_FILE_PATH
     data_json_path: Path = APP_DATA_DIR / "Environment" / "data.json"
+    cookies_path: Path = APP_DATA_DIR / "Environment" / "cookies.json"
     log_file_path: str = "" # Will be set by CustomLogger during logging setup
+
+    login_method: Literal["cookies", "profiles"] = "cookies"
 
     sensitive_endpoints: set[str] = {
         "/settings/ai/keys/anthropic",

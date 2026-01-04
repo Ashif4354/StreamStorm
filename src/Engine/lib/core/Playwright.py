@@ -9,25 +9,26 @@ from playwright.async_api._generated import Browser, BrowserContext, Locator, Pa
 
 from .BrowserAutomator import BrowserAutomator
 from ..utils.exceptions import BrowserClosedError, ElementNotFound
+from ..settings import settings 
 
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 class Playwright(BrowserAutomator):
     __slots__: tuple[str, ...] = (
-        'user_data_dir', 'background', '_Playwright__instance_alive', 
-        'playwright', 'browser', 'page', 'index', 'channel_name'
+        'user_data_dir', 'background', '_Playwright__instance_alive', 'cookies',
+        'playwright', 'browser_context', 'browser', 'page', 'index', 'channel_name'
     )
     
     _chrome_version: str = None
     _version_lock: Lock = Lock()
 
-    def __init__(self, user_data_dir: str, background: bool) -> None:
+    def __init__(self, user_data_dir: str, background: bool, cookies: list[dict] | None = None) -> None:
         self.user_data_dir: str = user_data_dir
         self.background: bool = background
+        self.cookies: list[dict] | None = cookies or []
 
     async def __get_chromium_options(self) -> dict[str, str | bool | list[str]]:
         options: dict[str, str | bool | list[str]] = {
-            "user_data_dir": self.user_data_dir,
             "headless": self.background,
             "args": [
                 "--autoplay-policy=user-gesture-required",
@@ -48,6 +49,9 @@ class Playwright(BrowserAutomator):
             "viewport": {"width": 1200, "height": 800},
             "channel": "chrome"
         }
+
+        if settings.login_method == "profiles":
+            options["user_data_dir"] = self.user_data_dir
         
         if self.background:
             options["args"].extend([
@@ -62,7 +66,7 @@ class Playwright(BrowserAutomator):
     async def __close_about_blank_page(self) -> None:
         """Close the about:blank page if it exists."""
         try:
-            for page in self.browser.pages:
+            for page in self.browser_context.pages:
                 if page.url == "about:blank":
                     await page.close()
                     break
@@ -88,8 +92,9 @@ class Playwright(BrowserAutomator):
         try:
             self.page.on("close", lambda _: mark_dead("page.on_close"))
             self.page.on("crash", lambda _: mark_dead("page.on_crash"))
-            self.browser.on("close", lambda _: mark_dead("browser.on_close"))
-            self.browser.browser.on("disconnected", lambda _: mark_dead("browser.browser.on_disconnected"))
+            self.browser_context.on("close", lambda _: mark_dead("browser_context.on_close"))
+            self.browser_context.browser.on("disconnected", lambda _: mark_dead("browser_context.browser.on_disconnected"))
+
         except Exception as _:
             self.__instance_alive = False
             logger.debug(f"[{self.index}] [{self.channel_name}] : ##### StreamStorm instance marked as dead by: Failure to attach error listeners")
@@ -100,7 +105,7 @@ class Playwright(BrowserAutomator):
         return language.startswith("en-")
         
     def change_language(self):
-        raise NotImplementedError
+        raise NotImplementedError    
     
 
     async def open_browser(self) -> None:
@@ -110,14 +115,31 @@ class Playwright(BrowserAutomator):
         logger.debug(f"[{self.index}] [{self.channel_name}] Browser options configured with {len(browser_options['args'])} arguments")
         logger.debug(f"[{self.index}] [{self.channel_name}] Browser arguments: {'\n'.join(browser_options['args'])}")
         
-        self.browser: BrowserContext = (
-            await self.playwright.chromium.launch_persistent_context(
-                **browser_options
+        if settings.login_method == "profiles":        
+            self.browser_context: BrowserContext = (
+                await self.playwright.chromium.launch_persistent_context(
+                    **browser_options
+                )
             )
-        )
+        
+        elif settings.login_method == "cookies":
+            view_port: dict = browser_options.pop("viewport")
 
-        self.page: Page = await self.browser.new_page()
-        create_task(self.__close_about_blank_page())
+            self.browser: Browser = await self.playwright.chromium.launch(**browser_options)
+
+            self.browser_context: BrowserContext = await self.browser.new_context(
+                viewport=view_port
+            )
+
+            await self.browser_context.add_cookies(self.cookies)
+
+        else:
+            raise SystemError("Invalid login method")
+
+        self.page: Page = await self.browser_context.new_page()
+        
+        if settings.login_method == "profiles":
+            create_task(self.__close_about_blank_page())
 
         self.page.set_default_navigation_timeout(45000)
         self.page.set_default_timeout(45000)

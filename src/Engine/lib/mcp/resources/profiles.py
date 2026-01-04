@@ -18,8 +18,7 @@ async def get_available_profiles() -> dict[str, Any]:
     profiles_instance = Profiles()
     
     try:
-        # get_available_temp_profiles may do file system operations
-        available_profiles = await to_thread(profiles_instance.get_available_temp_profiles)
+        available_profiles = await to_thread(profiles_instance.get_available_temp_profiles, from_mcp=True)
     except (FileNotFoundError, ValueError):
         available_profiles = []
     

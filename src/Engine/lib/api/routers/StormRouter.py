@@ -199,11 +199,10 @@ async def pause() -> JSONResponse:
     StreamStorm.ss_instance.context.storm_status = "Paused"
 
     current_channels: list[SeparateInstance] = StreamStorm.each_channel_instances
-    available_profiles: int = len(StreamStorm.ss_instance.get_available_temp_profiles())
     
     for index, channel in enumerate(current_channels):
         channel.should_wait = True
-        channel.wait_time = index * (StreamStorm.ss_instance.context.slow_mode / available_profiles)
+        channel.wait_time = index * (StreamStorm.ss_instance.context.slow_mode / len(current_channels))
     
     logger.info("Storm paused successfully")
     await sio.emit('storm_paused', room="streamstorm")

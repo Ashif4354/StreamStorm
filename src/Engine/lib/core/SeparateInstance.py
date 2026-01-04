@@ -18,9 +18,10 @@ class SeparateInstance(Playwright):
         user_data_dir: str = '',
         background: bool = True,
         profile_dir: str = '',
-        wait_time: float = 0
+        wait_time: float = 0,
+        cookies: list[dict] | None = None
     ) -> None:
-        super().__init__(user_data_dir, background)
+        super().__init__(user_data_dir, background, cookies)
         
         self.index: int = index
         self.profile_dir: str = profile_dir
@@ -74,7 +75,7 @@ class SeparateInstance(Playwright):
             return True
         
         try:
-            if not self.browser.browser.is_connected(): # test 1
+            if not self.browser_context.browser.is_connected(): # test 1
                 self.__instance_alive = False
                 logger.debug(f"[{self.index}] [{self.channel_name}] : ##### StreamStorm instance marked as dead by: browser.browser.is_connected")
 

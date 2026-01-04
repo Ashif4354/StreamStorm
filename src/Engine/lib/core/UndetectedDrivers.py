@@ -202,7 +202,8 @@ class UndetectedDrivers(Selenium):
                         logged_in = True
                         
                         if not for_create_channels:
-                            self.get_total_channels()                            
+                            self.get_total_channels()    
+                            self.save_cookies()                        
                             self.driver.close()
                             
                             sleep(2)

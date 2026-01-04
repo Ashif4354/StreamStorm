@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from logging import Logger, getLogger
 
 from .UndetectedDrivers import UndetectedDrivers
+from ..settings import settings
 
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
@@ -27,7 +28,15 @@ class Profiles:
         return join(self.profiles_dir, "BaseProfile")
 
 
-    def get_available_temp_profiles(self, for_deletion: bool = False) -> list[str]:
+    def get_available_temp_profiles(self, for_deletion: bool = False, total_channels: int = 0, from_mcp: bool = False) -> list[str]:
+
+        if settings.login_method == "cookies" and not from_mcp:
+            # When using cookies method, profiles will not be already created, 
+            # so we are mocking values twice the size of all channels in the users youtube account
+            # Why twice? Because to avoid potential index errors and to be safe.
+            logger.debug(f"Mocking {total_channels * 2} profiles")
+            return [f"temp_profile_{i}" for i in range(1, total_channels * 2)]
+        
         temp_profiles: list[str] = [
             profile for profile in listdir(self.profiles_dir) if profile.startswith("temp_profile_")
         ]
@@ -37,7 +46,7 @@ class Profiles:
         if not for_deletion and no_of_profiles != 0:
             for i in range(1, no_of_profiles + 1):
                 if f'temp_profile_{i}' not in temp_profiles:
-                    raise ValueError(f"temp_profile_{i} is missing. Try rebuilding the environment.")
+                    raise ValueError(f"temp_profile_{i} is missing. Try logging in again.")
         
         return temp_profiles
 
@@ -87,6 +96,9 @@ class Profiles:
     def create_profiles(self, count: int) -> None:
         self.__delete_profiles_dir()
         self.__create_base_profile()
+
+        if settings.login_method == "cookies":
+            return
         
         profiles: list[str] = [f"temp_profile_{i}" for i in range(1, count + 1)]
         
