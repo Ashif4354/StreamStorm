@@ -36,6 +36,12 @@ const RightPanelForm = () => {
 
 
     const handleSubmit = () => {
+        // Check if user is logged in
+        if (!appState.isLoggedIn) {
+            formControls.setErrorText("Not logged in. Log in first in Manage Environments section.");
+            return;
+        }
+
         formControls.setErrorText("");
         formControls.SC.current.startStorm(formControls, systemInfoControls, appState);
     }
@@ -77,7 +83,7 @@ const RightPanelForm = () => {
         return () => {
             socket.off("storm_started");
         }
-        
+
     }, [socket, socketConnected]);
 
     return (

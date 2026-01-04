@@ -86,6 +86,18 @@ async def start(data: StormData) -> JSONResponse:
         message (str): Confirmation message
         channels (list): List of channels that were started
     """
+    # Check if user is logged in
+    if not settings.is_logged_in:
+        logger.error("Storm request rejected - user not logged in")
+        
+        return JSONResponse(
+            status_code=401,
+            content={
+                "success": False,
+                "message": "Not logged in. Please log in with Google first.",
+            }
+        )
+    
     if StreamStorm.ss_instance is not None:
         logger.error("Storm request rejected - instance already running")
         cl.log_to_history(data, "Storm request rejected - instance already running")

@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse  # noqa: F401
 
 from ...core.CreateChannels import CreateChannels
 from ..validation import CreateChannelsData, VerifyChannelsDirectoryData
+from ...settings import settings
 
 router: APIRouter = APIRouter(prefix="/channels", tags=["Create YouTube Channels"])
 
@@ -30,6 +31,17 @@ def create_channels(data: CreateChannelsData) -> JSONResponse:
         message (str): Confirmation message
         failed (list): List of channels that failed to create
     """
+    # Check if user is logged in
+    if not settings.is_logged_in:
+        logger.error("Create channels request rejected - user not logged in")
+        
+        return JSONResponse(
+            status_code=401,
+            content={
+                "success": False,
+                "message": "Not logged in. Please log in with Google first.",
+            }
+        )
     
     cc: CreateChannels = CreateChannels(data.logo_needed, data.random_logo)
     failed_list : list = cc.start(data.channels)

@@ -140,6 +140,7 @@ def get_settings() -> JSONResponse:
                 },
                 "general": {
                     "login_method": settings.login_method,
+                    "is_logged_in": settings.is_logged_in,
                 },
             },
         )

@@ -11,7 +11,7 @@ import AreYouSure from '../../../../Dialogs/AreYouSure';
 
 const GeneralSettings = () => {
     const { colorScheme } = useColorScheme();
-    const { hostAddress, loginMethod, setLoginMethod, settingsLoading } = useAppState();
+    const { hostAddress, loginMethod, setLoginMethod, setIsLoggedIn, settingsLoading } = useAppState();
     const dialogs = useDialogs();
 
     const [localLoginMethod, setLocalLoginMethod] = useState(loginMethod);
@@ -74,6 +74,7 @@ const GeneralSettings = () => {
             const data = await response.json();
 
             if (data.success) {
+                setIsLoggedIn(false);
                 setSuccess(data.message || 'All login data cleared successfully');
                 setTimeout(() => setSuccess(null), 5000);
             } else {

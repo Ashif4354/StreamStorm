@@ -5,16 +5,18 @@ import { Users } from 'lucide-react';
 
 import '../Modals.css';
 import CreateProfiles from './Sections/CreateProfiles';
-import DeleteAllProfiles from './Sections/DeleteAllProfiles';
+import CookieLogin from './Sections/CookieLogin';
 import CloseButton from '../../Elements/CloseButton';
 import { useCustomMUIProps } from '../../../context/CustomMUIPropsContext';
 import CreateChannels from './Sections/CreateChannels';
+import { useAppState } from '../../../context/AppStateContext';
 
 const ManageProfiles = (props) => {
 
     const { open, setOpen } = props;
     const { modalProps } = useCustomMUIProps();
     const { colorScheme } = useColorScheme();
+    const { loginMethod } = useAppState();
 
     const modalCloseHandler = () => {
         setOpen(false);
@@ -27,23 +29,26 @@ const ManageProfiles = (props) => {
                     <CloseButton onClick={modalCloseHandler} />
                     <div className={`modal-heading ${colorScheme}-text`}>
                         <Users className='profile-icon' />
-                         Manage Environment
+                        Manage Environment
                     </div>
                     <div className="modal-header-description-container">
                         <span className={`modal-header-description modal-header-description-${colorScheme}`}>
-                            Create Youtube channels and manage your temp browser profiles for the Storm
+                            {loginMethod === 'cookies'
+                                ? 'Login to Google and create YouTube channels for the Storm'
+                                : 'Create Youtube channels and manage your temp browser profiles for the Storm'
+                            }
                         </span>
                     </div>
                 </div>
 
-                <CreateProfiles />
-
-                {/* <Divider sx={{ margin: '2rem 0' }} />
-
-                <DeleteAllProfiles /> */}
+                {loginMethod === 'cookies' ? (
+                    <CookieLogin />
+                ) : (
+                    <CreateProfiles />
+                )}
 
                 <Divider sx={{ margin: '2rem 0' }} />
-                
+
                 <CreateChannels />
             </Box>
         </Modal>

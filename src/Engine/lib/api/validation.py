@@ -131,10 +131,10 @@ class StormData(BaseModel):
 
 
 class ProfileData(BaseModel):
-    count: StrictInt = Field(
-        ...,
+    count: StrictInt | None = Field(
+        None,
         ge=1,
-        description="Number of Chromium browser profiles to create. Must be a positive integer (1 or greater). Each profile represents a separate YouTube account that can be used for storming."
+        description="Number of Chromium browser profiles to create. Required for profile-based login (must be >= 1). Optional/null for cookie-based login."
     )   
     
     

@@ -6,42 +6,56 @@ from fastapi.responses import JSONResponse
 from ..validation import ProfileData
 from ...core.Profiles import Profiles
 from ...core.EngineContext import EngineContext
+from ...settings import settings
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
 
 router: APIRouter = APIRouter(prefix="/profiles", tags=["Manage Profiles"])
 
-@router.post("/create", operation_id="create_chromium_profiles", summary="Create Chromium browser profiles for storming.")
+@router.post("/create", operation_id="create_chromium_profiles", summary="Create Chromium browser profiles or login with cookies.")
 async def create_profiles(data: ProfileData) -> dict:
     """
-    Create temporary Chromium browser profiles for storming.
+    Create temporary Chromium browser profiles for storming or login with cookies.
     
-    Creates the specified number of Chromium browser profiles
-    in the StreamStorm data directory for use during storms.
-    Sets the environment to BUSY during creation.
+    If login_method is 'cookies' (count is None/omitted):
+        Opens a browser for Google login and saves cookies.
+    
+    If login_method is 'profiles' (count >= 1):
+        Creates the specified number of Chromium browser profiles.
     
     Args:
-        data.count (int): Number of profiles to create
+        data.count (int, optional): Number of profiles to create. 
+            - Required for profile-based login (must be >= 1)
+            - Optional/null for cookie-based login
     
     Returns:
-        success (bool): True if profiles were created successfully
+        success (bool): True if operation was successful
         message (str): Confirmation message
     """
-    EngineContext.set_busy("Creating profiles")
-
+    # Cookie-based login (count is None)
+    is_cookie_login = data.count is None
+    busy_message = "Logging in with cookies" if is_cookie_login else "Creating profiles"
+    
+    EngineContext.set_busy(busy_message)
     profiles: Profiles = Profiles()
     
     try:
         await run_in_threadpool(profiles.create_profiles, data.count)
-        logger.info(f"Created {data.count} profiles")
+        
+        if is_cookie_login:
+            logger.info("Cookie login completed")
+        else:
+            logger.info(f"Created {data.count} profiles")
     finally:
         EngineContext.reset()
+    
+    success_message = "Login successful, cookies saved" if is_cookie_login else "Profiles created successfully"
     
     return JSONResponse(
         status_code=200, 
         content={
             "success": True, 
-            "message": "Profiles created successfully"
+            "message": success_message
         }
     )
     

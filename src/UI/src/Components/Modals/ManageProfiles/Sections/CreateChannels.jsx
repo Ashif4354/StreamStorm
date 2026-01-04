@@ -139,10 +139,15 @@ const CreateChannels = () => {
     const onStartHandler = () => {
         setErrorText('');
 
+        // Check if user is logged in
+        if (!appState.isLoggedIn) {
+            setErrorText('Not logged in. Log in first.');
+            return;
+        }
+
         if (logoRequired && logoSelection === "custom" && !validated) {
             setChannelsLogoPathError(true);
             setChannelsLogoPathHelperText('Enter a system path and click Validate');
-            console.log("a")
             return;
         }
 

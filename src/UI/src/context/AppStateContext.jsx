@@ -26,6 +26,7 @@ const AppStateProvider = ({ children }) => {
 
     // General settings (stored in app state, synced with backend)
     const [loginMethod, setLoginMethod] = useState('cookies');
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     const [settingsLoading, setSettingsLoading] = useState(true);
 
@@ -56,6 +57,7 @@ const AppStateProvider = ({ children }) => {
                     // Set general settings from 'general' sub-key
                     if (data.general) {
                         setLoginMethod(data.general.login_method ?? 'cookies');
+                        setIsLoggedIn(data.general.is_logged_in ?? false);
                     }
                 } else {
                     console.error("Failed to fetch settings:", data.message);
@@ -85,6 +87,7 @@ const AppStateProvider = ({ children }) => {
         defaultAIBaseUrl, setDefaultAIBaseUrl,
         // General Settings
         loginMethod, setLoginMethod,
+        isLoggedIn, setIsLoggedIn,
         settingsLoading
     };
 

@@ -91,6 +91,11 @@ class Settings(BaseSettings):
 
     login_method: Literal["cookies", "profiles"] = "cookies"
 
+    @property
+    def is_logged_in(self) -> bool:
+        """Check if user is logged in (both cookies.json and data.json exist)."""
+        return exists(self.cookies_path) and exists(self.data_json_path)
+
     sensitive_endpoints: set[str] = {
         "/settings/ai/keys/anthropic",
         "/settings/ai/keys/google",
