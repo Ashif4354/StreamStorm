@@ -15,11 +15,11 @@ class Profiles:
     def __init__(self) -> None:
         
         self.app_data_dir: str = user_data_dir("StreamStorm", "DarkGlance")
-        self.profiles_dir: str = self.__get_profiles_dir()
+        self.profiles_dir: str = self.__get_environment_dir()
         self.base_profile_dir: str = self.__get_base_profile_dir()
 
 
-    def __get_profiles_dir(self) -> str:
+    def __get_environment_dir(self) -> str:
         return join(self.app_data_dir, "Environment")
 
 
