@@ -121,7 +121,7 @@ def test_get_channels_data(monkeypatch: MonkeyPatch, ss_instance: StreamStorm, c
     if result == 200:
         from lib.api.routers import StormRouter
         # assets_dir: str = join(abspath("."), "tests", "assets_for_tests")
-        data_json_path: str = Path(__file__).parent.parent.parent.resolve() / "assets_for_tests" / "ChromiumProfiles" / "data.json"
+        data_json_path: str = Path(__file__).parent.parent.parent.resolve() / "assets_for_tests" / "Environment" / "data.json"
         
         monkeypatch.setattr(StormRouter.settings, "data_json_path", data_json_path)
     

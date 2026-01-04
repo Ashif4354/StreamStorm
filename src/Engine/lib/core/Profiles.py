@@ -20,7 +20,7 @@ class Profiles:
 
 
     def __get_profiles_dir(self) -> str:
-        return join(self.app_data_dir, "ChromiumProfiles")
+        return join(self.app_data_dir, "Environment")
 
 
     def __get_base_profile_dir(self) -> str:

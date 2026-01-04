@@ -83,7 +83,7 @@ class Settings(BaseSettings):
 
     app_data_dir: Path = APP_DATA_DIR
     settings_file_path: Path = SETTINGS_FILE_PATH
-    data_json_path: Path = APP_DATA_DIR / "ChromiumProfiles" / "data.json"
+    data_json_path: Path = APP_DATA_DIR / "Environment" / "data.json"
     log_file_path: str = "" # Will be set by CustomLogger during logging setup
 
     sensitive_endpoints: set[str] = {
