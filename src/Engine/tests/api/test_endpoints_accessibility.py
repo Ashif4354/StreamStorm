@@ -23,11 +23,6 @@ def test_get_ram_info(client: TestClient) -> NoReturn:
 
     assert response.status_code == 200
     
-def test_engine_status(client: TestClient) -> NoReturn:
-
-    response: Response = client.get("/config")
-
-    assert response.status_code == 200
 
 def test_start_storm(mocker: MockerFixture, client: TestClient) -> NoReturn:
     

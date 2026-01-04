@@ -5,14 +5,17 @@ from pytest_mock import MockerFixture
 from fastapi.testclient import TestClient
 
 from lib.core.StreamStorm import StreamStorm
+from lib.core.EngineContext import EngineContext
 
 
 @fixture(autouse=True)
 def reset_streamstorm(mocker: MockerFixture):
     StreamStorm.ss_instance = None
+    EngineContext.reset()
     mocker.patch("lib.api.routers.StormRouter.StreamStorm.start", new=AsyncMock())
     yield
     StreamStorm.ss_instance = None
+    EngineContext.reset()
 
 
 def test_storm_data_instantiated(client: TestClient):

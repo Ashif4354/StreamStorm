@@ -1,19 +1,19 @@
-from unittest.mock import MagicMock, AsyncMock
-from pytest import MonkeyPatch, fixture
+from unittest.mock import AsyncMock
+from pytest import fixture
 from pytest_mock import MockerFixture
 
 from lib.core.StreamStorm import StreamStorm
+from lib.core.EngineContext import EngineContext
 from lib.api.validation import StormData
 
 
 @fixture(autouse=True)
-def path_storm_endpoint(mocker: MockerFixture, monkeypatch: MonkeyPatch  ):
+def path_storm_endpoint(mocker: MockerFixture):
     mocker.patch("lib.api.routers.StormRouter.StreamStorm.ss_instance", None)
-    mocker.patch("lib.api.routers.StormRouter.environ.update", new=MagicMock())
     mocker.patch("lib.api.routers.StormRouter.StreamStorm.start", new=AsyncMock())
     mocker.patch("lib.api.routers.StormRouter.StreamStorm.start_more_channels", new=AsyncMock())
     
-    monkeypatch.setenv("BUSY", "0")
+    EngineContext.reset()
     
 @fixture
 def ss_instance():

@@ -1,16 +1,17 @@
 from logging import Logger, getLogger
 
-from pytest import MonkeyPatch, fixture
+from pytest import fixture
 
 from fastapi.testclient import TestClient
 from fastapi.responses import Response
 
+from lib.core.EngineContext import EngineContext
+
 logger: Logger = getLogger(f"tests.{__name__}")
 
 @fixture(autouse=True)
-def set_engine_busy(monkeypatch: MonkeyPatch) -> None:
-    monkeypatch.setenv("BUSY_REASON", "Mocked busy")
-    monkeypatch.setenv("BUSY", "1")    
+def set_engine_busy() -> None:
+    EngineContext.set_busy("Mocked busy")    
     
     
 def test_start_storm(client: TestClient):
