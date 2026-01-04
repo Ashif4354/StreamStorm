@@ -217,6 +217,11 @@ class UndetectedDrivers(Selenium):
             logger.error(f"Error occurred while logging in: The Browser window was closed or not found: {e}")
             
             raise RuntimeError("The Browser window was closed or not found. Try again.") from e
+
+        except Exception as e:
+            logger.error(f"Error occurred while logging in: {e}")
+            
+            raise RuntimeError("An error occurred while logging in. Try again.") from e
         
 
 

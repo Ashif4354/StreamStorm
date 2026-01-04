@@ -1,5 +1,5 @@
 from logging import getLogger, Logger
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 
@@ -34,18 +34,22 @@ async def create_profiles(data: ProfileData) -> dict:
     """
     # Cookie-based login (count is None)
     is_cookie_login = data.count is None
-    busy_message = "Logging in with cookies" if is_cookie_login else "Creating profiles"
+    busy_message = "Logging in" if is_cookie_login else "Creating profiles"
     
     EngineContext.set_busy(busy_message)
     profiles: Profiles = Profiles()
     
     try:
         await run_in_threadpool(profiles.create_profiles, data.count)
-        
+
         if is_cookie_login:
             logger.info("Cookie login completed")
         else:
             logger.info(f"Created {data.count} profiles")
+    except Exception as e:
+        logger.error(f"Error occurred while creating profiles: {e}")
+        raise SystemError("An error occurred while creating profiles") from e
+        
     finally:
         EngineContext.reset()
     
