@@ -103,7 +103,7 @@ const GeneralSettings = () => {
     ];
 
     return (
-        <div className="settings-section">
+        <div className="settings-section" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <h3 className={`settings-section-title ${colorScheme}-text`}>General</h3>
             <p className={`settings-section-description settings-section-description-${colorScheme}`}>
                 General application settings.
@@ -114,7 +114,7 @@ const GeneralSettings = () => {
                     <CircularProgress size={32} />
                 </Box>
             ) : (
-                <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
                     {/* Login Method Setting */}
                     <RadioSetting
                         title="Login Method"
@@ -151,9 +151,23 @@ const GeneralSettings = () => {
                             </Alert>
                         )
                     }
+                </Box>
+            )}
 
-                    {/* Save Button */}
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            {/* Fixed Save Button at Bottom */}
+            {
+                !settingsLoading && (
+                    <Box sx={{
+                        position: 'sticky',
+                        bottom: 0,
+                        pt: 2,
+                        pb: 1,
+                        backgroundColor: colorScheme === 'dark' ? 'var(--light-gray)' : 'var(--light-card-bg)',
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        // borderTop: `1px solid ${colorScheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                        marginTop: 'auto',
+                    }}>
                         <Button
                             variant="contained"
                             disabled={!hasChanges || saving}
@@ -174,8 +188,8 @@ const GeneralSettings = () => {
                             {saving ? 'Saving...' : 'Save Changes'}
                         </Button>
                     </Box>
-                </Box>
-            )}
+                )
+            }
         </div>
     );
 };
