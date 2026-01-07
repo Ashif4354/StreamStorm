@@ -1,12 +1,15 @@
 from logging import getLogger, Logger
-from fastapi import APIRouter, HTTPException
+from json import loads as json_loads, JSONDecodeError
+from typing import Any
+
+from fastapi import APIRouter, UploadFile, File
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 
 from ..validation import ProfileData
 from ...core.Profiles import Profiles
 from ...core.EngineContext import EngineContext
-from ...settings import settings
+from ...utils.cookie_parser import parse_netscape_cookies
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
 
@@ -89,5 +92,118 @@ async def delete_all_profiles() -> dict:
         content={
             "success": True, 
             "message": "Profiles deleted successfully"
+        }
+    )
+
+@router.post("/save_cookies", operation_id="save_cookie_files", summary="Upload and save cookie files (JSON or Netscape format).")
+async def save_cookies(files: list[UploadFile] = File(...)) -> JSONResponse:
+    """
+    Upload and parse cookie files to set up authentication.
+    
+    Accepts multiple cookie files in either JSON or Netscape format.
+    Combines all cookies and creates the base profile with them.
+    
+    Supported formats:
+    - JSON: Standard browser cookie export format (array of cookie objects)
+    - Netscape: Tab or space-separated format used by curl and browser extensions
+    
+    Args:
+        files: List of cookie files to upload
+    
+    Returns:
+        success (bool): True if cookies were saved successfully
+        message (str): Confirmation message
+    """
+    if not files:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "message": "No files provided"
+            }
+        )
+    
+    all_cookies: list[dict[str, Any]] = []
+    invalid_files: list[str] = []
+    
+    for file in files:
+        try:
+            content = await file.read()
+            content_str = content.decode('utf-8')
+            
+            # Try parsing as JSON first
+            try:
+                parsed = json_loads(content_str)
+                if isinstance(parsed, list):
+                    # Validate that each item looks like a cookie
+                    for cookie in parsed:
+                        if isinstance(cookie, dict) and 'name' in cookie and 'value' in cookie:
+                            all_cookies.append(cookie)
+                        else:
+                            raise ValueError("Invalid cookie object structure")
+                else:
+                    raise ValueError("JSON must be an array of cookies")
+                    
+                logger.info(f"Parsed {file.filename} as JSON format")
+                
+            except (JSONDecodeError, ValueError):
+                # Try parsing as Netscape format
+                try:
+                    parsed_cookies = parse_netscape_cookies(content_str, file.filename)
+                    all_cookies.extend(parsed_cookies)
+                    logger.info(f"Parsed {file.filename} as Netscape format")
+                    
+                except Exception as e:
+                    logger.error(f"Failed to parse {file.filename}: {e}")
+                    invalid_files.append(file.filename)
+                    
+        except Exception as e:
+            logger.error(f"Error reading file {file.filename}: {e}")
+            invalid_files.append(file.filename)
+    
+    if invalid_files:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "message": f"Invalid cookie file format: {', '.join(invalid_files)}"
+            }
+        )
+    
+    if not all_cookies:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "message": "No valid cookies found in uploaded files"
+            }
+        )
+    
+    # Create profiles with the parsed cookies
+    EngineContext.set_busy("Saving cookies and creating profile")
+    profiles: Profiles = Profiles()
+    
+    try:
+        await run_in_threadpool(profiles.create_profiles, None, all_cookies)
+        logger.info(f"Saved {len(all_cookies)} cookies from uploaded files")
+        
+    except Exception as e:
+        logger.error(f"Error creating profile with cookies: {e}")
+        EngineContext.reset()
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "message": f"Failed to save cookies: {str(e)}"
+            }
+        )
+    finally:
+        EngineContext.reset()
+    
+    return JSONResponse(
+        status_code=200,
+        content={
+            "success": True,
+            "message": f"Successfully saved {len(all_cookies)} cookies from {len(files)} file(s)"
         }
     )

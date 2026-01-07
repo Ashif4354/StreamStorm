@@ -78,9 +78,9 @@ class Settings(BaseSettings):
     os: str = system()
     run_only_api: bool = False
 
-    atatus_app_name: str = ""  # Fetches from env variable
-    atatus_license_key: str = ""  # Fetches from env variable
-    logfire_token: str = ""  # Fetches from env variable
+    atatus_app_name: str = "StreamStormEngine"  # Fetches from env variable
+    atatus_license_key: str = "atatus_license_key"  # Fetches from env variable
+    logfire_token: str = "logfire_token"  # Fetches from env variable
 
     app_data_dir: Path = APP_DATA_DIR
     settings_file_path: Path = SETTINGS_FILE_PATH

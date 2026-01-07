@@ -53,11 +53,18 @@ class UndetectedDrivers(Selenium):
             return chromium_executable
 
 
-    def initiate_base_profile(self) -> None:
+    def initiate_base_profile(self, cookies: list | None = None) -> None:
         
         self.driver = Chrome(
             user_data_dir=self.base_profile_dir,
         )
+
+        if cookies:
+            for cookie in cookies:
+                self.driver.add_cookie(cookie)
+                
+            logger.info("Cookies added to base profile")
+
 
         logger.debug(f"Browser PID: {self.driver.browser_pid}")
 

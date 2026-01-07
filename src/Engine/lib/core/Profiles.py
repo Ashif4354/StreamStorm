@@ -62,14 +62,14 @@ class Profiles:
             rmtree(self.environment_dir, ignore_errors=True)
             logger.info(f"Environment directory {self.environment_dir} deleted.")
 
-    def __create_base_profile(self) -> None:
+    def __create_base_profile(self, cookies: list | None = None) -> None:
         if exists(self.base_profile_dir):
             rmtree(self.base_profile_dir)        
         
         makedirs(self.base_profile_dir, exist_ok=True)
 
         UD: UndetectedDrivers = UndetectedDrivers(self.base_profile_dir)
-        UD.initiate_base_profile()
+        UD.initiate_base_profile(cookies)
         UD.youtube_login()
 
     def __create_profile(self, profile: str) -> None:
@@ -93,9 +93,9 @@ class Profiles:
 
         logger.info(f"{profile} created")
 
-    def create_profiles(self, count: int) -> None:
+    def create_profiles(self, count: int, cookies: list | None = None) -> None:
         self.__delete_environment_dir()
-        self.__create_base_profile()
+        self.__create_base_profile(cookies)
 
         if settings.login_method == "cookies":
             return
