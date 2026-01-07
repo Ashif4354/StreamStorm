@@ -2,10 +2,22 @@
 from pathlib import Path
 from platform import system
 from os import getcwd
+from PyInstaller.utils.hooks import copy_metadata
+import importlib.metadata
 
 ROOT = Path(getcwd()).parent.parent.resolve()
 ENGINE = ROOT / "src" / "Engine"
 UI = ROOT / "src" / "UI"
+
+datas = []
+datas.append((str(ENGINE / "RAMMap.exe"), "."))
+
+for dist in importlib.metadata.distributions():
+    package_name = dist.metadata['Name']
+    try:
+        datas += copy_metadata(package_name)
+    except Exception as e:
+        print(f"Skipping metadata for {package_name}: {e}")
 
 match system():
     case "Windows":
@@ -21,7 +33,7 @@ a = Analysis(
     [str(ENGINE / "main.py")],
     pathex=[str(ROOT)],
     binaries=[],
-    datas=[(str(ENGINE / "RAMMap.exe"), ".")],
+    datas=datas,
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
