@@ -8,7 +8,7 @@ class CreateChannels(UndetectedDrivers):
     def __init__(self, logo_needed: bool, random_logo: bool) -> None:
         temp_profile_dir: Path = Path(gettempdir()) / "ss_temp_profile"
         
-        super().__init__(str(temp_profile_dir))
+        super().__init__(str(temp_profile_dir), custom_logo_needed=logo_needed and not random_logo)
         
         self.logo_needed: bool = logo_needed
         self.random_logo: bool = random_logo

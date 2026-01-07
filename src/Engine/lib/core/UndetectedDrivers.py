@@ -6,8 +6,12 @@ from warnings import deprecated
 from undetected_chromedriver import Chrome
 from logging import getLogger, Logger
 from contextlib import suppress
-with suppress(KeyError): # 
+
+pyautogui_imported: bool = False
+with suppress(Exception):
     from pyautogui import write as pyautogui_write, press as pyautogui_press
+    pyautogui_imported = True
+
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException, NoSuchWindowException, ElementNotInteractableException
 from selenium.webdriver.support.ui import WebDriverWait
@@ -21,7 +25,10 @@ logger: Logger = getLogger(f"streamstorm.{__name__}")
 class UndetectedDrivers(Selenium):
     __slots__: tuple[str, ...] = ('base_profile_dir', 'youtube_login_url', 'data_json_path')
     
-    def __init__(self, base_profile_dir: str) -> None:
+    def __init__(self, base_profile_dir: str, custom_logo_needed: bool = False) -> None:
+        if custom_logo_needed and not pyautogui_imported:
+            raise RuntimeError("Try again later.")
+        
         self.base_profile_dir: str = base_profile_dir
         logger.debug(f"Base profile directory: {self.base_profile_dir}")
         

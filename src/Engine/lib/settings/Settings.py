@@ -17,6 +17,7 @@ APP_DATA_DIR: Path = Path(user_data_dir("StreamStorm", "DarkGlance"))
 SETTINGS_FILE_PATH: Path = APP_DATA_DIR / "settings.json"
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
+# Does not have a handler, so it will not log anything
 
 def ensure_settings_json_file() -> None:
     """Ensure the settings file and directory exist"""
