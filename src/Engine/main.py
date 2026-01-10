@@ -19,33 +19,19 @@ from threading import Thread
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dgupdater import check_update
-from logfire import configure as logfire_configure, instrument_fastapi, instrument_pydantic_ai, instrument_mcp
 from socketio import ASGIApp
 from uvicorn import run as run_uvicorn
 from webview import create_window, start
 
 from lib.settings import settings
 from lib.utils.CombinedLifeSpan import combined_lifespan
-
-logfire_configure(
-    token=settings.logfire_token, 
-    service_name="StreamStorm", 
-    environment=settings.env, 
-    console=False
-)
-
-if settings.env == "development":
-    instrument_pydantic_ai()
-    instrument_mcp()
+from lib.utils.CustomLogger import custom_logger
+custom_logger.setup_streamstorm_logging()
+logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 from lib.api.fastapi_app import app as fastapi_app
 from lib.socketio.sio import sio
 from lib.mcp.mcpserver import mcp_app
-from lib.utils.CustomLogger import custom_logger
-
-custom_logger.setup_streamstorm_logging()
-
-logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 
 def exit_app() -> None:

@@ -40,7 +40,6 @@
     - [Python Socket.io Documentation](https://python-socketio.readthedocs.io/)
     - [Yt-DLP package](https://pypi.org/project/yt-dlp/)
     - [Pydantic AI Documentation](https://ai.pydantic.dev/)
-    - [Logfire Documentation](https://logfire.dev/)
     - [Pydantic Settings Documentation](https://docs.pydantic.dev/latest/concepts/pydantic_settings/)
     - [Recharts Documentation](https://recharts.org/en-US/)
     - [Socket.io react Documentation](https://socket.io/how-to/use-with-react)
