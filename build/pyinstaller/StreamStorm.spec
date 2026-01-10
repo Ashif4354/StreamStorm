@@ -10,7 +10,6 @@ ENGINE = ROOT / "src" / "Engine"
 UI = ROOT / "src" / "UI"
 
 datas = []
-datas.append((str(ENGINE / "RAMMap.exe"), "."))
 
 for dist in importlib.metadata.distributions():
     package_name = dist.metadata['Name']

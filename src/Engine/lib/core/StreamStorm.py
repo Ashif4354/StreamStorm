@@ -20,7 +20,6 @@ from ..utils.exceptions import BrowserClosedError, ElementNotFound
 from .SeparateInstance import SeparateInstance
 from .Profiles import Profiles
 from .StormContext import StormContext
-from ..utils.clear_ram import clear_ram
 from ..socketio.sio import sio
 from ..api.validation import StormData
 from ..settings import settings
@@ -387,9 +386,7 @@ class StreamStorm(Profiles):
         # This is just an average value for UI display purpose only, not an accurate value.
         
 
-    async def start(self) -> None:  
-        
-        clear_ram()       
+    async def start(self) -> None:       
 
         self.ready_event.clear()  # Wait for the ready event to be set before starting the storming
         # self.context.ready_to_storm_instances = 0

@@ -1,11 +1,14 @@
 from subprocess import Popen
+from warnings import deprecated
 from platform import system
+
 from ..settings import settings
 
 from logging import getLogger, Logger
 
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
+@deprecated("Not used anymore.")
 def clear_ram() -> None:
     
     if system() != "Windows":
