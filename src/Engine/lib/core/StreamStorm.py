@@ -33,7 +33,6 @@ class StreamStorm(Profiles):
         'message_counter_lock', 'context', 'cookies'
     )
     
-    each_channel_instances: list[SeparateInstance] = []
     ss_instance: Optional["StreamStorm"] = None
 
     def __init__(self, data: StormData) -> None:

@@ -23,15 +23,15 @@ async def background_storm_stopper() -> NoReturn:
             
             await StreamStorm.ss_instance.run_stopper_event.wait()
             
-            statuses: list[bool] = [await instance.is_instance_alive() for instance in StreamStorm.each_channel_instances.copy()]
+            statuses: list[bool] = [await instance.is_instance_alive() for instance in StreamStorm.ss_instance.context.each_channel_instances.copy()]
             
             if not len(statuses):
                 logger.debug("StreamStorm instance is marked dead by: Status length checker")
 
             if not any(statuses):
                 logger.debug("Resetting StreamStorm instance and clearing each channel instances")
+                StreamStorm.ss_instance.context.each_channel_instances.clear()
                 StreamStorm.ss_instance = None
-                StreamStorm.each_channel_instances.clear()
                 EngineContext.reset()
                 
                 await sio.emit('storm_stopped', room="streamstorm")                

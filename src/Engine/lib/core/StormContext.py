@@ -3,7 +3,7 @@ from typing import Any, Literal
 from logging import getLogger, Logger
 from datetime import datetime 
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, Field
 
 from ..settings import settings
 
@@ -35,6 +35,7 @@ class StormContext(BaseModel):
     assigned_profiles: dict[str, int | None] = {}
     message_count: int = 0
     message_rate: float = 0.0
+    each_channel_instances: list[Any] = Field(default=[], exclude=True)
     channels_status: dict[str, dict[str, Any]] = {}
     storm_status: Literal["Running", "Paused", "Stopped"] = "Running"
     start_time: str = datetime.now().isoformat()

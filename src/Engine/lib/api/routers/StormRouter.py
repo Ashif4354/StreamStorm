@@ -110,7 +110,6 @@ async def start(data: StormData) -> JSONResponse:
             }
         )
 
-    StreamStorm.each_channel_instances = []
 
     StreamStormObj: StreamStorm = StreamStorm(data)
 
@@ -175,7 +174,7 @@ async def stop() -> JSONResponse:
         except Exception as e:
             logger.error(f"Error occurred while closing browser: {e}")
 
-    await gather(*(close_browser(i) for i in StreamStorm.each_channel_instances))
+    await gather(*(close_browser(i) for i in StreamStorm.ss_instance.context.each_channel_instances))
 
     StreamStorm.ss_instance = None
 
@@ -210,7 +209,7 @@ async def pause() -> JSONResponse:
     StreamStorm.ss_instance.pause_event.clear()
     StreamStorm.ss_instance.context.storm_status = "Paused"
 
-    current_channels: list[SeparateInstance] = StreamStorm.each_channel_instances
+    current_channels: list[SeparateInstance] = StreamStorm.ss_instance.context.each_channel_instances
     
     for index, channel in enumerate(current_channels):
         channel.should_wait = True
@@ -478,13 +477,13 @@ async def kill_instance(data: KillInstanceData) -> JSONResponse:
     """
     
     try:
-        for instance in StreamStorm.each_channel_instances:
+        for instance in StreamStorm.ss_instance.context.each_channel_instances:
             if instance.index == data.index and instance.page:
                 await instance.page.close()
                 
-                StreamStorm.each_channel_instances.remove(instance)
+                StreamStorm.ss_instance.context.each_channel_instances.remove(instance)
                 StreamStorm.ss_instance.context.total_instances -= 1
-                StreamStorm.ss_instance.context.assigned_profiles[instance.profile_dir] = None
+                StreamStorm.ss_instance.context.assigned_profiles[instance.profile_dir_name] = None
                 
                 await sio.emit('instance_status', {'instance': str(data.index), 'status': '-1'}, room="streamstorm")  # -1 = Idle
                 
