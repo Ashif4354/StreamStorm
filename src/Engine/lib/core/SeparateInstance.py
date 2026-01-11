@@ -24,7 +24,7 @@ class SeparateInstance(Playwright):
         super().__init__(user_data_dir, background, cookies)
         
         self.index: int = index
-        self.profile_dir: str = profile_dir
+        self.profile_dir: str = profile_dir  # Used in StormRouter.py for killing instance
         self.__instance_alive: bool = True
         self.__logged_in: Optional[bool] = None
         self.wait_time: float = wait_time
