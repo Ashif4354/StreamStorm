@@ -1,9 +1,15 @@
 import { useColorScheme } from "@mui/material";
 
+const levelColors = {
+    'INFO': 'var(--log-info)',
+    'WARNING': 'var(--log-warning)',
+    'ERROR': 'var(--log-error)',
+};
+
 const Log = ({ log }) => {
     const { colorScheme } = useColorScheme();
-    const levelColor = log.level === 'INFO' ? 'var(--log-info)' : 'var(--log-error)';
 
+    const levelColor = levelColors[log.level] || 'var(--log-error)';
 
     return (
         <div
