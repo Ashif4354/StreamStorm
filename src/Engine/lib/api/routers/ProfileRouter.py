@@ -49,6 +49,7 @@ async def create_profiles(data: ProfileData) -> dict:
             logger.info("Cookie login completed")
         else:
             logger.info(f"Created {data.count} profiles")
+
     except Exception as e:
         logger.error(f"Error occurred while creating profiles: {e}")
         raise SystemError("An error occurred while creating profiles") from e
@@ -183,7 +184,6 @@ async def save_cookies(files: list[UploadFile] = File(...)) -> JSONResponse:
     #     from json import dump as json_dump
     #     json_dump(all_cookies, f, indent=4)
 
-    # Create profiles with the parsed cookies
     EngineContext.set_busy("Saving cookies and creating profile")
     profiles: Profiles = Profiles()
     

@@ -31,7 +31,7 @@ def get_cookies() -> Optional[list]:
             cookies = load(file)
 
     if cookies is None:
-        logger.warning("No cookies found, Redirecting to login page...")
+        logger.warning("No cookies found.")
         return cookies
 
     try:
@@ -40,7 +40,7 @@ def get_cookies() -> Optional[list]:
 
     except (ValueError, TypeError) as e:
         logger.error(f"Error parsing cookies: {e}")
-        logger.warning("Invalid cookies found, Redirecting to login page...")
+        logger.warning("Invalid cookies found.")
         cookies = None
     
     return cookies

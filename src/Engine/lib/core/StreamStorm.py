@@ -17,6 +17,7 @@ from playwright._impl._errors import TargetClosedError
 from yt_dlp import YoutubeDL
 
 from ..utils.exceptions import BrowserClosedError, ElementNotFound
+from ..utils.cookies import get_cookies
 from .SeparateInstance import SeparateInstance
 from .Profiles import Profiles
 from .StormContext import StormContext
@@ -78,15 +79,23 @@ class StreamStorm(Profiles):
         
 
     def load_cookies(self) -> None:
-        try:
-            with open(settings.cookies_path, "r") as f:
-                self.cookies = load(f)
+
+        cookies: list = get_cookies()
+        
+        if not cookies and settings.login_method == "cookies":
+            raise SystemError("Cookies not found: Login First")
+        
+        self.cookies = cookies
+            
+        # try:
+        #     with open(settings.cookies_path, "r") as f:
+        #         self.cookies = load(f)
                 
-        except (FileNotFoundError, JSONDecodeError):
-            if settings.login_method == "cookies":
-                raise SystemError("Cookies not found: Login again")
-            else:
-                self.cookies = {}
+        # except (FileNotFoundError, JSONDecodeError):
+        #     if settings.login_method == "cookies":
+        #         raise SystemError("Cookies not found: Login again")
+        #     else:
+        #         self.cookies = []
         
 
     def get_redirect_url(self, url: str, type: Literal["video", "channel", "uploader", "chat"]) -> str:
