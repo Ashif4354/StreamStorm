@@ -64,9 +64,6 @@ def serve_api() -> None:
 
     new_app.mount("/", fastapi_app)
     logger.debug("Mounted API server at /")
-    
-    if settings.env == "development":
-        instrument_fastapi(new_app)
 
     app: ASGIApp = ASGIApp(sio, new_app)
     logger.debug("SocketIO and API server merged.")

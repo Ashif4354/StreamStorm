@@ -171,7 +171,7 @@ class StreamStorm(Profiles):
 
 
     async def check_channels_available(self) -> None:
-        logger.debug(f"Checking channel availability for profiles in: {self.profiles_dir}")
+        logger.debug(f"Checking channel availability for profiles in: {self.environment_dir}")
 
         if self.context.all_channels == {}:
             logger.error("Failed to read data.json - Not logged in")
@@ -422,7 +422,7 @@ class StreamStorm(Profiles):
             
             tasks: list[Task] = []
             for index in range(len(self.context.channels)):
-                profile_dir: str = join(self.profiles_dir, temp_profiles[index])
+                profile_dir: str = join(self.environment_dir, temp_profiles[index])
                 channel_name: str = self.context.all_channels[str(self.context.channels[index])]['name']
                 wait_time: float = self.get_start_storm_wait_time(index)
    
@@ -468,7 +468,7 @@ class StreamStorm(Profiles):
             
             tasks: list[Task] = []   
             for index in range(len(channels)):
-                profile_dir: str = join(self.profiles_dir, available_profiles[index])
+                profile_dir: str = join(self.environment_dir, available_profiles[index])
                 channel_name: str = self.context.all_channels[str(channels[index])]['name']
                 wait_time: float = self.get_start_storm_wait_time(index)
 

@@ -70,7 +70,7 @@ class Profiles:
 
         UD: UndetectedDrivers = UndetectedDrivers(self.base_profile_dir)
         UD.initiate_base_profile(cookies)
-        UD.youtube_login()
+        UD.youtube_login(logged_in=cookies is not None)
 
     def __create_profile(self, profile: str) -> None:
 

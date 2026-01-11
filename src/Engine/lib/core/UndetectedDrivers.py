@@ -19,6 +19,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.remote.webelement import WebElement
 
 from .Selenium import Selenium
+from ..utils.exceptions import BrowserClosedError
 
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
@@ -32,6 +33,7 @@ class UndetectedDrivers(Selenium):
         self.base_profile_dir: str = base_profile_dir
         logger.debug(f"Base profile directory: {self.base_profile_dir}")
         
+        self.youtube_url: str = "https://www.youtube.com"
         self.youtube_login_url: str = "https://accounts.google.com/ServiceLogin?service=youtube"
         self.data_json_path: str = join(dirname(normpath(self.base_profile_dir)), "data.json")
         
@@ -67,9 +69,25 @@ class UndetectedDrivers(Selenium):
         )
 
         if cookies:
+            self.go_to_page(self.youtube_url)
+
             for cookie in cookies:
-                self.driver.add_cookie(cookie)
+                if cookie['domain'] not in [".youtube.com", "youtube.com"] or cookie['expiry'] is None:
+                    continue
                 
+                self.driver.add_cookie(cookie)
+
+            self.driver.refresh()
+            
+            try:
+                WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "avatar-btn"))
+                )
+
+            except NoSuchElementException:
+                self.driver.close()
+                raise BrowserClosedError("Invalid or expired cookies provided, Try again with valid ones.")
+
             logger.info("Cookies added to base profile")
 
 
@@ -182,9 +200,9 @@ class UndetectedDrivers(Selenium):
         return True
         
 
-    def youtube_login(self, for_create_channels: bool = False) -> None:
-        self.go_to_page(self.youtube_login_url)
-        logged_in: bool = False
+    def youtube_login(self, for_create_channels: bool = False, logged_in: bool = False) -> None:
+        if not logged_in:
+            self.go_to_page(self.youtube_login_url)
 
         default_tab: str = self.driver.current_window_handle
         
@@ -215,17 +233,18 @@ class UndetectedDrivers(Selenium):
                         logger.info("Youtube login successful")
                         logged_in = True
                         
-                        if not for_create_channels:
-                            self.get_total_channels()    
-                            self.save_cookies()                        
-                            self.driver.close()
-                            
-                            sleep(2)
-
-                        
                     except NoSuchElementException:
                         
                         self.driver.get(self.youtube_login_url)
+
+            if not for_create_channels:
+                self.get_total_channels()    
+                self.save_cookies()                        
+                self.driver.close()
+                
+                sleep(2)
+
+                        
                         
         except (NoSuchWindowException, AttributeError) as e:
             logger.error(f"Error occurred while logging in: The Browser window was closed or not found: {e}")

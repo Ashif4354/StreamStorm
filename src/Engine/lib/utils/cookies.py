@@ -1,5 +1,50 @@
-from typing import Any
+from typing import Any, Optional
+from contextlib import suppress
+from logging import getLogger, Logger
 
+from pydantic import BaseModel
+
+from ..settings import settings
+
+logger: Logger = getLogger(f"streamstorm.{__name__}")
+
+class Cookie(BaseModel):
+    domain: str 
+    name: str
+    value: str
+    path: str
+    secure: bool
+    httpOnly: bool
+    sameSite: str
+    expiry: Optional[int] = None
+
+class Cookies(BaseModel):
+    cookies: list[Cookie]
+
+def get_cookies() -> Optional[list]:
+    from json import load, JSONDecodeError
+    
+    cookies: Optional[list] = None
+
+    with suppress(FileNotFoundError, JSONDecodeError):
+        with open(settings.cookies_path, "r", encoding="utf-8") as file:
+            cookies = load(file)
+
+    if cookies is None:
+        logger.warning("No cookies found, Redirecting to login page...")
+        return cookies
+
+    try:
+        cookies = Cookies(cookies=cookies).model_dump()["cookies"]
+        logger.info("Valid cookies found, Logging in with cookies now.")
+
+    except (ValueError, TypeError) as e:
+        logger.error(f"Error parsing cookies: {e}")
+        logger.warning("Invalid cookies found, Redirecting to login page...")
+        cookies = None
+    
+    return cookies
+    
 
 def parse_netscape_cookies(file_content: str, filename: str) -> list[dict[str, Any]]:
     """
@@ -36,6 +81,7 @@ def parse_netscape_cookies(file_content: str, filename: str) -> list[dict[str, A
             "domain": domain,
             "name": name,
             "value": value,
+            "expiry": int(expires),
             "path": path,
             "secure": secure.upper() == "TRUE",
             "httpOnly": False,
@@ -45,4 +91,4 @@ def parse_netscape_cookies(file_content: str, filename: str) -> list[dict[str, A
     return cookies
 
 
-__all__ = ["parse_netscape_cookies"]
+__all__ = ["parse_netscape_cookies", "get_cookies"]

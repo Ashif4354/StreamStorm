@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from ..validation import ProfileData
 from ...core.Profiles import Profiles
 from ...core.EngineContext import EngineContext
-from ...utils.cookie_parser import parse_netscape_cookies
+from ...utils.cookies import parse_netscape_cookies
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
 
@@ -178,7 +178,11 @@ async def save_cookies(files: list[UploadFile] = File(...)) -> JSONResponse:
                 "message": "No valid cookies found in uploaded files"
             }
         )
-    
+
+    # with open("cookies.json", "w") as f:
+    #     from json import dump as json_dump
+    #     json_dump(all_cookies, f, indent=4)
+
     # Create profiles with the parsed cookies
     EngineContext.set_busy("Saving cookies and creating profile")
     profiles: Profiles = Profiles()
@@ -188,7 +192,7 @@ async def save_cookies(files: list[UploadFile] = File(...)) -> JSONResponse:
         logger.info(f"Saved {len(all_cookies)} cookies from uploaded files")
         
     except Exception as e:
-        logger.error(f"Error creating profile with cookies: {e}")
+        logger.error(f"Error creating profile with cookies: {e} || {str(e)}")
         EngineContext.reset()
         return JSONResponse(
             status_code=500,

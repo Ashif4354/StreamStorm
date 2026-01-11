@@ -1,22 +1,23 @@
-from tempfile import gettempdir
-from pathlib import Path
+from typing import Optional
 from contextlib import suppress
 
 from .UndetectedDrivers import UndetectedDrivers
+from ..utils.cookies import get_cookies
+from ..settings import settings
 
 class CreateChannels(UndetectedDrivers):
     def __init__(self, logo_needed: bool, random_logo: bool) -> None:
-        temp_profile_dir: Path = Path(gettempdir()) / "ss_temp_profile"
+        base_profile_dir: str = settings.environment_dir / "BaseProfile"
         
-        super().__init__(str(temp_profile_dir), custom_logo_needed=logo_needed and not random_logo)
+        super().__init__(str(base_profile_dir), custom_logo_needed=logo_needed and not random_logo)
         
         self.logo_needed: bool = logo_needed
         self.random_logo: bool = random_logo
+        self.cookies: Optional[list] = get_cookies()
         
     def start(self, channels: list):
-        
-        self.initiate_base_profile()
-        self.youtube_login(for_create_channels=True)
+        self.initiate_base_profile(self.cookies)
+        self.youtube_login(for_create_channels=True, logged_in=self.cookies is not None)
 
         unsuccessful_creations: list = []
 

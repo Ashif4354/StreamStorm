@@ -78,7 +78,7 @@ const CookieLogin = () => {
 
     const handleCookieUpload = async () => {
         if (cookieFiles.length === 0) {
-            setUploadError("Please select at least one cookie file.");
+            setUploadError("Select at least one cookie file.");
             return;
         }
 

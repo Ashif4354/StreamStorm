@@ -39,7 +39,7 @@ def create_channels(data: CreateChannelsData) -> JSONResponse:
             status_code=401,
             content={
                 "success": False,
-                "message": "Not logged in. Please log in with Google first.",
+                "message": "Not logged in. Log in first.",
             }
         )
     
