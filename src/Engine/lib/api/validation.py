@@ -135,7 +135,20 @@ class ProfileData(BaseModel):
         None,
         ge=1,
         description="Number of Chromium browser profiles to create. Required for profile-based login (must be >= 1). Optional/null for cookie-based login."
-    )   
+    ) 
+
+    cookies_login: bool = Field(
+        False,
+        description="Whether to use cookie-based login instead of profile-based login. Set to true for cookie-based login. Optional, default: false.",
+        validation_alias=AliasChoices("cookies_login", "cookiesLogin")
+    )
+
+    @model_validator(mode = 'after')
+    def validate_data(self) -> Self:
+        if self.count is None and not self.cookies_login:
+            raise ValueError("Count cannot be null if cookies login is false")
+        
+        return self
     
     
 class ChangeMessagesData(BaseModel):

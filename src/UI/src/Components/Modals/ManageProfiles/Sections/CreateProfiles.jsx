@@ -45,6 +45,7 @@ const CreateProfiles = () => {
 
         const data = {
             count: profiles,
+            cookiesLogin: false
         }
 
         logEvent(analytics, "create_profiles", { count: profiles });

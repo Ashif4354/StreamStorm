@@ -41,10 +41,16 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         "count": "Profiles count",
         "mode": "Channels selection mode",
         "directory": "Logos directory",
-        "index": "Index"
+        "index": "Index",
+        "cookies_login": "Cookies login"
     }
     
-    message: str = field_map[errors[0]["loc"][1]] + ": " + errors[0]["msg"][6:].capitalize()
+    error_loc = errors[0]["loc"]
+    if len(error_loc) > 1 and error_loc[1] in field_map:
+        message: str = field_map[error_loc[1]] + ": " + errors[0]["msg"][6:].capitalize()
+    else:
+        message: str = errors[0]["msg"].replace("Value error, ", "")
+    
     logger.error(f"Validation error: {message}")
     
     if "ctx" in errors[0]:

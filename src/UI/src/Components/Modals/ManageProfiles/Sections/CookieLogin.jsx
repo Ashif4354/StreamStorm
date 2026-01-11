@@ -39,7 +39,10 @@ const CookieLogin = () => {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({}),
+            body: JSON.stringify({
+                count: null,
+                cookiesLogin: true
+            }),
         })
             .then((response) => response.json())
             .then((data) => {

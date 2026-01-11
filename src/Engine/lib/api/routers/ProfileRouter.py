@@ -35,9 +35,8 @@ async def create_profiles(data: ProfileData) -> dict:
         success (bool): True if operation was successful
         message (str): Confirmation message
     """
-    # Cookie-based login (count is None)
-    is_cookie_login = data.count is None
-    busy_message = "Logging in" if is_cookie_login else "Creating profiles"
+
+    busy_message: str = "Logging in" if data.cookies_login else "Creating profiles"
     
     EngineContext.set_busy(busy_message)
     profiles: Profiles = Profiles()
@@ -45,7 +44,7 @@ async def create_profiles(data: ProfileData) -> dict:
     try:
         await run_in_threadpool(profiles.create_profiles, data.count)
 
-        if is_cookie_login:
+        if data.cookies_login:
             logger.info("Cookie login completed")
         else:
             logger.info(f"Created {data.count} profiles")
@@ -57,7 +56,7 @@ async def create_profiles(data: ProfileData) -> dict:
     finally:
         EngineContext.reset()
     
-    success_message = "Login successful, cookies saved" if is_cookie_login else "Profiles created successfully"
+    success_message = "Login successful, cookies saved" if data.cookies_login else "Profiles created successfully"
     
     return JSONResponse(
         status_code=200, 

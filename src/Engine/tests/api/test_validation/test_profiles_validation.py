@@ -11,28 +11,29 @@ from fastapi.testclient import TestClient
 logger: Logger = getLogger(f"tests.{__name__}")
 
 
-COUNT_VALUES: tuple[tuple[int, int], ...] = (
-    (-1, 422),
-    (0, 422),
-    (1, 200),
-    (3, 200),
-    (None, 422),
-    ("string", 422),
-    (1.0, 422),
-    (1.5, 422),
-    (True, 422),
-    (False, 422),
-    ({}, 422),
-    ([], 422)  
+COUNT_VALUES: tuple[tuple[int, bool, int], ...] = (
+    (-1, False, 422),
+    (0, False, 422),
+    (1, False, 200),
+    (3, False, 200),
+    (None, True, 200), # Cookie login
+    (None, False, 422), 
+    ("string", False, 422),
+    (1.0, False, 422),
+    (1.5, False, 422),
+    (True, False, 422),
+    (False, False, 422),
+    ({}, False, 422),
+    ([], False, 422)  
 )
 
 
-@mark.parametrize("count, expected", COUNT_VALUES)
-def test_data_validation_create_profiles(mocker: MockerFixture, client: TestClient, count: int, expected: int) -> NoReturn:
+@mark.parametrize("count, cookies_login, expected", COUNT_VALUES)
+def test_data_validation_create_profiles(mocker: MockerFixture, client: TestClient, count: int, cookies_login: bool, expected: int) -> NoReturn:
     
     new_run_in_threadpool: AsyncMock = mocker.patch("lib.api.routers.ProfileRouter.run_in_threadpool", new=AsyncMock())
     
-    response: Response = client.post("/environment/profiles/create", json={"count": count})
+    response: Response = client.post("/environment/profiles/create", json={"count": count, "cookies_login": cookies_login})
     logger.debug(response.json())
     
     assert response.status_code == expected
