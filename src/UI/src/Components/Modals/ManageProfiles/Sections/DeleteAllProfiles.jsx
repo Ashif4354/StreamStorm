@@ -14,6 +14,7 @@ import ErrorText from '../../../Elements/ErrorText';
 import AreYouSure from '../../../Dialogs/AreYouSure';
 import { analytics } from '../../../../config/firebase';
 import { useCustomMUIProps } from '../../../../context/CustomMUIPropsContext';
+import { useAppState } from '../../../../context/AppStateContext';
 
 const DeleteAllProfiles = () => {
 
@@ -21,7 +22,7 @@ const DeleteAllProfiles = () => {
     const { btnProps } = useCustomMUIProps();
     const dialogs = useDialogs();
 
-    const [hostAddress] = useLocalStorageState("hostAddress");
+    const { hostAddress } = useAppState();
     const notifications = useNotifications();
 
     const [errorText, setErrorText] = useState("");

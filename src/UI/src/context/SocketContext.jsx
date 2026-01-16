@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react';
 import { createContext, useContext } from 'react';
 import { io } from "socket.io-client";
 
-import { useLocalStorageState } from "@toolpad/core/useLocalStorageState";
-import { DEFAULT_HOST_ADDRESS } from '../lib/Constants';
-
+import { useAppState } from "./AppStateContext";
 
 const SocketContext = createContext();
 
@@ -12,7 +10,7 @@ const SocketProvider = ({ children }) => {
 
     const [socket, setSocket] = useState(null);
     const [socketConnected, setSocketConnected] = useState(false);
-    const [hostAddress] = useLocalStorageState("hostAddress", DEFAULT_HOST_ADDRESS);
+    const { hostAddress } = useAppState();
 
     useEffect(() => {
 

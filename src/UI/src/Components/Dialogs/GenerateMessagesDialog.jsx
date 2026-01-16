@@ -22,7 +22,6 @@ import { analytics } from "../../config/firebase";
 const GenerateMessagesDialog = ({ open, onClose }) => {
     const { btnProps, inputProps } = useCustomMUIProps();
     const { colorScheme } = useColorScheme();
-    const [hostAddress] = useLocalStorageState("hostAddress");
     const notifications = useNotifications();
     const appState = useAppState();
 
@@ -45,7 +44,7 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
         setHelperText("");
 
         try {
-            const response = await fetch(`${hostAddress}/ai/generate/messages`, {
+            const response = await fetch(`${appState.hostAddress}/ai/generate/messages`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

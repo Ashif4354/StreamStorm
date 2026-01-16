@@ -12,12 +12,13 @@ import "./Sections.css";
 import ErrorText from '../../../Elements/ErrorText';
 import { analytics } from '../../../../config/firebase';
 import { useCustomMUIProps } from '../../../../context/CustomMUIPropsContext';
+import { useAppState } from '../../../../context/AppStateContext';
 
 const CreateProfiles = () => {
 
     const { btnProps, inputProps } = useCustomMUIProps();
     const { colorScheme } = useColorScheme();
-    const [hostAddress] = useLocalStorageState("hostAddress");
+    const { hostAddress } = useAppState();
     const notifications = useNotifications();
 
 

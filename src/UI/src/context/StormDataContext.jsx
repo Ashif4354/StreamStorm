@@ -2,15 +2,12 @@
 /* eslint-disable react/prop-types */
 import { createContext, useState, useRef, useContext } from 'react';
 import { useNotifications } from "@toolpad/core/useNotifications";
-import { useLocalStorageState } from "@toolpad/core/useLocalStorageState";
-import { DEFAULT_HOST_ADDRESS } from '../lib/Constants';
 
 const StormDataContext = createContext();
 
 const StormDataProvider = ({ children }) => {
 
     const notifications = useNotifications();
-    const [hostAddress] = useLocalStorageState('hostAddress', DEFAULT_HOST_ADDRESS);
 
     const SC = useRef(null);
 
@@ -98,7 +95,7 @@ const StormDataProvider = ({ children }) => {
         endChannelIndex, setEndChannelIndex, endChannelIndexError, setEndChannelIndexError, endChannelIndexHelperText, setEndChannelIndexHelperText,
         advancedSelectedChannels, setAdvancedSelectedChannels, advancedChannelsErrorText, setAdvancedChannelsErrorText,
         loadInBackground, setLoadInBackground, errorText, setErrorText, channels, setChannels,
-        hostAddress, SC, engineVersion, setEngineVersion,
+        SC, engineVersion, setEngineVersion,
 
         getStormData: () => {
             return {

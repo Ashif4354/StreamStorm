@@ -24,8 +24,7 @@ const Settings = (props) => {
     const {
         hostAddress,
         defaultAIProvider, setDefaultAIProvider,
-        defaultAIModel, setDefaultAIModel,
-        defaultAIBaseUrl, setDefaultAIBaseUrl
+        setDefaultAIModel, setDefaultAIBaseUrl
     } = useAppState();
     const verticalTab = useMediaQuery('(min-width: 900px)')
     const isVerySmallScreen = useMediaQuery('(max-width: 650px)')
