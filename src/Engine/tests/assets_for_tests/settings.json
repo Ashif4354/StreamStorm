@@ -1,0 +1,25 @@
+{
+    "ai": {
+        "providers": {
+            "openai": {
+                "apiKey": "**********",
+                "model": "gpt-4o",
+                "baseUrl": "https://api.openai.com/v1"
+            },
+            "anthropic": {
+                "apiKey": "",
+                "model": "",
+                "baseUrl": null
+            },
+            "google": {
+                "apiKey": "",
+                "model": "",
+                "baseUrl": null
+            }
+        },
+        "defaultProvider": "openai",
+        "defaultModel": "gpt-4o",
+        "defaultBaseUrl": "https://api.openai.com/v1"
+    },
+    "login_method": "cookies"
+}

@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 
 
 from lib.api.fastapi_app import app
+from lib.settings import settings as app_settings
 
 @fixture
 def client():
@@ -24,3 +25,11 @@ def configure_logger() -> None:
 @fixture(scope="session")
 def user_data_dir(tmp_path_factory: TempPathFactory):
     return tmp_path_factory.mktemp("user_data_dir")
+
+@fixture(scope="session")
+def settings():
+    return app_settings
+
+@fixture(scope="session")
+def assets_for_tests_dir():
+    return Path(__file__).parent / "assets_for_tests"
