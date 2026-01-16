@@ -250,7 +250,7 @@ async def tool_get_message_stats() -> dict[str, Any]:
             "message": "No storm is running"
         }
     
-    async with StreamStorm.ss_instance.message_counter_lock:
+    async with StreamStorm.ss_instance.context.message_counter_lock:
         message_count = StreamStorm.ss_instance.context.message_count
     
     return {
@@ -288,7 +288,7 @@ async def tool_get_storm_context() -> dict[str, Any]:
     
     return {
         "success": True,
-        "context": StreamStorm.ss_instance.context.model_dump(),
+        "context": await StreamStorm.ss_instance.context.get(),
         "message": "Context fetched successfully"
     }
 
@@ -519,7 +519,7 @@ async def resource_message_stats() -> dict[str, Any]:
             "message": "No storm is running"
         }
     
-    async with StreamStorm.ss_instance.message_counter_lock:
+    async with StreamStorm.ss_instance.context.message_counter_lock:
         message_count = StreamStorm.ss_instance.context.message_count
     
     return {

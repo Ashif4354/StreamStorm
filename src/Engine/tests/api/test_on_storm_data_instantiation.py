@@ -55,9 +55,9 @@ def test_storm_data_instantiated(client: TestClient):
     assert StreamStorm.ss_instance.context.channels == channels
     assert StreamStorm.ss_instance.context.background == background
     
-    assert not StreamStorm.ss_instance.ready_event.is_set()
-    assert StreamStorm.ss_instance.pause_event.is_set()
-    assert not StreamStorm.ss_instance.run_stopper_event.is_set()
+    assert not StreamStorm.ss_instance.context.ready_event.is_set()
+    assert StreamStorm.ss_instance.context.pause_event.is_set()
+    assert not StreamStorm.ss_instance.context.run_stopper_event.is_set()
     
     assert StreamStorm.ss_instance.context.total_instances == len(channels)
     

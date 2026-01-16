@@ -167,7 +167,7 @@ class SeparateInstance(Playwright):
             logger.info(f"[{self.index}] [{self.channel_name}] Attempting login...")
             logged_in: bool = await self.login()
             
-            self.run_stopper_event.set()  # Set the event to signal that stopper can check for instance errors
+            self.context.run_stopper_event.set()  # Set the event to signal that stopper can check for instance errors
             logger.debug(f"[{self.index}] [{self.channel_name}] Run stopper event set")
             
             if not logged_in:
@@ -204,13 +204,13 @@ class SeparateInstance(Playwright):
                  
                 
             logger.debug(f"[{self.index}] [{self.channel_name}] Waiting for ready event...")
-            await self.ready_event.wait() # Wait for the ready event to be set before starting the storming
+            await self.context.ready_event.wait() # Wait for the ready event to be set before starting the storming
             
             logger.debug(f"[{self.index}] [{self.channel_name}] Starting storm loop with {self.wait_time}s initial delay")
             await self.emit_instance_status(self.index, 3)  # 3 = Storming
 
             while True:
-                await self.pause_event.wait()
+                await self.context.pause_event.wait()
                 if self.should_wait:
                     await sleep(self.wait_time)
                     self.should_wait = False
@@ -222,7 +222,7 @@ class SeparateInstance(Playwright):
                 try:
                     await self.send_message(selected_message)
                     
-                    async with self.message_counter_lock:
+                    async with self.context.message_counter_lock:
                         self.context.message_count += 1
                         
                     logger.debug(f"[{self.index}] [{self.channel_name}] Message sent successfully")

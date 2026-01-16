@@ -83,7 +83,7 @@ def test_change_slow_mode(ss_instance: StreamStorm, client: TestClient, data: di
     result: int = data["result"]
     del data["result"] 
     
-    ss_instance.ready_event.set()  
+    ss_instance.context.ready_event.set()  
         
     response: Response = client.post("/storm/change_slow_mode", json=data)
     logger.debug(response.json())
@@ -101,7 +101,7 @@ def test_start_more_channels(mocker: MockerFixture, ss_instance: StreamStorm, cl
     result: int = data["result"]
     del data["result"]    
     
-    ss_instance.ready_event.set()
+    ss_instance.context.ready_event.set()
     
     response: Response = client.post("/storm/start_more_channels", json=data)
     logger.debug(response.json())

@@ -17,10 +17,7 @@ from ..settings import settings
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 class StreamStorm(Profiles):
-    __slots__: tuple[str, ...] = (
-        'ready_event', 'pause_event', 'run_stopper_event', 
-        'message_counter_lock', 'context', 'cookies', '_background_tasks'
-    )
+    __slots__: tuple[str, ...] = ('context', 'cookies', '_background_tasks')
     
     ss_instance: Optional["StreamStorm"] = None
 
@@ -28,11 +25,7 @@ class StreamStorm(Profiles):
         
         super().__init__()
         
-        self.context: StormContext = StormContext()
-        self.ready_event: Event = Event()
-        self.pause_event: Event = Event()
-        self.run_stopper_event: Event = Event()
-        self.message_counter_lock: Lock = Lock()
+        self.context: StormContext = StormContext()                
         self._background_tasks: list[Task] = []
 
         self.init_context(data)
@@ -188,18 +181,18 @@ class StreamStorm(Profiles):
             if channel_index is not None
         )
 
-        return active_channels
-        
-    
+        return active_channels  
                
         
     def get_start_storm_wait_time(self, index) -> float:
         return index * (self.context.slow_mode / self.context.total_instances)
+
     
     def _track_task(self, task: Task) -> Task:
         """Track a background task for later cleanup."""
         self._background_tasks.append(task)
         return task
+
     
     async def cleanup(self) -> None:
         """Cancel all background tasks and clean up resources."""
@@ -218,6 +211,7 @@ class StreamStorm(Profiles):
         self.context.each_channel_instances.clear()
         
         logger.info("StreamStorm cleanup completed")
+
     
     async def messages_handler(self) -> None:
         time_frame: int = 2 # time frame in seconds to send message count updates
@@ -225,7 +219,7 @@ class StreamStorm(Profiles):
         time_elapsed_since_last_minute: int = 0 # in seconds
         
         logger.debug("#### Starting message handler...")
-        await self.ready_event.wait()  # Wait for the ready event to be set before starting the storming    
+        await self.context.ready_event.wait()  # Wait for the ready event to be set before starting the storming    
         
         async def reset_message_count() -> None:
             nonlocal previous_count, time_elapsed_since_last_minute
@@ -233,19 +227,18 @@ class StreamStorm(Profiles):
             while StreamStorm.ss_instance is not None:
                 await sleep(60) # asyncio.sleep
                 
-                async with self.message_counter_lock:
+                async with self.context.message_counter_lock:
                     previous_count = self.context.message_count
                     
                 time_elapsed_since_last_minute = 0  # Reset time elapsed every minute
                 
-                logger.debug(f"Message count for the last minute reset to {previous_count}")
-                
+                logger.debug(f"Message count for the last minute reset to {previous_count}")                
                 
         self._track_task(create_task(reset_message_count()))
         
         while StreamStorm.ss_instance is not None:
             
-            async with self.message_counter_lock:
+            async with self.context.message_counter_lock:
                 current_count: int = self.context.message_count - previous_count            
             
             await sio.emit('total_messages', {'total_messages': self.context.message_count}, room="streamstorm")
@@ -263,7 +256,7 @@ class StreamStorm(Profiles):
 
     async def start(self) -> None:       
 
-        self.ready_event.clear()  # Wait for the ready event to be set before starting the storming
+        self.context.ready_event.clear()  # Wait for the ready event to be set before starting the storming
         # self.context.ready_to_storm_instances = 0
         
         await self.check_channels_available()
@@ -290,12 +283,13 @@ class StreamStorm(Profiles):
                 while self.context.ready_to_storm_instances < self.context.total_instances:
                     await sleep(1)
                 logger.info(f"All {self.context.total_instances} instances ready - starting storm")
-                self.ready_event.set()  # Set the event to signal that all instances are ready
+                self.context.ready_event.set()  # Set the event to signal that all instances are ready
 
             self._track_task(create_task(wait_for_all_worker_to_be_ready()))
             self._track_task(create_task(self.messages_handler()))
             
             tasks: list[Task] = []
+
             for index in range(len(self.context.channels)):
                 profile_dir: str = join(self.environment_dir, temp_profiles[index])
                 channel_name: str = self.context.all_channels[str(self.context.channels[index])]['name']
@@ -343,7 +337,8 @@ class StreamStorm(Profiles):
         
         async def start_each_worker() -> None:  
             
-            tasks: list[Task] = []   
+            tasks: list[Task] = [] 
+              
             for index in range(len(channels)):
                 profile_dir: str = join(self.environment_dir, available_profiles[index])
                 channel_name: str = self.context.all_channels[str(channels[index])]['name']

@@ -113,9 +113,9 @@ async def start(data: StormData) -> JSONResponse:
 
     StreamStormObj: StreamStorm = StreamStorm(data)
 
-    StreamStormObj.ready_event.clear()  # Clear the ready event to ensure it will be only set when all instances are ready
-    StreamStormObj.pause_event.set()  # Set the pause event to allow storming to start immediately
-    StreamStormObj.run_stopper_event.clear()  # Clear the run stopper event to wait for instances to be ready before starting
+    StreamStormObj.context.ready_event.clear()  # Clear the ready event to ensure it will be only set when all instances are ready
+    StreamStormObj.context.pause_event.set()  # Set the pause event to allow storming to start immediately
+    StreamStormObj.context.run_stopper_event.clear()  # Clear the run stopper event to wait for instances to be ready before starting
 
     EngineContext.set_busy("Storming in progress")
     logger.debug("EngineContext updated to BUSY state")
@@ -205,7 +205,7 @@ async def pause() -> JSONResponse:
         success (bool): True if the storm was paused successfully
         message (str): Confirmation message
     """
-    StreamStorm.ss_instance.pause_event.clear()
+    StreamStorm.ss_instance.context.pause_event.clear()
     StreamStorm.ss_instance.context.storm_status = "Paused"
 
     current_channels: list[SeparateInstance] = StreamStorm.ss_instance.context.each_channel_instances
@@ -238,7 +238,7 @@ async def resume() -> JSONResponse:
         success (bool): True if the storm was resumed successfully
         message (str): Confirmation message
     """
-    StreamStorm.ss_instance.pause_event.set()
+    StreamStorm.ss_instance.context.pause_event.set()
     StreamStorm.ss_instance.context.storm_status = "Running"
     
     logger.info("Storm resumed successfully")
@@ -291,7 +291,7 @@ async def start_storm_dont_wait() -> JSONResponse:
         success (bool): True if the command was executed successfully
         message (str): Confirmation message
     """
-    StreamStorm.ss_instance.ready_event.set()
+    StreamStorm.ss_instance.context.ready_event.set()
     logger.info("Storm started without waiting")
 
     return JSONResponse(
@@ -318,7 +318,7 @@ async def change_slow_mode(data: ChangeSlowModeData) -> JSONResponse:
         success (bool): True if slow mode was changed successfully
         message (str): Confirmation message
     """
-    if not StreamStorm.ss_instance.ready_event.is_set():
+    if not StreamStorm.ss_instance.context.ready_event.is_set():
         return JSONResponse(
             status_code=400,
             content={
@@ -356,7 +356,7 @@ async def start_more_channels(data: StartMoreChannelsData) -> JSONResponse:
         message (str): Confirmation message
     """
     logger.info("Starting more channels...")
-    if not StreamStorm.ss_instance.ready_event.is_set():
+    if not StreamStorm.ss_instance.context.ready_event.is_set():
         return JSONResponse(
             status_code=400,
             content={
@@ -539,7 +539,7 @@ async def get_context() -> JSONResponse:
         status_code=200,
         content={
             "success": True,
-            "context": StreamStorm.ss_instance.context.model_dump(),
+            "context": await StreamStorm.ss_instance.context.get(),
             "message": "Context fetched successfully"
         }
     )
