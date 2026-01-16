@@ -22,8 +22,8 @@ def set_logging_loop(loop: AbstractEventLoop) -> None:
 
 class SocketIOHandler(Handler):
     def emit(self, record: LogRecord) -> None:
-        if _event_loop is None or _event_loop.is_closed():
-            # No loop yet, just ignore
+        if _event_loop is None or _event_loop.is_closed() or settings.env == "test":
+            # No loop yet or during tests, just ignore
             return
         
         level: str = record.levelname
