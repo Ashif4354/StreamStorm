@@ -5,17 +5,17 @@ import { logEvent } from "firebase/analytics";
 import * as atatus from "atatus-spa";
 
 import "./Dialogs.css";
-import { useLocalStorageState } from "@toolpad/core/useLocalStorageState";
 import ErrorText from "../Elements/ErrorText";
 import { useCustomMUIProps } from "../../context/CustomMUIPropsContext";
 import { analytics } from "../../config/firebase";
+import { useAppState } from "../../context/AppStateContext";
 
 const AddChannels = ({ payload, open, onClose }) => {
     const { mode, defaultSelectedChannels, systemInfoControls } = payload;
     const { btnProps } = useCustomMUIProps();
 
     const { colorScheme } = useColorScheme();
-    const [hostAddress] = useLocalStorageState('hostAddress');
+    const { hostAddress } = useAppState();
 
     const [channelsData, setChannelsData] = useState([]);
     const [channelsDataLoading, setChannelsDataLoading] = useState(false);
