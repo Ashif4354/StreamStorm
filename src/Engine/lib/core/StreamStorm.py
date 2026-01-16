@@ -1,22 +1,11 @@
-from asyncio import Task, sleep, Event, create_task, gather, TimeoutError as AsyncTimeoutError, Lock
-from random import choice
+from asyncio import Task, sleep, Event, create_task, gather, Lock
 from os.path import join
 from typing import Optional, Literal
-from http.client import RemoteDisconnected
-from urllib3.exceptions import ProtocolError, ReadTimeoutError
 from logging import getLogger, Logger
-from contextlib import suppress
 from urllib.parse import urlparse, parse_qs, ParseResult
-from json import load, JSONDecodeError
 
-from playwright.async_api import (
-    Error as PlaywrightError, 
-    TimeoutError as PlaywrightTimeoutError,
-)
-from playwright._impl._errors import TargetClosedError
 from yt_dlp import YoutubeDL
 
-from ..utils.exceptions import BrowserClosedError, ElementNotFound
 from ..utils.cookies import get_cookies
 from .SeparateInstance import SeparateInstance
 from .Profiles import Profiles
@@ -30,7 +19,7 @@ logger: Logger = getLogger(f"streamstorm.{__name__}")
 class StreamStorm(Profiles):
     __slots__: tuple[str, ...] = (
         'ready_event', 'pause_event', 'run_stopper_event', 
-        'message_counter_lock', 'context', 'cookies'
+        'message_counter_lock', 'context', 'cookies', '_background_tasks'
     )
     
     ss_instance: Optional["StreamStorm"] = None
@@ -44,6 +33,7 @@ class StreamStorm(Profiles):
         self.pause_event: Event = Event()
         self.run_stopper_event: Event = Event()
         self.message_counter_lock: Lock = Lock()
+        self._background_tasks: list[Task] = []
 
         self.init_context(data)
         self.load_cookies()
@@ -54,10 +44,7 @@ class StreamStorm(Profiles):
                     f"messages count: {len(self.context.messages)}, slow_mode: {self.context.slow_mode}s, "
                     f"background: {self.context.background}")        
         
-    async def emit_instance_status(self, index: int, status: int) -> None:
-        str_index: str = str(index)
-        self.context.all_channels[str_index]["status"] = status
-        await sio.emit("instance_status", {"instance": str_index, "status": str(status)}, room="streamstorm")
+    
         
     def init_context(self, storm_data: StormData) -> None:
 
@@ -203,154 +190,34 @@ class StreamStorm(Profiles):
 
         return active_channels
         
-    async def EachChannel(self, index: int, channel_name: str, profile_dir: str, wait_time: float = 0) -> None:
-
-        logger.info(f"[{index}] [{channel_name}] Using profile: {profile_dir}, Wait time: {wait_time}s")
-        profile_dir_name: str=  profile_dir.split("\\")[-1]
-        
-        try:
-
-            SI = SeparateInstance(
-                index,
-                profile_dir,
-                self.context.background,
-                profile_dir_name,
-                wait_time,
-                self.cookies
-            )
-            
-            await self.emit_instance_status(index, 1)  # 1 = Getting Ready
-
-            SI.channel_name = channel_name
-
-            self.context.assigned_profiles[profile_dir_name] = index
-
-            logger.info(f"[{index}] [{channel_name}] Assigned profile {profile_dir_name}")
-
-            StreamStorm.each_channel_instances.append(SI)
-            
-            logger.info(f"[{index}] [{channel_name}] Attempting login...")
-            logged_in: bool = await SI.login()
-            
-            self.run_stopper_event.set()  # Set the event to signal that stopper can check for instance errors
-            logger.debug(f"[{index}] [{channel_name}] Run stopper event set")
-            
-            if not logged_in:
-                logger.debug(f"[{index}] [{channel_name}] Login failed - removing from instances")
-                
-                self.context.total_instances -= 1
-                self.context.assigned_profiles[profile_dir_name] = None
-                
-                StreamStorm.each_channel_instances.remove(SI)
-                
-                logger.error(f"[{index}] [{channel_name}] : Login failed")
-                await self.emit_instance_status(index, 0)  # 0 = Dead
-                
-                return
-
-            logger.info(f"[{index}] [{channel_name}] Login successful")
-
-            if self.context.subscribe[0]:
-                logger.debug(f"[{index}] [{channel_name}] Navigating to subscribe URL: {self.context.video_url}")
-                
-                await SI.go_to_page(self.context.target_channel[0])
-                await SI.subscribe_to_channel(self.context.target_channel[1])
-                
-                logger.info(f"[{index}] [{channel_name}] Subscription attempt completed")
-
-            await SI.page.set_viewport_size({"width": 500, "height": 900})
-            logger.info(f"[{index}] [{channel_name}] Navigating to chat URL: {self.context.chat_url}")
-            await SI.go_to_page(self.context.chat_url)
-            
-            self.context.ready_to_storm_instances += 1
-            logger.info(f"[{index}] [{channel_name}] : Ready To Storm")
-            await self.emit_instance_status(index, 2)  # 2 = Ready
-
-            if self.context.subscribe[1]:
-                logger.info(f"[{index}] [{channel_name}] Waiting {self.context.subscribe_and_wait_time}s after subscription")
-                await sleep(self.context.subscribe_and_wait_time)
-                 
-                
-            logger.debug(f"[{index}] [{channel_name}] Waiting for ready event...")
-            await self.ready_event.wait() # Wait for the ready event to be set before starting the storming
-            
-            logger.debug(f"[{index}] [{channel_name}] Starting storm loop with {wait_time}s initial delay")
-            await self.emit_instance_status(index, 3)  # 3 = Storming
-
-            while True:
-                await self.pause_event.wait()
-                if SI.should_wait:
-                    await sleep(SI.wait_time)
-                    SI.should_wait = False
-        
-                # input()
-                selected_message = choice(self.context.messages)
-                logger.debug(f"[{index}] [{channel_name}] Sending message: '{selected_message}'")
-                
-                try:
-                    await SI.send_message(selected_message)
-                    
-                    async with self.message_counter_lock:
-                        self.context.message_count += 1
-                        
-                    logger.debug(f"[{index}] [{channel_name}] Message sent successfully")
-                    
-                except (BrowserClosedError, ElementNotFound, TargetClosedError):
-                    logger.debug(f"[{index}] [{channel_name}] : ##### Browser/element error - cleaning up instance")
-                    logger.error(f"[{index}] [{channel_name}] : Error in finding chat field")
-                    await self.emit_instance_status(index, 0)  # 0 = Dead
-
-                    self.context.assigned_profiles[profile_dir_name] = None
-                    
-                    try:
-                        await SI.page.close()
-                    except PlaywrightError as e:
-                        logger.error(f"[{index}] [{channel_name}] : Error closing page: {e}")
-                        
-                    
-                    with suppress(ValueError):
-                        StreamStorm.each_channel_instances.remove(SI)
-                        logger.debug(f"[{index}] [{channel_name}] : Removed from instances")                        
-                    
-                    break
-                    
-                except Exception as e:
-                    logger.error(f"[{index}] [{channel_name}] : New Error ({type(e).__name__}): {e}")
-                    await self.emit_instance_status(index, 0)  # 0 = Dead
-                    self.context.assigned_profiles[profile_dir_name] = None
-
-                    try:
-                        await SI.page.close()
-                    except PlaywrightError as e:
-                        logger.error(f"[{index}] [{channel_name}] : Error closing page: {e}")
-                    finally:
-                        break
-                
-                logger.debug(f"[{index}] [{channel_name}] Sleeping for {self.context.slow_mode}s before next message")
-                await sleep(self.context.slow_mode)
-
-        except (
-            RemoteDisconnected,
-            ProtocolError,
-            ReadTimeoutError,
-            ConnectionResetError,
-            TimeoutError,
-            AsyncTimeoutError,
-            PlaywrightError,
-            PlaywrightTimeoutError,
-            BrowserClosedError
-        ) as e:
-            logger.error(f"[{index}] [{channel_name}] : Error: {e}")
-            await self.emit_instance_status(index, 0)  # 0 = Dead
-            self.context.assigned_profiles[profile_dir_name] = None
-
-            try:
-                await SI.page.close()
-            except PlaywrightError as e:
-                logger.error(f"[{index}] [{channel_name}] : Error closing page: {e}")
+    
+               
         
     def get_start_storm_wait_time(self, index) -> float:
         return index * (self.context.slow_mode / self.context.total_instances)
+    
+    def _track_task(self, task: Task) -> Task:
+        """Track a background task for later cleanup."""
+        self._background_tasks.append(task)
+        return task
+    
+    async def cleanup(self) -> None:
+        """Cancel all background tasks and clean up resources."""
+        logger.info("Starting StreamStorm cleanup...")
+        
+        for task in self._background_tasks:
+            if not task.done():
+                task.cancel()
+                logger.debug(f"Cancelled task: {task.get_name()}")
+        
+        # Wait for all tasks to complete cancellation
+        if self._background_tasks:
+            await gather(*self._background_tasks, return_exceptions=True)
+        
+        self._background_tasks.clear()
+        self.context.each_channel_instances.clear()
+        
+        logger.info("StreamStorm cleanup completed")
     
     async def messages_handler(self) -> None:
         time_frame: int = 2 # time frame in seconds to send message count updates
@@ -374,7 +241,7 @@ class StreamStorm(Profiles):
                 logger.debug(f"Message count for the last minute reset to {previous_count}")
                 
                 
-        create_task(reset_message_count())
+        self._track_task(create_task(reset_message_count()))
         
         while StreamStorm.ss_instance is not None:
             
@@ -425,8 +292,8 @@ class StreamStorm(Profiles):
                 logger.info(f"All {self.context.total_instances} instances ready - starting storm")
                 self.ready_event.set()  # Set the event to signal that all instances are ready
 
-            create_task(wait_for_all_worker_to_be_ready())
-            create_task(self.messages_handler())
+            self._track_task(create_task(wait_for_all_worker_to_be_ready()))
+            self._track_task(create_task(self.messages_handler()))
             
             tasks: list[Task] = []
             for index in range(len(self.context.channels)):
@@ -434,9 +301,11 @@ class StreamStorm(Profiles):
                 channel_name: str = self.context.all_channels[str(self.context.channels[index])]['name']
                 wait_time: float = self.get_start_storm_wait_time(index)
    
-                logger.debug(f"[{index}] [{channel_name}] Wait time: {wait_time}")
+                logger.info(f"[{index}] [{channel_name}] Using profile: {profile_dir}, Wait time: {wait_time}s")
 
-                task: Task = create_task(self.EachChannel(self.context.channels[index], channel_name, profile_dir, wait_time))
+                si: SeparateInstance = SeparateInstance(self.context.channels[index], profile_dir, wait_time, channel_name, self.cookies, self.context)
+
+                task: Task = create_task(si.start())
                 tasks.append(task)
                 await sleep(0.2)  # Small delay to avoid instant spike of the cpu load
 
@@ -444,7 +313,7 @@ class StreamStorm(Profiles):
 
             logger.debug("Initial storm instances completed")
 
-        create_task(start_each_worker())
+        self._track_task(create_task(start_each_worker()))
     
     async def start_more_channels(self, channels: list[int]) -> None:
         
@@ -482,14 +351,16 @@ class StreamStorm(Profiles):
 
                 logger.debug(f"[{index}] [{channel_name}] Wait time: {wait_time}")
 
-                task: Task = create_task(self.EachChannel(channels[index], channel_name, profile_dir, wait_time))
+                si: SeparateInstance = SeparateInstance(channels[index], profile_dir, wait_time, channel_name, self.cookies, self.context)
+
+                task: Task = create_task(si.start())
                 tasks.append(task)
                 await sleep(0.2)
 
             await gather(*tasks)
             logger.debug("All added instances completed")
 
-        create_task(start_each_worker())       
+        self._track_task(create_task(start_each_worker()))       
 
 
 __all__: list[str] = ["StreamStorm"]

@@ -166,16 +166,15 @@ async def stop() -> JSONResponse:
     """
     logger.info("Stopping Storm...")
     
-    async def close_browser(instance: StreamStorm) -> None:
+    async def close_browser(instance: SeparateInstance) -> None:
         try:
-            if instance.page:
-                await instance.page.close()
-                
+            await instance.close_browser(reason="Storm stopped by user")
         except Exception as e:
             logger.error(f"Error occurred while closing browser: {e}")
 
     await gather(*(close_browser(i) for i in StreamStorm.ss_instance.context.each_channel_instances))
 
+    await StreamStorm.ss_instance.cleanup()
     StreamStorm.ss_instance = None
 
     EngineContext.reset()
@@ -478,8 +477,8 @@ async def kill_instance(data: KillInstanceData) -> JSONResponse:
     
     try:
         for instance in StreamStorm.ss_instance.context.each_channel_instances:
-            if instance.index == data.index and instance.page:
-                await instance.page.close()
+            if instance.index == data.index:
+                await instance.close_browser(reason=f"Instance {data.index}. {data.name} killed by user")
                 
                 StreamStorm.ss_instance.context.each_channel_instances.remove(instance)
                 StreamStorm.ss_instance.context.total_instances -= 1

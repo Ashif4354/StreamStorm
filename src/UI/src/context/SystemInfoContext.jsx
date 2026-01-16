@@ -6,31 +6,35 @@ import { RAM_PER_PROFILE } from "../lib/Constants";
 
 const SystemInfoContext = createContext();
 
-const SystemInfoProvider = ({children}) => {
+const SystemInfoProvider = ({ children }) => {
 
     const [availableRAM, setAvailableRAM] = useState(null);
-    const [debugMode, setDebugMode] = useState(false);    
+    const [debugMode, setDebugMode] = useState(false);
     const [debugCounter, setDebugCounter] = useState(0);
 
     const notifications = useNotifications();
 
     const systemInfoControls = { availableRAM, setAvailableRAM, RAM_PER_PROFILE, debugMode, setDebugCounter };
-     
-    useEffect(() => { 
-        if (debugCounter >= 10) {            
+
+    useEffect(() => {
+        if (debugCounter >= 10) {
             setDebugMode(true);
 
             notifications.show('Debug mode enabled!', { severity: 'info' });
-        }   
-    }, [debugCounter]);
+        }
+    }, [debugCounter, notifications]);
 
     useEffect(() => {
         window.enableStreamStormDebugMode = () => {
             setDebugMode(true);
 
             notifications.show('Debug mode enabled!', { severity: 'info' });
-        }
-    }, []);
+        };
+
+        return () => {
+            delete window.enableStreamStormDebugMode;
+        };
+    }, [notifications]);
 
     return (
         <SystemInfoContext.Provider value={systemInfoControls}>

@@ -34,35 +34,44 @@ const ServerContextProvider = ({ children }) => {
 
 
     useEffect(() => {
-        if (appState.stormInProgress) {
-            fetch(`${appState.hostAddress}/storm/context`, {
-                method: 'GET',
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        setFormControls(data.context);
-                        setChannelsStatus(data.context.all_channels);
-                        setStormStatus(data.context.storm_status);
-                        // setStartTime(data.context.start_time);
-                        setStartTime(new Date(data.context.start_time).getTime());
-                        setServerContextFetched(true);
-                    } else {
-                        if (!data.storm) {
-                            appState.setStormInProgress(false);
+        if (!appState.stormInProgress) return;
 
-                            notifications.show("The storm has ended", {
-                                severity: "warning",
-                                autoHideDuration: 3000,
-                            });
-                        }
+        const controller = new AbortController();
+
+        fetch(`${appState.hostAddress}/storm/context`, {
+            method: 'GET',
+            signal: controller.signal,
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    setFormControls(data.context);
+                    setChannelsStatus(data.context.all_channels);
+                    setStormStatus(data.context.storm_status);
+                    // setStartTime(data.context.start_time);
+                    setStartTime(new Date(data.context.start_time).getTime());
+                    setServerContextFetched(true);
+                } else {
+                    if (!data.storm) {
+                        appState.setStormInProgress(false);
+
+                        notifications.show("The storm has ended", {
+                            severity: "warning",
+                            autoHideDuration: 3000,
+                        });
                     }
-                })
-                .catch(error => {
-                    console.error("Error fetching server context:", error);
-                    atatus.notify(error, {}, ['server_context_fetch_error']);
-                });
-        }
+                }
+            })
+            .catch(error => {
+                // Ignore abort errors - they're expected when component unmounts
+                if (error.name === 'AbortError') return;
+
+                console.error("Error fetching server context:", error);
+                atatus.notify(error, {}, ['server_context_fetch_error']);
+            });
+
+        // Cleanup: abort fetch if component unmounts or dependencies change
+        return () => controller.abort();
     }, [appState.stormInProgress, appState.hostAddress]);
 
 

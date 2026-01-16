@@ -164,9 +164,7 @@ class Playwright(BrowserAutomator):
             
         except PlaywrightTimeoutError as e:
             logger.error(f"[{self.index}] [{self.channel_name}] : Timeout error occurred while navigating to {url}: {e}")
-            await self.page.close(
-                reason="Browser closed due to timeout error"
-            )
+            await self.close_browser(reason="Timeout while navigating to page")
             raise BrowserClosedError from e
 
     async def find_element(self, selector: str, selector_name: str) -> Locator:
@@ -206,10 +204,7 @@ class Playwright(BrowserAutomator):
             if not for_subscribe:
                 logger.error(f"[{self.index}] [{self.channel_name}] Element not found: {selector_name} : {selector}")
                 
-                await self.page.close(
-                    reason="Browser closed due to element not found. Element: "
-                    + selector
-                )
+                await self.close_browser(reason="Element not found")
                 raise BrowserClosedError from e
 
             if check_brand_account:
@@ -224,6 +219,39 @@ class Playwright(BrowserAutomator):
         await text_field.press("Enter")
         
         logger.debug(f"[{self.index}] [{self.channel_name}] Message typed and Enter pressed")
+
+    async def close_browser(self, reason: str = "Reason is unspecified") -> None:
+        """Properly close all browser resources to prevent memory leaks."""
+        logger.info(f"[{self.index}] [{self.channel_name}] Closing browser: {reason}")
+        
+        try:
+            if hasattr(self, 'page') and self.page:
+                try:
+                    await self.page.close()
+                except Exception as e:
+                    logger.debug(f"[{self.index}] [{self.channel_name}] Error closing page: {e}")
+            
+            if hasattr(self, 'browser_context') and self.browser_context:
+                try:
+                    await self.browser_context.close()
+                except Exception as e:
+                    logger.debug(f"[{self.index}] [{self.channel_name}] Error closing browser_context: {e}")
+            
+            if hasattr(self, 'browser') and self.browser:
+                try:
+                    await self.browser.close()
+                except Exception as e:
+                    logger.debug(f"[{self.index}] [{self.channel_name}] Error closing browser: {e}")
+            
+            if hasattr(self, 'playwright') and self.playwright:
+                try:
+                    await self.playwright.stop()
+                except Exception as e:
+                    logger.debug(f"[{self.index}] [{self.channel_name}] Error stopping playwright: {e}")
+                    
+            logger.debug(f"[{self.index}] [{self.channel_name}] Browser resources cleaned up")
+        except Exception as e:
+            logger.error(f"[{self.index}] [{self.channel_name}] Error during browser cleanup: {e}")
 
 
 __all__: list[str] = ["Playwright"]

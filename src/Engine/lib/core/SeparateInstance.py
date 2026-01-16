@@ -1,34 +1,51 @@
-from asyncio import sleep
+from asyncio import sleep, TimeoutError as AsyncTimeoutError
 from logging import getLogger, Logger
 from typing import Optional
+from http.client import RemoteDisconnected
+from urllib3.exceptions import ProtocolError, ReadTimeoutError
+from random import choice
+from contextlib import suppress
+from json import load, JSONDecodeError
+
 from playwright.async_api._generated import Locator
 from playwright._impl._errors import TargetClosedError
+from playwright.async_api import (
+    Error as PlaywrightError, 
+    TimeoutError as PlaywrightTimeoutError,
+)
 
-from ..utils.exceptions import BrowserClosedError
+from ..utils.exceptions import BrowserClosedError, ElementNotFound
 from .Playwright import Playwright
+from .StormContext import StormContext
+from ..socketio.sio import sio
 
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 class SeparateInstance(Playwright):
-    __slots__: tuple[str, ...] = ('channel_name', 'index', 'wait_time', 'should_wait', 'profile_dir')
+    __slots__: tuple[str, ...] = ('channel_name', 'index', 'wait_time', 'should_wait', 'profile_dir_name', 'context')
 
     def __init__(
         self,
         index: int,
         user_data_dir: str = '',
-        background: bool = True,
-        profile_dir: str = '',
         wait_time: float = 0,
-        cookies: list[dict] | None = None
+        channel_name: str = '',
+        cookies: list[dict] | None = None,
+        storm_context: StormContext | None = None
     ) -> None:
-        super().__init__(user_data_dir, background, cookies)
+        super().__init__(user_data_dir, storm_context.background, cookies)
         
         self.index: int = index
-        self.profile_dir: str = profile_dir  # Used in StormRouter.py for killing instance
+        self.profile_dir_name: str = user_data_dir.split("\\")[-1]  # Profile dir name : Used in StormRouter.py for killing instance
         self.__instance_alive: bool = True
         self.__logged_in: Optional[bool] = None
         self.wait_time: float = wait_time
+        self.channel_name: str = channel_name
         self.should_wait: bool = True
+        self.context: StormContext | None = storm_context
+
+    def __repr__(self) -> str:
+        return f"Instance(index={self.index}, channel_name={self.channel_name}, wait_time={self.wait_time})"
         
         
     async def change_language(self):
@@ -68,6 +85,7 @@ class SeparateInstance(Playwright):
             
             self.__logged_in = False
             return False
+
         
     async def is_instance_alive(self) -> bool:
         
@@ -104,6 +122,7 @@ class SeparateInstance(Playwright):
                 True
             )
 
+
     async def subscribe_to_channel(self, channel_fetched: bool) -> None:
         await self.find_and_click_element(
             "//button[.//div[text()='Subscribe']]" if channel_fetched else "//button[.//span[text()='Subscribe']]",
@@ -111,21 +130,145 @@ class SeparateInstance(Playwright):
             True
         )           
         logger.debug(f"[{self.index}] [{self.channel_name}] Subscribe action completed")
+
         
     async def __get_chat_field(self) -> Locator:
         chat_field: Locator = await self.find_element("//yt-live-chat-text-input-field-renderer//div[@id='input']", "chat_field")
         return chat_field
+
 
     async def send_message(self, message: str) -> None:
         logger.debug(f"[{self.index}] [{self.channel_name}] Getting chat field and sending message: '{message}'")
         chat_field: Locator = await self.__get_chat_field() # We get chat_field repeatedly to overcome potential stale element issues or DOM changes
         await self.type_and_enter(chat_field, message)
         logger.debug(f"[{self.index}] [{self.channel_name}] Message sent to chat field")
+
+
+    async def emit_instance_status(self, index: int, status: int) -> None:
+        str_index: str = str(index)
+        self.context.all_channels[str_index]["status"] = status
+        await sio.emit("instance_status", {"instance": str_index, "status": str(status)}, room="streamstorm")
+
         
-    async def start_instance(self):
-        ...
+    async def start(self) -> None:        
+        instance_started: bool = False
+        exit_reason: str = "Normal completion"
         
+        try:            
+            await self.emit_instance_status(self.index, 1)  # 1 = Getting Ready
+
+            self.context.assigned_profiles[self.profile_dir_name] = self.index
+
+            logger.info(f"[{self.index}] [{self.channel_name}] Assigned profile {self.profile_dir_name}")
+
+            self.context.each_channel_instances.append(self)
+            instance_started = True
+            
+            logger.info(f"[{self.index}] [{self.channel_name}] Attempting login...")
+            logged_in: bool = await self.login()
+            
+            self.run_stopper_event.set()  # Set the event to signal that stopper can check for instance errors
+            logger.debug(f"[{self.index}] [{self.channel_name}] Run stopper event set")
+            
+            if not logged_in:
+                logger.debug(f"[{self.index}] [{self.channel_name}] Login failed - removing from instances")
+                
+                self.context.total_instances -= 1
+                
+                logger.error(f"[{self.index}] [{self.channel_name}] : Login failed")
+                await self.emit_instance_status(self.index, 0)  # 0 = Dead
+                exit_reason = "Login failed"
+                return
+
+            logger.info(f"[{self.index}] [{self.channel_name}] Login successful")
+
+            if self.context.subscribe[0]:
+                logger.debug(f"[{self.index}] [{self.channel_name}] Navigating to subscribe URL: {self.context.video_url}")
+                
+                await self.go_to_page(self.context.target_channel[0])
+                await self.subscribe_to_channel(self.context.target_channel[1])
+                
+                logger.info(f"[{self.index}] [{self.channel_name}] Subscription attempt completed")
+
+            await self.page.set_viewport_size({"width": 500, "height": 900})
+            logger.info(f"[{self.index}] [{self.channel_name}] Navigating to chat URL: {self.context.chat_url}")
+            await self.go_to_page(self.context.chat_url)
+            
+            self.context.ready_to_storm_instances += 1
+            logger.info(f"[{self.index}] [{self.channel_name}] : Ready To Storm")
+            await self.emit_instance_status(self.index, 2)  # 2 = Ready
+
+            if self.context.subscribe[1]:
+                logger.info(f"[{self.index}] [{self.channel_name}] Waiting {self.context.subscribe_and_wait_time}s after subscription")
+                await sleep(self.context.subscribe_and_wait_time)
+                 
+                
+            logger.debug(f"[{self.index}] [{self.channel_name}] Waiting for ready event...")
+            await self.ready_event.wait() # Wait for the ready event to be set before starting the storming
+            
+            logger.debug(f"[{self.index}] [{self.channel_name}] Starting storm loop with {self.wait_time}s initial delay")
+            await self.emit_instance_status(self.index, 3)  # 3 = Storming
+
+            while True:
+                await self.pause_event.wait()
+                if self.should_wait:
+                    await sleep(self.wait_time)
+                    self.should_wait = False
         
+                # input()
+                selected_message = choice(self.context.messages)
+                logger.debug(f"[{self.index}] [{self.channel_name}] Sending message: '{selected_message}'")
+                
+                try:
+                    await self.send_message(selected_message)
+                    
+                    async with self.message_counter_lock:
+                        self.context.message_count += 1
+                        
+                    logger.debug(f"[{self.index}] [{self.channel_name}] Message sent successfully")
+                    
+                except (BrowserClosedError, ElementNotFound, TargetClosedError):
+                    logger.debug(f"[{self.index}] [{self.channel_name}] : ##### Browser/element error - cleaning up instance")
+                    logger.error(f"[{self.index}] [{self.channel_name}] : Error in finding chat field")
+                    await self.emit_instance_status(self.index, 0)  # 0 = Dead
+                    exit_reason = "Browser/element error - chat field not found"
+                    break
+                    
+                except Exception as e:
+                    logger.error(f"[{self.index}] [{self.channel_name}] : New Error ({type(e).__name__}): {e}")
+                    await self.emit_instance_status(self.index, 0)  # 0 = Dead
+                    exit_reason = f"Unexpected error: {type(e).__name__}"
+                    break
+                
+                logger.debug(f"[{self.index}] [{self.channel_name}] Sleeping for {self.context.slow_mode}s before next message")
+                await sleep(self.context.slow_mode)
+
+        except (
+            RemoteDisconnected,
+            ProtocolError,
+            ReadTimeoutError,
+            ConnectionResetError,
+            TimeoutError,
+            AsyncTimeoutError,
+            PlaywrightError,
+            PlaywrightTimeoutError,
+            BrowserClosedError
+        ) as e:
+            logger.error(f"[{self.index}] [{self.channel_name}] : Error: {e}")
+            await self.emit_instance_status(self.index, 0)  # 0 = Dead
+            exit_reason = f"Connection/browser error: {type(e).__name__}"
+        
+        finally:
+            # Guaranteed cleanup on all exit paths
+            self.context.assigned_profiles[self.profile_dir_name] = None
+            
+            if instance_started:
+                with suppress(ValueError):
+                    self.context.each_channel_instances.remove(self)
+                    logger.debug(f"[{self.index}] [{self.channel_name}] : Removed from instances")
+            
+            await self.close_browser(reason=exit_reason)
+            logger.info(f"[{self.index}] [{self.channel_name}] : Instance cleanup completed")
 
 
 

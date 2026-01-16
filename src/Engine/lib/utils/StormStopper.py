@@ -30,7 +30,7 @@ async def background_storm_stopper() -> NoReturn:
 
             if not any(statuses):
                 logger.debug("Resetting StreamStorm instance and clearing each channel instances")
-                StreamStorm.ss_instance.context.each_channel_instances.clear()
+                await StreamStorm.ss_instance.cleanup()
                 StreamStorm.ss_instance = None
                 EngineContext.reset()
                 
