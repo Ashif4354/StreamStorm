@@ -2,7 +2,7 @@
     "ai": {
         "providers": {
             "openai": {
-                "apiKey": "**********",
+                "apiKey": "sk-1234567890abcdef",
                 "model": "gpt-4o",
                 "baseUrl": "https://api.openai.com/v1"
             },
@@ -19,7 +19,7 @@
         },
         "defaultProvider": "openai",
         "defaultModel": "gpt-4o",
-        "defaultBaseUrl": "https://api.openai.com/v1"
+        "defaultBaseUrl": "https://custom.openai.com/v1"
     },
     "login_method": "cookies"
 }
