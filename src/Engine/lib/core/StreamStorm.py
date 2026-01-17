@@ -62,7 +62,7 @@ class StreamStorm(Profiles):
         cookies: list = get_cookies()
         
         if not cookies and settings.login_method == "cookies":
-            raise SystemError("Cookies not found: Login First")
+            raise SystemError("Cookies not found or invalid: Try logging in again")
         
         self.cookies = cookies
             
