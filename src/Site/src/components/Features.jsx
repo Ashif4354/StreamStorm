@@ -11,6 +11,8 @@ import AccountBoxOutlinedIcon from '@mui/icons-material/AccountBoxOutlined';
 import OndemandVideoIcon from '@mui/icons-material/OndemandVideo';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import HubOutlinedIcon from '@mui/icons-material/HubOutlined';
+import CookieIcon from '@mui/icons-material/Cookie';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 const FEATURES = [
     {
@@ -22,6 +24,16 @@ const FEATURES = [
         title: "Integrated MCP Server",
         description: "Control StreamStorm programmatically through AI assistants like Gemini, Claude, and ChatGPT via the built-in MCP server.",
         icon: <HubOutlinedIcon sx={{ fontSize: '2rem', color: 'var(--light-red)' }} />,
+    },
+    {
+        title: "Cookie Based Login",
+        description: "Login with cookie files as well. Only json and netscape cookie files are supported.",
+        icon: <CookieIcon sx={{ fontSize: '2rem', color: 'var(--light-red)' }} />,
+    },
+    {
+        title: "AI Integration (BYOK)",
+        description: "Use AI to generate messages and channel names.",
+        icon: <AutoAwesomeIcon sx={{ fontSize: '2rem', color: 'var(--light-red)' }} />,
     },
     {
         title: "Multi-Account Management",

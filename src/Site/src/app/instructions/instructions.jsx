@@ -28,7 +28,7 @@ const Instructions = () => {
               <li>
                 <a href="#using-the-app" className="instructions-index-link">Using The Application</a>
                 <ul className="instructions-index-list">
-                  <li><a href="#step1" className="instructions-index-link">Step 1. Create Temp Profiles</a></li>
+                  <li><a href="#step1" className="instructions-index-link">Step 1. Manage Environment (Login)</a></li>
                   <li><a href="#step2" className="instructions-index-link">Step 2. Starting The Storm</a></li>
                 </ul>
               </li>
@@ -43,9 +43,17 @@ const Instructions = () => {
                 </ul>
               </li>
               <li>
-                <a href="#host-config" className="instructions-index-link">Host Configuration</a>
+                <a href="#settings-menu" className="instructions-index-link">Settings Menu</a>
                 <ul className="instructions-index-list">
-                  <li><a href="#access-from-device" className="instructions-index-link">Accessing From Another Device</a></li>
+                  <li><a href="#settings-general" className="instructions-index-link">General</a></li>
+                  <li>
+                    <a href="#settings-host" className="instructions-index-link">Host Configuration</a>
+                    <ul className="instructions-index-list">
+                      <li><a href="#access-from-device" className="instructions-index-link">Accessing From Another Device</a></li>
+                    </ul>
+                  </li>
+                  <li><a href="#settings-appearance" className="instructions-index-link">Appearance</a></li>
+                  <li><a href="#settings-api-keys" className="instructions-index-link">API Keys</a></li>
                 </ul>
               </li>
               <li><a href="#precautions" className="instructions-index-link">Precautions</a></li>
@@ -107,30 +115,67 @@ const Instructions = () => {
 
           <h2 id="using-the-app" className="instructions-section-heading">Using The Application</h2>
 
-          <h3 id="step1" className="instructions-step-heading">Step 1. Create Temp Profiles</h3>
+          <h3 id="step1" className="instructions-step-heading">Step 1. Manage Environment (Login)</h3>
+          <p className="instructions-paragraph">Before starting a storm, you need to log in to your YouTube account. StreamStorm now uses <strong>cookie-based login</strong> as the default method, which is more reliable and efficient.</p>
+
           <ul className="instructions-list">
             <li className="instructions-list-item">
-              Creating temp profiles is the first step to use the application.
+              In the application UI, click on the <code className="instructions-inline-code">Manage Environment</code> button.
+            </li>
+            <li className="instructions-list-item">
+              A modal will open with two tabs: <strong>Login with Google</strong> and <strong>Login with Cookie Files</strong>.
+            </li>
+          </ul>
+
+          <h4>Login with Google (Recommended)</h4>
+          <ul className="instructions-list">
+            <li className="instructions-list-item">Click the <code className="instructions-inline-code">Login with Google</code> button.</li>
+            <li className="instructions-list-item">A browser window will open with a Google login page.</li>
+            <li className="instructions-list-item">Log in with your Google account.</li>
+            <li className="instructions-list-item">The application will automatically save the cookies after successful login.</li>
+            <li className="instructions-list-item">These cookies will be used to authenticate when starting the storm.</li>
+          </ul>
+
+          <h4>Login with Cookie Files</h4>
+          <ul className="instructions-list">
+            <li className="instructions-list-item">Click <code className="instructions-inline-code">Select Cookie Files</code> to open a file explorer.</li>
+            <li className="instructions-list-item">Select your cookie files (JSON or Netscape format). You can select multiple files.</li>
+            <li className="instructions-list-item">Only cookies for <code className="instructions-inline-code">youtube.com</code> will be parsed and saved.</li>
+            <li className="instructions-list-item">Click <code className="instructions-inline-code">Submit Cookies</code> to upload and validate the cookies.</li>
+            <li className="instructions-list-item">A browser window will open to fetch the available channels from your account.</li>
+          </ul>
+
+          <div className="instructions-warning">
+            <p className="instructions-warning-text">
+              <strong>Note:</strong> If the provided cookies are invalid or expired, the application will reject them. If your Google login is not reflected, it means the cookies have expired and you need to log in again.
+            </p>
+          </div>
+
+          <h4>Alternative: Browser Profiles Login (Legacy)</h4>
+          <p className="instructions-paragraph">The temp profiles-based login is still available for users who prefer it. You can switch the login method in the <a href="#settings-general" className="instructions-index-link">Settings → General</a> section.</p>
+          <ul className="instructions-list">
+            <li className="instructions-list-item">
+              To use browser profiles login:
               <ul className="instructions-list">
                 <li className="instructions-list-item">In the application UI, click on the <code className="instructions-inline-code">Manage Environment</code> button.</li>
-                <li className="instructions-list-item">In create profile section, enter number of profiles you want to create.</li>
+                <li className="instructions-list-item">In the create profile section, enter the number of profiles you want to create.</li>
                 <li className="instructions-list-item">Click on the <code className="instructions-inline-code">Create Profiles</code> button.</li>
                 <div className='instructions-warning'>
-                  <li><strong>Caution:</strong> Do not Minimize or Move away from the browser window while creating profiles.</li>
+                  <li><strong>Caution:</strong> Do not minimize or move away from the browser window while creating profiles.</li>
                 </div>
               </ul>
             </li>
-            <li className="instructions-list-item">The application will open a browser window and it will prompt you to log in to your YouTube account</li>
+            <li className="instructions-list-item">The application will open a browser window and prompt you to log in to your YouTube account.</li>
             <li className="instructions-list-item">Login to your YouTube account in the browser window that opens.</li>
             <li className="instructions-list-item">After logging in, the application will fetch all the channels available in your YouTube account.</li>
-            <li className="instructions-list-item">After fetching the channels, the application will first close itself, and start creating the profiles.</li>
+            <li className="instructions-list-item">After fetching the channels, the application will close itself and start creating the profiles.</li>
             <li className="instructions-list-item">Each temp profile will take up to <code className="instructions-inline-code">150MB</code> of storage space.</li>
           </ul>
-          <p className="instructions-paragraph">The reason for creating all these profiles is that, each channel will require a separate profile to avoid any conflicts or issues with opening the browser window, since one browser window locks its own profile from being accessed by another instance of the same browser.</p>
+          <p className="instructions-paragraph">The reason for creating all these profiles is that each channel requires a separate profile to avoid any conflicts or issues with opening the browser window, since one browser window locks its own profile from being accessed by another instance of the same browser.</p>
           <p className="instructions-note"><code className="instructions-inline-code">There is also provision to delete all temp profiles created by the application, in case you want to start fresh.</code></p>
 
           <h3 id="step2" className="instructions-step-heading">Step 2. Starting The Storm</h3>
-          <p className="instructions-paragraph">First Open the application and make sure you have created the temp profiles as mentioned in <code className="instructions-inline-code">Step 1.</code></p>
+          <p className="instructions-paragraph">First open the application and make sure you have logged in as mentioned in <code className="instructions-inline-code">Step 1.</code></p>
           <ul className="instructions-list">
             <li className="instructions-list-item">
               You need to provide all the required information to start the storm.
@@ -238,7 +283,7 @@ const Instructions = () => {
           </ul>
 
           <h3 id="creating-channels" className="instructions-step-heading">Creating Channels</h3>
-          <p className="instructions-paragraph">First Click on <code className="instructions-inline-code">Manage Environment</code> button</p>
+          <p className="instructions-paragraph">Make sure you have logged in first (see <a href="#step1" className="instructions-index-link">Step 1</a>), then click on the <code className="instructions-inline-code">Manage Environment</code> button.</p>
 
           <h4>Without Logo</h4>
           <ul className="instructions-list">
@@ -430,17 +475,39 @@ const Instructions = () => {
             </li>
           </ul>
 
-          
 
-          <h2 id="host-config" className="instructions-section-heading">Host Configuration</h2>
+
+          <h2 id="settings-menu" className="instructions-section-heading">Settings Menu</h2>
+          <p className="instructions-paragraph">Access the Settings menu by clicking the settings icon in the application. The Settings menu contains the following sections:</p>
+
+          <h3 id="settings-general" className="instructions-step-heading">General</h3>
           <ul className="instructions-list">
-            <li className="instructions-list-item">The backend server of the application is hosted on your local machine.</li>
-            <li className="instructions-list-item">The Server is configured to run on port <code className="instructions-inline-code">1919</code>.</li>
+            <li className="instructions-list-item">
+              <strong>Login Method</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item"><code className="instructions-inline-code">Cookies Based Login</code> (Default) - Uses saved cookies for authentication. More efficient and reliable.</li>
+                <li className="instructions-list-item"><code className="instructions-inline-code">Browser Profiles</code> - Uses separate browser profiles for each channel. Legacy method that requires more storage.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
+              <strong>Clear Login Data</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">Remove all saved cookies, browser profiles, and channel data.</li>
+                <li className="instructions-list-item">You will need to log in again after clearing the data.</li>
+              </ul>
+            </li>
           </ul>
 
+          <h3 id="settings-host" className="instructions-step-heading">Host Configuration</h3>
+          <ul className="instructions-list">
+            <li className="instructions-list-item">Set the base URL of the StreamStorm backend server.</li>
+            <li className="instructions-list-item">The backend server runs on your local machine on port <code className="instructions-inline-code">1919</code> by default.</li>
+            <li className="instructions-list-item">Default URL: <code className="instructions-inline-code">http://localhost:1919</code></li>
+            <li className="instructions-list-item">Change this if you're accessing the application from another device or using a custom server setup.</li>
+          </ul>
 
-          <h3 id="access-from-device" className="instructions-step-heading">Accessing The application from another device</h3>
-          <p className="instructions-paragraph">We have Provisions to access the application from another device on the same network or a different network. The another device can be a mobile phone, tablet, or another computer. First you need to make sure that the application is running on your machine, The UI will boot up, but don't close the UI, otherwise the local server will shut down.</p>
+          <h4 id="access-from-device">Accessing The Application From Another Device</h4>
+          <p className="instructions-paragraph">You can access the application from another device on the same network or a different network. The device can be a mobile phone, tablet, or another computer. Make sure the application is running on your machine - don't close the UI, otherwise the local server will shut down.</p>
 
           <div className="instructions-highlight">
             First you need to open <a href="https://streamstorm-ui.darkglance.in" target="_blank" rel="noopener noreferrer" className="instructions-link">https://streamstorm-ui.darkglance.in</a> in your web browser.
@@ -450,22 +517,60 @@ const Instructions = () => {
             <li className="instructions-list-item">
               <strong>Same Network</strong>
               <ul className="instructions-list">
-                <li className="instructions-list-item">If you want to access the application from another device on the same network, you need to provide the IP address of your machine running the application.</li>
-                <li className="instructions-list-item">You can find your IP address by running the command <code className="instructions-inline-code">ipconfig</code> in the command prompt or powershell. Look for the <code className="instructions-inline-code">IPv4 Address</code> under your active network connection. eg. <code className="instructions-inline-code">192.168.1.100</code></li>
-                <li className="instructions-list-item">Once you have your IP address, you can access the application from another device by entering the URL <code className="instructions-inline-code">http://&lt;your-ip-address&gt;:1919</code> in the browser.</li>
+                <li className="instructions-list-item">Find your IP address by running <code className="instructions-inline-code">ipconfig</code> in the command prompt. Look for the <code className="instructions-inline-code">IPv4 Address</code> (e.g., <code className="instructions-inline-code">192.168.1.100</code>).</li>
+                <li className="instructions-list-item">Access the application by entering <code className="instructions-inline-code">http://&lt;your-ip-address&gt;:1919</code> in the browser.</li>
               </ul>
             </li>
             <li className="instructions-list-item">
               <strong>Different Network</strong>
               <ul className="instructions-list">
-                <li className="instructions-list-item">If you want to access the application from another device on a different network, you need to configure port forwarding on your router.</li>
-                <li className="instructions-list-item">You need to forward the port <code className="instructions-inline-code">1919</code> to the IP address of your machine running the application.</li>
-                <li className="instructions-list-item">Once you have configured port forwarding, you can access the application from another device by entering the URL <code className="instructions-inline-code">http://&lt;your-public-ip-address&gt;:1919</code> in the browser.</li>
-                <li className="instructions-list-item">You can find your public IP address by searching for "What is my IP" in Google. eg. <code className="instructions-inline-code">203.0.113.0</code></li>
-                <li className="instructions-list-item">If you didn't understand how to configure port forwarding, you can search in Google for "How to configure port forwarding" for your router model. There will be many tutorials available online.</li>
+                <li className="instructions-list-item">Configure port forwarding on your router to forward port <code className="instructions-inline-code">1919</code> to your machine's IP address.</li>
+                <li className="instructions-list-item">Find your public IP by searching "What is my IP" on Google (e.g., <code className="instructions-inline-code">203.0.113.0</code>).</li>
+                <li className="instructions-list-item">Access the application by entering <code className="instructions-inline-code">http://&lt;your-public-ip-address&gt;:1919</code> in the browser.</li>
               </ul>
             </li>
           </ul>
+
+          <h3 id="settings-appearance" className="instructions-step-heading">Appearance</h3>
+          <ul className="instructions-list">
+            <li className="instructions-list-item">
+              <strong>Theme</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item"><code className="instructions-inline-code">Light</code> - Light color scheme for the application.</li>
+                <li className="instructions-list-item"><code className="instructions-inline-code">Dark</code> - Dark color scheme for the application.</li>
+              </ul>
+            </li>
+          </ul>
+
+          <h3 id="settings-api-keys" className="instructions-step-heading">API Keys</h3>
+          <p className="instructions-paragraph">Configure API keys for AI-powered features like message generation and channel name suggestions. All API keys are stored locally on your PC.</p>
+          <ul className="instructions-list">
+            <li className="instructions-list-item">
+              <strong>OpenAI</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">API Key</li>
+                <li className="instructions-list-item">Base URL (optional, for custom endpoints)</li>
+                <li className="instructions-list-item">Model name</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
+              <strong>Anthropic (Claude)</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">API Key</li>
+                <li className="instructions-list-item">Model name</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
+              <strong>Google (Gemini)</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">API Key</li>
+                <li className="instructions-list-item">Model name</li>
+              </ul>
+            </li>
+          </ul>
+          <div className="instructions-note">
+            <p className="instructions-paragraph"><strong>Tip:</strong> You can use the OpenAI provider section for other LLM providers that are compatible with the OpenAI API standard (e.g., Ollama, Mistral, Groq, OpenRouter, DeepSeek, LocalAI, etc.). Just manually set the Base URL, API Key, and Model.</p>
+          </div>
           <h2 id="precautions" className="instructions-section-heading">Precautions</h2>
           <ul className="instructions-list">
             <li className="instructions-list-item">The less free RAM you have after clicking <code className="instructions-inline-code">Start Storm</code>, the more likely the storming process will be slower, and the more likely it is to fail. So choose the number of accounts responsibly. For example, if you have 10 GB of free RAM, use only 6-7 GB for storm and keep the rest free, for a smooth flow.</li>
