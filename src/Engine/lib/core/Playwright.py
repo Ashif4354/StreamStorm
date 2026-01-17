@@ -15,7 +15,7 @@ logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 class Playwright(BrowserAutomator):
     __slots__: tuple[str, ...] = (
-        'user_data_dir', 'background', '_Playwright__instance_alive', 'cookies',
+        'user_data_dir', 'background', '_is_alive', 'cookies',
         'playwright', 'browser_context', 'browser', 'page', 'index', 'channel_name'
     )
     
@@ -26,6 +26,7 @@ class Playwright(BrowserAutomator):
         self.user_data_dir: str = user_data_dir
         self.background: bool = background
         self.cookies: list[dict] | None = cookies or []
+        self._is_alive: bool = True
 
     async def __get_chromium_options(self) -> dict[str, str | bool | list[str]]:
         options: dict[str, str | bool | list[str]] = {
@@ -86,7 +87,7 @@ class Playwright(BrowserAutomator):
     
     def _attach_error_listeners(self):
         def mark_dead(marker: str):
-            self.__instance_alive = False
+            self._is_alive = False
             logger.debug(f"[{self.index}] [{self.channel_name}] : ##### StreamStorm instance marked as dead by: {marker}")
 
         try:
@@ -96,7 +97,7 @@ class Playwright(BrowserAutomator):
             self.browser_context.browser.on("disconnected", lambda _: mark_dead("browser_context.browser.on_disconnected"))
 
         except Exception as _:
-            self.__instance_alive = False
+            self._is_alive = False
             logger.debug(f"[{self.index}] [{self.channel_name}] : ##### StreamStorm instance marked as dead by: Failure to attach error listeners")
             
     async def check_language_english(self) -> bool:

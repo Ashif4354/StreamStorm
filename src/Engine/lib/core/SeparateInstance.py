@@ -1,11 +1,16 @@
-from asyncio import sleep, TimeoutError as AsyncTimeoutError
+from asyncio import (
+    sleep as asyncio_sleep,
+    TimeoutError as AsyncTimeoutError,
+    CancelledError,
+    Task,
+    create_task as asyncio_create_task
+)
 from logging import getLogger, Logger
 from typing import Optional
 from http.client import RemoteDisconnected
 from urllib3.exceptions import ProtocolError, ReadTimeoutError
 from random import choice
 from contextlib import suppress
-from json import load, JSONDecodeError
 
 from playwright.async_api._generated import Locator
 from playwright._impl._errors import TargetClosedError
@@ -22,7 +27,11 @@ from ..socketio.sio import sio
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 class SeparateInstance(Playwright):
-    __slots__: tuple[str, ...] = ('channel_name', 'index', 'wait_time', 'should_wait', 'profile_dir_name', 'context')
+    __slots__: tuple[str, ...] = (
+        'channel_name', 'index', 'wait_time', 
+        'should_wait', 'profile_dir_name', 'context',
+        '_SeparateInstance__logged_in', '_SeparateInstance__sleep_tasks'
+    )
 
     def __init__(
         self,
@@ -37,8 +46,8 @@ class SeparateInstance(Playwright):
         
         self.index: int = index
         self.profile_dir_name: str = user_data_dir.split("\\")[-1]  # Profile dir name : Used in StormRouter.py for killing instance
-        self.__instance_alive: bool = True
         self.__logged_in: Optional[bool] = None
+        self.__sleep_tasks: list[Task] = []
         self.wait_time: float = wait_time
         self.channel_name: str = channel_name
         self.should_wait: bool = True
@@ -71,7 +80,7 @@ class SeparateInstance(Playwright):
             
             await self.find_and_click_element("//*[text()='Switch account']", 'switch_account_button') # Click on switch account button
 
-            await sleep(3)
+            await asyncio_sleep(3)
             logger.debug(f"[{self.index}] [{self.channel_name}] Selecting channel {self.index}...")
             await self.__click_channel(self.index)
 
@@ -94,19 +103,32 @@ class SeparateInstance(Playwright):
         
         try:
             if not self.browser_context.browser.is_connected(): # test 1
-                self.__instance_alive = False
+                self._is_alive = False
                 logger.debug(f"[{self.index}] [{self.channel_name}] : ##### StreamStorm instance marked as dead by: browser.browser.is_connected")
 
         except TargetClosedError as _:
-            self.__instance_alive = False
+            self._is_alive = False
             logger.debug(f"[{self.index}] [{self.channel_name}] : ##### StreamStorm instance marked as dead by: TargetClosedError")
 
         except Exception as e:
             logger.error(f"[{self.index}] [{self.channel_name}] : Error occurred while checking StreamStorm instance: {type(e).__name__}, {e}")
             logger.debug(f"[{self.index}] [{self.channel_name}] : ##### StreamStorm instance marked as dead by: Exception")
-            self.__instance_alive = False
+            self._is_alive = False
         
-        return self.__instance_alive
+        try:
+
+            if not self._is_alive and len(self.__sleep_tasks) > 0:
+                for task in self.__sleep_tasks:
+                    if not task.done():
+                        logger.debug(f"[{self.index}] [{self.channel_name}] Canceling sleep task: {task.get_name()}")
+                        task.cancel()
+
+                self.__sleep_tasks.clear() 
+
+        except Exception as e:
+            logger.error(f"[{self.index}] [{self.channel_name}] : Error occurred while canceling sleep tasks: {type(e).__name__}, {e}")
+                              
+        return self._is_alive
 
 
     async def __click_channel(self, index: int) -> None:
@@ -149,7 +171,14 @@ class SeparateInstance(Playwright):
         self.context.all_channels[str_index]["status"] = status
         await sio.emit("instance_status", {"instance": str_index, "status": str(status)}, room="streamstorm")
 
-        
+    async def sleep(self, duration: float) -> None:
+        try:
+            await asyncio_sleep(duration)
+        except CancelledError:
+            logger.debug(f"[{self.index}] [{self.channel_name}] Sleep task cancelled")
+
+
+
     async def start(self) -> None:        
         instance_started: bool = False
         exit_reason: str = "Normal completion"
@@ -176,7 +205,6 @@ class SeparateInstance(Playwright):
                 self.context.total_instances -= 1
                 
                 logger.error(f"[{self.index}] [{self.channel_name}] : Login failed")
-                await self.emit_instance_status(self.index, 0)  # 0 = Dead
                 exit_reason = "Login failed"
                 return
 
@@ -200,7 +228,13 @@ class SeparateInstance(Playwright):
 
             if self.context.subscribe[1]:
                 logger.info(f"[{self.index}] [{self.channel_name}] Waiting {self.context.subscribe_and_wait_time}s after subscription")
-                await sleep(self.context.subscribe_and_wait_time)
+                
+                sleep_task = asyncio_create_task(self.sleep(self.context.subscribe_and_wait_time), name="subscription_wait")
+                self.__sleep_tasks.append(sleep_task)
+                await sleep_task
+                
+                with suppress(Exception):
+                    self.__sleep_tasks.remove(sleep_task)
                  
                 
             logger.debug(f"[{self.index}] [{self.channel_name}] Waiting for ready event...")
@@ -212,7 +246,14 @@ class SeparateInstance(Playwright):
             while True:
                 await self.context.pause_event.wait()
                 if self.should_wait:
-                    await sleep(self.wait_time)
+
+                    sleep_task = asyncio_create_task(self.sleep(self.wait_time), name="storming_wait")
+                    self.__sleep_tasks.append(sleep_task)
+                    await sleep_task
+                    
+                    with suppress(Exception):
+                        self.__sleep_tasks.remove(sleep_task)
+                    
                     self.should_wait = False
         
                 # input()
@@ -230,18 +271,22 @@ class SeparateInstance(Playwright):
                 except (BrowserClosedError, ElementNotFound, TargetClosedError):
                     logger.debug(f"[{self.index}] [{self.channel_name}] : ##### Browser/element error - cleaning up instance")
                     logger.error(f"[{self.index}] [{self.channel_name}] : Error in finding chat field")
-                    await self.emit_instance_status(self.index, 0)  # 0 = Dead
                     exit_reason = "Browser/element error - chat field not found"
                     break
                     
                 except Exception as e:
                     logger.error(f"[{self.index}] [{self.channel_name}] : New Error ({type(e).__name__}): {e}")
-                    await self.emit_instance_status(self.index, 0)  # 0 = Dead
                     exit_reason = f"Unexpected error: {type(e).__name__}"
                     break
                 
                 logger.debug(f"[{self.index}] [{self.channel_name}] Sleeping for {self.context.slow_mode}s before next message")
-                await sleep(self.context.slow_mode)
+                
+                sleep_task = asyncio_create_task(self.sleep(self.context.slow_mode), name="slow_mode")
+                self.__sleep_tasks.append(sleep_task)
+                await sleep_task
+
+                with suppress(Exception):
+                    self.__sleep_tasks.remove(sleep_task)
 
         except (
             RemoteDisconnected,
@@ -255,7 +300,6 @@ class SeparateInstance(Playwright):
             BrowserClosedError
         ) as e:
             logger.error(f"[{self.index}] [{self.channel_name}] : Error: {e}")
-            await self.emit_instance_status(self.index, 0)  # 0 = Dead
             exit_reason = f"Connection/browser error: {type(e).__name__}"
         
         finally:
@@ -267,6 +311,7 @@ class SeparateInstance(Playwright):
                     self.context.each_channel_instances.remove(self)
                     logger.debug(f"[{self.index}] [{self.channel_name}] : Removed from instances")
             
+            await self.emit_instance_status(self.index, 0)  # 0 = Dead
             await self.close_browser(reason=exit_reason)
             logger.info(f"[{self.index}] [{self.channel_name}] : Instance cleanup completed")
 
