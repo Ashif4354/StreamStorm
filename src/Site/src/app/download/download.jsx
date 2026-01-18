@@ -30,7 +30,7 @@ const DownloadPage = () => {
         <div className='download-page'>
             <article className='download-container'>
                 <h1 className='download-title'>Download and install StreamStorm</h1>
-                <span className='download-description'>By Using StreamStorm, you agree to our <a href='/tc'>Terms of Service</a> and <a href='/pp'>Privacy Policy</a>.</span>
+                <span className='download-description'>By using StreamStorm, you agree to our <a href='/tc'>Terms of Service</a> and <a href='/pp'>Privacy Policy</a>.</span>
                 <span className='download-description'>Select your operating system</span>
                 <Tabs value={tabValue} onChange={handleTabChange} centered>
                     <Tab label="Windows" />

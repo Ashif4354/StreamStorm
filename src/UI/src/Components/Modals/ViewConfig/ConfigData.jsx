@@ -13,7 +13,7 @@ const ConfigData = (props) => {
             <TextBasedConfig
                 icon={<Users size={16} />}
                 title="Channels initially"
-                value={`${formControls.channels.length} ${formControls.channelSelection ? `(${formControls.channelSelection})` : ""}`}
+                value={`${formControls.channels?.length ?? 0} ${formControls.channelSelection ? `(${formControls.channelSelection})` : ""}`}
             />
             <TextBasedConfig icon={<Clock size={16} />} title="Slow Mode" value={`${formControls.slowMode}s`} />
             <ChipBasedConfig icon={<UserCheck size={16} />} title="Subscribe" value="Enabled" disabled={!formControls.subscribe} />

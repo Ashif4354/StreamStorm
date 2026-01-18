@@ -128,7 +128,7 @@ async def verify_dir(data: VerifyChannelsDirectoryData) -> JSONResponse:
                 }
             )
                 
-        if not file.endswith(".png") and not file.endswith(".jpg") and not file.endswith(".jpeg"):
+        if not file.lower().endswith((".png", ".jpg", ".jpeg")):
             logger.error("Directory contains non-image files (Only png, jpg and jpeg files are supported)")
             
             return JSONResponse(
@@ -137,10 +137,20 @@ async def verify_dir(data: VerifyChannelsDirectoryData) -> JSONResponse:
                     "success": False,
                     "message": "Directory contains non-image files (Only png, jpg and jpeg files are supported)"
                 }
-            ) 
-
+            )
+            
         channel_name: str = '.'.join(file.split(".")[:-1])
         
+        if not channel_name:
+            logger.error(f"Invalid filename '{file}' - cannot extract channel name")
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "message": f"Invalid filename '{file}' - cannot extract channel name"
+                }
+            )    
+                
         new_files.append({
             "name": channel_name,
             "uri": str(path / file)

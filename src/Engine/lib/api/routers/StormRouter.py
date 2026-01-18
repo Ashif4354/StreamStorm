@@ -1,11 +1,10 @@
 from logging import getLogger, Logger
-from os.path import join, exists
+from os.path import exists
 from json import JSONDecodeError, loads
 from asyncio import gather
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from platformdirs import user_data_dir
 from aiofiles import open as aio_open
 
 from ...core.StreamStorm import StreamStorm
@@ -173,17 +172,21 @@ async def stop() -> JSONResponse:
             await instance.close_browser(reason="Storm stopped by user")
         except Exception as e:
             logger.error(f"Error occurred while closing browser: {e}")
-
-    await gather(*(close_browser(i) for i in StreamStorm.ss_instance.context.each_channel_instances))
-
-    await StreamStorm.ss_instance.cleanup()
+    
+    try:        
+        await gather(*(close_browser(i) for i in StreamStorm.ss_instance.context.each_channel_instances))
+        await StreamStorm.ss_instance.cleanup()
+        logger.info("Storm stopped successfully")
+        
+    except Exception as e:
+        logger.error("Error occurred while stopping Storm:")
+        logger.debug(str(e))
+        
     StreamStorm.ss_instance = None
 
     EngineContext.reset()
-
-    logger.info("Storm stopped successfully")
-    await sio.emit('storm_stopped', room="streamstorm")
     
+    await sio.emit('storm_stopped', room="streamstorm")    
 
     return JSONResponse(
         status_code=200,

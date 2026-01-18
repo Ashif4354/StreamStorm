@@ -3,7 +3,7 @@ from contextlib import suppress
 from logging import getLogger, Logger
 from time import time
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from ..settings import settings
 
@@ -49,7 +49,7 @@ def get_cookies() -> Optional[list]:
         validated_cookies = Cookies(cookies=cookies_data).model_dump()["cookies"]
         logger.info("Valid cookies found, Logging in with cookies now.")
 
-    except (ValueError, TypeError) as e:
+    except (ValueError, TypeError, ValidationError) as e:
         logger.error(f"Error parsing cookies: {e}")
         logger.warning("Invalid cookies found.")
         return None

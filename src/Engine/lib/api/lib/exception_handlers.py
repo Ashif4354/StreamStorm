@@ -14,8 +14,8 @@ async def common_exception_handler(request: Request, exc: Exception) -> JSONResp
     
     return JSONResponse(
         status_code=500,
-        content={"success": False, "message": f"An error occurred: {str(exc)}"},
-    )
+        content={"success": False, "message": "An internal server error occurred"},
+    )    
     
     
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -79,7 +79,7 @@ async def session_not_created_exception_handler(request: Request, exc: Exception
     else:        
         return JSONResponse(
             status_code=500,
-            content={"success": False, "message": f"Session not created: {str(exc)}"},
+            content={"success": False, "message": "Failed to create browser session. Try again."},
         )
     
 __all__: list[str] = [

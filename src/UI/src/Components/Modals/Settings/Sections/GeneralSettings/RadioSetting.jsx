@@ -70,7 +70,7 @@ const RadioSetting = ({ title, description, value, onChange, options }) => {
     return (
         <SettingContainer title={title} description={description}>
             <RadioGroup value={value} onChange={onChange}>
-                {options.map((option) => (
+                {options?.map((option) => (
                     <RadioOption
                         key={option.value}
                         value={option.value}

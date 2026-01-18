@@ -34,8 +34,13 @@ class Profiles:
             # When using cookies method, profiles will not be already created, 
             # so we are mocking values twice the size of all channels in the users youtube account
             # Why twice? Because to avoid potential index errors and to be safe.
-            logger.debug(f"Mocking {total_channels * 2} profiles")
-            return [f"temp_profile_{i}" for i in range(1, total_channels * 2)]
+            
+            mocked_profiles: int = total_channels * 2
+            logger.debug(f"Mocking {mocked_profiles} profiles")
+            return [f"temp_profile_{i}" for i in range(1, mocked_profiles + 1)]
+        
+        if not exists(self.environment_dir):
+            raise ValueError(f"Environment directory {self.environment_dir} does not exist. Try logging in again.")
         
         temp_profiles: list[str] = [
             profile for profile in listdir(self.environment_dir) if profile.startswith("temp_profile_")
@@ -87,11 +92,12 @@ class Profiles:
                 dirs_exist_ok=True,
             )
             
+            logger.info(f"{profile} created")
+            
         except Error as e:
             str_error: str = str(e)
             logger.error(f"Error occurred while creating {profile}: {str_error}")
 
-        logger.info(f"{profile} created")
 
     def create_profiles(self, count: int, cookies: list | None = None) -> None:
         self.__delete_environment_dir()

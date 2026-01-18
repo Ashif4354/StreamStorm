@@ -1,9 +1,11 @@
 from typing import Any
 from asyncio import to_thread, sleep
-from contextlib import suppress
 from psutil import cpu_percent, virtual_memory
+from logging import getLogger, Logger
 
 from ..socketio.sio import sio
+
+logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 def get_system_metrics() -> dict[str, Any]:
     mem: Any = virtual_memory()
@@ -21,8 +23,11 @@ def get_system_metrics() -> dict[str, Any]:
 
 async def emit_system_metrics() -> None:
     while True:
-        with suppress(Exception):
+        try:
             system_metrics: dict[str, Any] = await to_thread(get_system_metrics)
             await sio.emit("system_metrics", system_metrics, room="streamstorm")
+        except Exception as e:
+            logger.error(f"Error occurred in emit_system_metrics: {e}")
+        finally:
             await sleep(2)
             

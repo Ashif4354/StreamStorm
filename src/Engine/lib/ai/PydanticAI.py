@@ -1,6 +1,5 @@
 from typing import Any
 from logging import Logger, getLogger
-from pydantic import BaseModel
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
 
@@ -22,7 +21,8 @@ class PydanticAI(AIBase):
         """
         Initializes the AI service with a specific provider.
         """
-        api_key: str = getattr(settings.ai.providers, provider_name).apiKey
+        if not api_key:
+            api_key: str = getattr(settings.ai.providers, provider_name).apiKey
         
         self.model: Model = ModelFactory.get_model(
             provider_name, model_name=model_name, api_key=api_key, base_url=base_url
@@ -67,7 +67,7 @@ class PydanticAI(AIBase):
 
     async def generate_channels(self, prompt: str) -> list[str]:
         system_prompt = (
-            "You are a YouTube channel names generator."
+            "You are a YouTube channel names generator. "
             "STRICT RULES: "
             "- You can mix existing or real channel names as well. "
             "- Generate names ONLY based on user-provided context. "
@@ -78,7 +78,6 @@ class PydanticAI(AIBase):
             "- Names should be short, catchy, and brand-friendly. "
             "- Avoid generic or spammy words. "
             "- Words must be easy to pronounce. "
-            "",
         )
 
         agent = Agent(
@@ -90,6 +89,7 @@ class PydanticAI(AIBase):
         try:
             response = await self._generate(agent, prompt)
         except Exception as e:
+            logger.error(f"Error generating channels: {e}")
             response = AIGeneratedChannels(channel_names=[])
 
         return response.channel_names

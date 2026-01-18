@@ -104,8 +104,7 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
                 headers=settings.cors_headers,
             )
 
-        response: JSONResponse = await call_next(request)
-
+        response: Response = await call_next(request)
         return response
 
 

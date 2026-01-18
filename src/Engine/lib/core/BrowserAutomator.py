@@ -4,9 +4,9 @@ class BrowserAutomator(ABC):
 
     @abstractmethod
     def open_browser(self) -> None:
-        """Open a browser and navigate to the specified URL."""
+        """Open and initialize the browser instance."""
         pass
-
+    
     @abstractmethod
     def go_to_page(self, url: str) -> None:
         """Navigate to the specified URL."""

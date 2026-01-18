@@ -42,7 +42,7 @@ class SeparateInstance(Playwright):
         cookies: list[dict] | None = None,
         storm_context: StormContext | None = None
     ) -> None:
-        super().__init__(user_data_dir, storm_context.background, cookies)
+        super().__init__(user_data_dir, storm_context.background, cookies, index, channel_name)
         
         self.index: int = index
         self.profile_dir_name: str = user_data_dir.split("\\")[-1]  # Profile dir name : Used in StormRouter.py for killing instance

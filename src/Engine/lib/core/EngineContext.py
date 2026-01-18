@@ -2,10 +2,6 @@ from dataclasses import dataclass
 
 @dataclass
 class EngineContext:
-    """
-    A singleton-like context for managing engine-wide state.
-    Uses class variables to maintain state across the application.
-    """
     
     # Class-level state (shared across all instances/imports)
     _busy: bool = False

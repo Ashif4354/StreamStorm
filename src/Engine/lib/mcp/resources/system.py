@@ -33,7 +33,7 @@ async def get_system_settings() -> dict[str, Any]:
         app_data_dir, and any other configured settings).
     """
 
-    settings_ = settings.model_copy()
+    settings_ = settings.model_copy(deep=True)
     settings_.ai.providers.anthropic.apiKey = "<REDACTED>"
     settings_.ai.providers.openai.apiKey = "<REDACTED>"
     settings_.ai.providers.google.apiKey = "<REDACTED>"

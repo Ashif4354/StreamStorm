@@ -162,7 +162,7 @@ class ChangeMessagesData(BaseModel):
         if not value:
             raise ValueError("Messages cannot be empty")
         
-        value = [ msg.strip('"[],') for msg in value ]
+        value = [ msg.strip('"\'[],') for msg in value ]
         
         return value
     
@@ -254,7 +254,7 @@ class CreateChannelsData(BaseModel):
         return value
         
     @model_validator(mode='after')
-    def validate_data(self) -> list[dict[str, str]]:  
+    def validate_data(self) -> Self:  
         
         if self.logo_needed and not self.random_logo:
             if any(channel["uri"] == "" for channel in self.channels):

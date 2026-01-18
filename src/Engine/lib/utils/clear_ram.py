@@ -14,7 +14,7 @@ def clear_ram() -> None:
     if system() != "Windows":
         return
     
-    rammap_path: str = settings.root / "RAMMap.exe"
+    rammap_path: str = str(settings.root / "RAMMap.exe")
     
     try:
         Popen(

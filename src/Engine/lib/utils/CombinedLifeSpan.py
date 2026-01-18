@@ -10,7 +10,7 @@ from ..api.fastapi_app import app as fastapi_app
 logger: Logger = getLogger(__name__)
 
 @asynccontextmanager
-async def combined_lifespan(app: FastAPI) -> None:
+async def combined_lifespan(app: FastAPI):
     logger.debug("Starting combined lifespan of API and MCP server")
         
     async with fastapi_lifespan(fastapi_app):

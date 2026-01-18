@@ -26,7 +26,7 @@ with open("tests/api/test_validation/data.json", "r") as f:
 def test_generate_messages_validation(mocker: MockerFixture, client: TestClient, data: dict) -> NoReturn:
     """Test validation for POST /ai/generate/messages"""
     
-    data = data.copy()  # Copy to avoid modifying shared parametrized data
+    data = data.copy()
     
     logger.debug("DATA ID: %s", data["id"])
     del data["id"]

@@ -45,7 +45,7 @@ const PrivacyPolicy = () => {
             The app uses the internet only for:
             <ul>
               <li>Checking for software updates</li>
-              <li>Parse youtube video for metadata</li>
+              <li>Parsing YouTube video for metadata</li>              
               <li>Downloading required browser webdrivers (chromedriver)</li>
               <li>Sending anonymous telemetry and performance data to Atatus</li>
               <li>Sending anonymous analytics data to Firebase Analytics</li>

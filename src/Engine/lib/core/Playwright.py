@@ -22,12 +22,14 @@ class Playwright(BrowserAutomator):
     _chrome_version: str = None
     _version_lock: Lock = Lock()
 
-    def __init__(self, user_data_dir: str, background: bool, cookies: list[dict] | None = None) -> None:
+    def __init__(self, user_data_dir: str, background: bool, cookies: list[dict] | None = None, index: int = 0, channel_name: str = "") -> None:
         self.user_data_dir: str = user_data_dir
         self.background: bool = background
         self.cookies: list[dict] | None = cookies or []
         self._is_alive: bool = True
-
+        self.index: int = index
+        self.channel_name: str = channel_name
+        
     async def __get_chromium_options(self) -> dict[str, str | bool | list[str]]:
         options: dict[str, str | bool | list[str]] = {
             "headless": self.background,
@@ -103,7 +105,7 @@ class Playwright(BrowserAutomator):
     async def check_language_english(self) -> bool:
         language: str = await self.page.evaluate("navigator.language")        
         
-        return language.startswith("en-")
+        return language.startswith("en")
         
     def change_language(self):
         raise NotImplementedError    
@@ -195,9 +197,8 @@ class Playwright(BrowserAutomator):
                 if await item.count() > 0:
                     brand_account = True
                     
-            logger.debug(f"[{self.index}] [{self.channel_name}] Element clicked: {selector_name} : {selector}")
             await element.click()
-
+            logger.debug(f"[{self.index}] [{self.channel_name}] Element clicked: {selector_name} : {selector}")
             if check_brand_account:
                 return brand_account
                 

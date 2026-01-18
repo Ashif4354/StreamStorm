@@ -35,8 +35,8 @@ const ManageProfiles = (props) => {
                         <span className={`modal-header-description modal-header-description-${colorScheme}`}>
                             {loginMethod === 'cookies'
                                 ? 'Login to Google and create YouTube channels for the Storm'
-                                : 'Create Youtube channels and manage your temp browser profiles for the Storm'
-                            }
+                                : 'Create YouTube channels and manage your temp browser profiles for the Storm'
+                            }                        
                         </span>
                     </div>
                 </div>

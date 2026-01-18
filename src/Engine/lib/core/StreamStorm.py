@@ -185,8 +185,9 @@ class StreamStorm(Profiles):
                
         
     def get_start_storm_wait_time(self, index) -> float:
+        if self.context.total_instances == 0:
+            return 0.0
         return index * (self.context.slow_mode / self.context.total_instances)
-
     
     def _track_task(self, task: Task) -> Task:
         """Track a background task for later cleanup."""
@@ -324,7 +325,7 @@ class StreamStorm(Profiles):
 
         enough_profiles, available_profiles = await get_profiles()
 
-        already_running_channels: list[int] = self.context.assigned_profiles.values()
+        already_running_channels = self.context.assigned_profiles.values()
 
         for channel in channels:
             if channel in already_running_channels:

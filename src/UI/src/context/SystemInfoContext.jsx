@@ -17,13 +17,13 @@ const SystemInfoProvider = ({ children }) => {
     const systemInfoControls = { availableRAM, setAvailableRAM, RAM_PER_PROFILE, debugMode, setDebugCounter };
 
     useEffect(() => {
-        if (debugCounter >= 10) {
+        if (debugCounter >= 10 && !debugMode) {
             setDebugMode(true);
 
             notifications.show('Debug mode enabled!', { severity: 'info' });
         }
-    }, [debugCounter, notifications]);
-
+    }, [debugCounter, debugMode, notifications]);
+    
     useEffect(() => {
         window.enableStreamStormDebugMode = () => {
             setDebugMode(true);

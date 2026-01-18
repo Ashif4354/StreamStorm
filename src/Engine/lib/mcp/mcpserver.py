@@ -252,11 +252,12 @@ async def tool_get_message_stats() -> dict[str, Any]:
     
     async with StreamStorm.ss_instance.context.message_counter_lock:
         message_count = StreamStorm.ss_instance.context.message_count
+        message_rate = StreamStorm.ss_instance.context.message_rate
     
     return {
         "success": True,
         "message_count": message_count,
-        "message_rate": StreamStorm.ss_instance.context.message_rate,
+        "message_rate": message_rate,        
         "message": "Message statistics fetched successfully"
     }
 

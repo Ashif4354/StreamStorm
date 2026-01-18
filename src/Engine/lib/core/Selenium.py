@@ -20,6 +20,7 @@ class Selenium(BrowserAutomator):
     def __init__(self, user_data_dir: str, background: bool) -> None:
         self.user_data_dir: str = user_data_dir
         self.background: bool = background
+        self.driver = None
         
     def go_to_page(self, url: str) -> None:
         self.driver.get(url)
@@ -112,8 +113,10 @@ class Selenium(BrowserAutomator):
         html_tag: WebElement = self.find_element(By.TAG_NAME, "html")
         language: str = html_tag.get_attribute("lang")
         
-        return language.startswith("en-") 
-    
+        if not language:
+            return False
+        
+        return language.startswith("en")     
     
     def change_language(self):
         raise NotImplementedError

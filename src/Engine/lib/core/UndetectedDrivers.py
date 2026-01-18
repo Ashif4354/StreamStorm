@@ -13,7 +13,7 @@ with suppress(Exception):
     pyautogui_imported = True
 
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException, NoSuchWindowException, ElementNotInteractableException
+from selenium.common.exceptions import NoSuchElementException, NoSuchWindowException, ElementNotInteractableException, TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.remote.webelement import WebElement
@@ -24,11 +24,11 @@ from ..utils.exceptions import BrowserClosedError
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 class UndetectedDrivers(Selenium):
-    __slots__: tuple[str, ...] = ('base_profile_dir', 'youtube_login_url', 'data_json_path')
+    __slots__: tuple[str, ...] = ('base_profile_dir', 'youtube_login_url', 'data_json_path', 'youtube_url')
     
     def __init__(self, base_profile_dir: str, custom_logo_needed: bool = False) -> None:
         if custom_logo_needed and not pyautogui_imported:
-            raise RuntimeError("Try again later.")
+            raise RuntimeError("Failed to import pyautogui, Try again later.")
         
         self.base_profile_dir: str = base_profile_dir
         logger.debug(f"Base profile directory: {self.base_profile_dir}")
@@ -87,7 +87,7 @@ class UndetectedDrivers(Selenium):
                     EC.presence_of_element_located((By.ID, "avatar-btn"))
                 )
 
-            except NoSuchElementException:
+            except (TimeoutException, NoSuchElementException):
                 self.driver.close()
                 raise BrowserClosedError("Invalid or expired cookies provided, Try again with valid ones.")
 
@@ -175,12 +175,15 @@ class UndetectedDrivers(Selenium):
                 self.find_and_click_element(By.XPATH, '(//button[contains(., "From computer")])[last()]', element_name="From computer button")
 
                 self.find_and_click_element(By.XPATH, '(//button[contains(., "Upload from computer")])[last()]', element_name="Upload from computer button")
+                
+                if not pyautogui_imported:
+                    raise RuntimeError("pyautogui is required for custom logo upload but could not be imported.")
+                
                 sleep(1)
 
                 pyautogui_write(logo_uri)
                 sleep(3)
-                pyautogui_press("enter")               
-
+                pyautogui_press("enter")
                 self.find_and_click_element(By.XPATH, '(//button[contains(., "Done")])[last()]', element_name="Done button")   
 
             self.switch_to_frame(default=True)         
@@ -236,10 +239,12 @@ class UndetectedDrivers(Selenium):
                         logger.info("Youtube login successful")
                         logged_in = True
                         
-                    except NoSuchElementException:
+                    except (TimeoutException, NoSuchElementException):
                         
                         self.driver.get(self.youtube_login_url)
-
+                        
+                sleep(1) # Just not to overload the server
+                
             if not for_create_channels:
                 self.get_total_channels()    
                 self.save_cookies()                        

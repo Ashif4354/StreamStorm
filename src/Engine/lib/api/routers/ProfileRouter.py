@@ -16,7 +16,7 @@ logger: Logger = getLogger(f"fastapi.{__name__}")
 router: APIRouter = APIRouter(prefix="/profiles", tags=["Manage Profiles"])
 
 @router.post("/create", operation_id="create_chromium_profiles", summary="Create Chromium browser profiles or login with cookies.")
-async def create_profiles(data: ProfileData) -> dict:
+async def create_profiles(data: ProfileData) -> JSONResponse:    
     """
     Create temporary Chromium browser profiles for storming or login with cookies.
     
@@ -67,7 +67,7 @@ async def create_profiles(data: ProfileData) -> dict:
     )
     
 @router.post("/delete", operation_id="delete_chromium_profiles", summary="Delete all temporary Chromium browser profiles.")
-async def delete_all_profiles() -> dict:
+async def delete_all_profiles() -> JSONResponse:    
     """
     Delete all temporary Chromium browser profiles.
     
@@ -84,6 +84,10 @@ async def delete_all_profiles() -> dict:
 
     try:
         await run_in_threadpool(profiles.delete_all_temp_profiles)
+
+    except Exception as e:
+        logger.error(f"Error occurred while deleting profiles: {e}")
+        raise SystemError("An error occurred while deleting profiles") from e
     finally:
         EngineContext.reset()
 
@@ -218,6 +222,7 @@ async def save_cookies(files: list[UploadFile] = File(...)) -> JSONResponse:
                 "message": f"Failed to save cookies: {str(e)}"
             }
         )
+        
     finally:
         EngineContext.reset()
     
@@ -225,6 +230,6 @@ async def save_cookies(files: list[UploadFile] = File(...)) -> JSONResponse:
         status_code=200,
         content={
             "success": True,
-            "message": f"Successfully saved {len(all_cookies)} cookies from {len(files)} file(s)"
+            "message": f"Successfully saved {len(final_cookies)} cookies from {len(files)} file(s)"
         }
     )
