@@ -8,7 +8,7 @@ PY_SCRIPTS_DIR := build/scripts
 ifeq ($(OS),Windows_NT)
 	PYTHON := python
 	DETECTED_OS := Windows
-	ACTIVATE_VENV := call venv\Scripts\activate.bat &&
+	ACTIVATE_VENV := call src\Engine\.venv\Scripts\activate.bat &&
 	ACTIVATE_FUNCTIONS_VENV := call src\functions\venv\Scripts\activate.bat &&
 else
 	PYTHON := python3
@@ -16,7 +16,7 @@ else
 	ifeq ($(DETECTED_OS),Darwin)
 		DETECTED_OS := Darwin
 	endif
-	ACTIVATE_VENV := . venv/bin/activate &&
+	ACTIVATE_VENV := . src/Engine/.venv/bin/activate &&
 	ACTIVATE_FUNCTIONS_VENV := . src/functions/venv/bin/activate &&
 endif
 
