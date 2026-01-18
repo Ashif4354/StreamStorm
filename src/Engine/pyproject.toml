@@ -1,6 +1,6 @@
 [project]
 name = "streamstorm"
-version = "3.5.2"
+version = "4.0.0"
 description = "Spam chats on YouTube live streams"
 requires-python = ">=3.13"
 dependencies = [

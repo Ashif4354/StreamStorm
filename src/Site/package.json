@@ -1,6 +1,6 @@
 {
     "name": "streamstorm",
-    "version": "3.5.2",
+    "version": "4.0.0",
     "private": true,
     "scripts": {
         "dev": "next dev --turbopack",
