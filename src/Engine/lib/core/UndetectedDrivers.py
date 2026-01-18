@@ -72,10 +72,13 @@ class UndetectedDrivers(Selenium):
             self.go_to_page(self.youtube_url)
 
             for cookie in cookies:
-                if cookie['domain'] not in [".youtube.com", "youtube.com"] or cookie['expiry'] is None:
+                if cookie.get('domain', None) not in [".youtube.com", "youtube.com"] or cookie.get('expiry', None) is None:
                     continue
                 
-                self.driver.add_cookie(cookie)
+                try:
+                    self.driver.add_cookie(cookie)
+                except Exception as e:
+                    logger.warning(f"Failed to add cookie : {cookie.get('name', "<name-not-specified>")}: {e}")
 
             self.driver.refresh()
             

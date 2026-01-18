@@ -178,18 +178,25 @@ async def save_cookies(files: list[UploadFile] = File(...)) -> JSONResponse:
                 "message": "No valid cookies found in uploaded files"
             }
         )
+    
+    final_cookies: list = []
 
     for cookie in all_cookies:
 
         if is_expired(cookie):
-            return JSONResponse(
-                status_code=400,
-                content={
-                    "success": False,
-                    "message": "One or more cookies are expired, Provide valid cookies."
-                }
-            )
+            continue
+        
+        final_cookies.append(cookie)
 
+    if not final_cookies:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "message": "One or more cookies are expired, Provide valid cookies."
+            }
+        )
+    
     # with open("cookies.json", "w") as f:
     #     from json import dump as json_dump
     #     json_dump(all_cookies, f, indent=4)
@@ -198,8 +205,8 @@ async def save_cookies(files: list[UploadFile] = File(...)) -> JSONResponse:
     profiles: Profiles = Profiles()
     
     try:
-        await run_in_threadpool(profiles.create_profiles, None, all_cookies)
-        logger.info(f"Saved {len(all_cookies)} cookies from uploaded files")
+        await run_in_threadpool(profiles.create_profiles, None, final_cookies)
+        logger.info(f"Saved {len(final_cookies)} cookies from uploaded files")
         
     except Exception as e:
         logger.error(f"Error creating profile with cookies: {e} || {str(e)}")
