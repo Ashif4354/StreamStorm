@@ -12,6 +12,52 @@ There’s no coding, no fancy setup — just plug in your message, set your inte
 
 StreamStorm's core functionality revolves around its ability to automate the sending of messages in YouTube live chats. Key features include:
 
+* **Real-time Dashboard**:
+  * Live monitoring for active storm sessions with storm status, active/dead instances, messages sent, and duration tracking.
+  * Real-time message rate (per minute) display.
+  * Live log feed with color-coded log levels.
+  * Socket.IO-based real-time updates replacing polling mechanisms.
+  * Channel Status Modal to view and manage individual channel statuses with ability to kill specific instances.
+  * View Config Modal to display storm configuration details.
+  * System metrics charts for CPU and RAM usage visualization using Recharts library.
+* **AI Integration**:
+  * AI-powered message generation — Generate YouTube comments using AI with customizable prompts.
+  * AI-powered channel name generation — Create channel names via AI assistance.
+  * Multi-provider support — OpenAI, Anthropic (Claude), Google (Gemini), and custom providers.
+  * PydanticAI implementation — Structured AI outputs with async generation and type safety.
+  * Settings management — Configure and save API keys, models, and default providers locally.
+* **MCP (Model Context Protocol) Server**: Full MCP server integration with FastMCP framework, accessible at `localhost:1919/mcp`:
+  * Storm operation tools for start, stop, pause, resume, and kill instances.
+  * Configuration tools to get settings, profiles, system metrics, and storm context.
+  * Monitoring resources for channels, logs, and system data.
+  * HTTP transport for external LLM clients to control StreamStorm operations.
+  * Sample prompts for AI assistants:
+    * `Start storming on https://www.youtube.com/watch?v=VIDEO_ID with 5 channels with slow mode 3 seconds`
+    * `Start storming with 5 channels and also subscribe and wait for 30 seconds`
+    * `Pause the storm` / `Resume the storm` / `Stop the storm`
+    * `Change slow mode to 2 sec`
+    * `Add 2 more channels to the storm`
+* **Settings & Configuration**: Unified Settings Modal with tabbed interface:
+  * API Keys management for AI providers.
+  * Theme selection (Light/Dark modes).
+  * Host configuration.
+  * General settings.
+  * Pydantic-based configuration — Type-safe settings with environment variable support.
+  * Settings API endpoints — RESTful API for managing all configurations.
+* **Enhanced User Interface**:
+  * Responsive navigation — Mobile-friendly header with drawer navigation.
+  * Improved light theme — New color palette using indigo accents.
+  * Instructions link — Easy access to documentation from navbar.
+  * Enhanced modals — Logs modal, channels status modal, and manage profiles modal.
+* **Cookie-Based Login**: Default login method — More efficient and reliable than browser profiles.
+  * **Login with Google** (Recommended):
+    * Opens browser window for Google authentication.
+    * Automatically saves cookies after successful login.
+    * Cookies used for authentication when starting storms.
+  * **Login with Cookie Files**:
+    * Upload multiple cookie files (JSON or Netscape format).
+    * Only `youtube.com` cookies are parsed and saved.
+    * Validates cookies before creating the base profile.
 * **Multi-Account Management**: Seamlessly operate multiple YouTube channels using separate, isolated browser profiles.
 * **Custom Channel Creation**: Effortlessly create multiple YouTube accounts directly from the app.
 * **Custom Message Scheduling**: Control message timing with flexible intervals, supporting both rapid-fire and delayed delivery.
@@ -19,7 +65,7 @@ StreamStorm's core functionality revolves around its ability to automate the sen
   * Automatically generate and configure browser profiles per channel.
   * Prevents data collisions and detection by isolating each session.
   * Easily clean up all temporary profiles post-storm.
-* **Browser Automation Engine**: Simulates real human interaction with YouTube’s live chat UI via robust browser automation.
+* **Browser Automation Engine**: Simulates real human interaction with YouTube's live chat UI via robust browser automation.
 * **Customizable Storm Parameters**:
   * Target specific YouTube video URLs.
   * Define a list of messages to send.
@@ -79,6 +125,7 @@ make run-dev
 
 * No need to install Python or a virtual environment, uv will handle everything for you.
 * The backend will run on `http://0.0.0.0:1919` by default. You can change this by setting `STREAMSTORM_HOST` and `STREAMSTORM_PORT` environment variable configuration.
+* The MCP Server can be accessed at `http://localhost:1919/mcp` by default.
 
 **Booting the UI (Frontend)**
 

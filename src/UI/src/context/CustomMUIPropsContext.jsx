@@ -65,6 +65,7 @@ const CustomMUIPropsProvider = ({ children }) => {
             '@media (max-width: 800px)': {
                 width: '70%',
             },
+            height: '90%',
             '@media (max-width: 460px)': {
                 height: '90%',
                 padding: '2rem 2rem 2rem 2rem',
