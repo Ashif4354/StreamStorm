@@ -8,6 +8,7 @@ ifeq ($(OS),Windows_NT)
 	PYTHON := python
 	DETECTED_OS := Windows
 	ACTIVATE_VENV := call venv\Scripts\activate.bat &&
+	ACTIVATE_FUNCTIONS_VENV := call src\functions\venv\Scripts\activate.bat &&
 else
 	PYTHON := python3
 	DETECTED_OS := $(shell uname -s)
@@ -15,6 +16,7 @@ else
 		DETECTED_OS := Darwin
 	endif
 	ACTIVATE_VENV := source venv/bin/activate &&
+	ACTIVATE_FUNCTIONS_VENV := source src/functions/venv/bin/activate &&
 endif
 
 help:
@@ -141,28 +143,36 @@ endif
 
 artifacts:
 	@echo "Downloading release artifacts..."
-	$(PYTHON) $(PY_SCRIPTS_DIR)/download_linux_artifacts.py
+	cd src/Engine && uv sync
+	$(ACTIVATE_VENV) $(PYTHON) $(PY_SCRIPTS_DIR)/download_linux_artifacts.py
 
 update-versions:
 	@echo "Running update versions script..."
-	$(PYTHON) $(PY_SCRIPTS_DIR)/update_versions.py
+	cd src/Engine && uv sync
+	$(ACTIVATE_VENV) $(PYTHON) $(PY_SCRIPTS_DIR)/update_versions.py
 
 executable:
 	@echo "Running generate executable script..."
-	$(PYTHON) $(PY_SCRIPTS_DIR)/generate_executable.py
+	cd src/Engine && uv sync
+	$(ACTIVATE_VENV) $(PYTHON) $(PY_SCRIPTS_DIR)/generate_executable.py
 
 firebase-deploy:
+	@echo "Setting up functions venv..."
+	$(PYTHON) -m venv src/functions/venv
+	$(ACTIVATE_FUNCTIONS_VENV) pip install -q -r src/functions/requirements.txt
 	@echo "Running Firebase deploy script..."
-	$(PYTHON) $(PY_SCRIPTS_DIR)/firebase_deploy.py
+	$(ACTIVATE_FUNCTIONS_VENV) $(PYTHON) $(PY_SCRIPTS_DIR)/firebase_deploy.py
 
 dgupdater-commit-publish:
 	@echo "Running dgupdater commit and publish script..."
-	$(PYTHON) $(PY_SCRIPTS_DIR)/dgupdater_commit_and_publish.py
+	cd src/Engine && uv sync
+	$(ACTIVATE_VENV) $(PYTHON) $(PY_SCRIPTS_DIR)/dgupdater_commit_and_publish.py
 
 generate-setup-windows:
 ifeq ($(DETECTED_OS),Windows)
 	@echo "Running generate setup file script..."
-	$(PYTHON) $(PY_SCRIPTS_DIR)/generate_setup_file_windows.py
+	cd src/Engine && uv sync
+	$(ACTIVATE_VENV) $(PYTHON) $(PY_SCRIPTS_DIR)/generate_setup_file_windows.py
 else
 	@echo "Error: 'make generate-setup-windows' is only available on Windows"
 	@exit 1
@@ -170,11 +180,13 @@ endif
 
 trigger-cross-os-build:
 	@echo "Triggering cross-os-build GitHub Actions workflow..."
-	$(PYTHON) $(PY_SCRIPTS_DIR)/trigger_cross_os_build.py
+	cd src/Engine && uv sync
+	$(ACTIVATE_VENV) $(PYTHON) $(PY_SCRIPTS_DIR)/trigger_cross_os_build.py
 
 build-and-release:
 	@echo "Running full build and release process..."
-	$(PYTHON) $(PY_SCRIPTS_DIR)/build_and_release.py
+	cd src/Engine && uv sync
+	$(ACTIVATE_VENV) $(PYTHON) $(PY_SCRIPTS_DIR)/build_and_release.py
 
 # ============================================================================
 # COMBINED TARGETS
