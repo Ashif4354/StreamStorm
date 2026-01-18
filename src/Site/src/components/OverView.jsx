@@ -34,7 +34,10 @@ const OverView = () => {
                     Safe to install. No personal data collected. Fully open source.
                 </span>
                 <div className="overview-image-container">
-                    <img src="assets/ss.png" alt="StreamStorm Overview" className="overview-media" />
+                    <img src="/assets/ss-1.png" alt="StreamStorm UI" className="overview-media" />
+                </div>
+                <div className="overview-image-container">
+                    <img src="/assets/ss-2.png" alt="StreamStorm Realtime Dashboard" className="overview-media" />
                 </div>
             </div>
         </section>

@@ -1,6 +1,6 @@
 const ErrorText = ({ errorText }) => {
     return (
-        <>
+        <div>
             {
                 errorText && (
                     <div style={{ margin: ".5rem .5rem 0 .5rem" }}>
@@ -9,7 +9,7 @@ const ErrorText = ({ errorText }) => {
                         </span>
                     </div>)
             }
-        </>
+        </div>
 
 
     );

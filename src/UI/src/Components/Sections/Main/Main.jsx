@@ -1,8 +1,7 @@
 import { useColorScheme } from '@mui/material/styles';
 
 import "./Main.css";
-import HostConfig from "../../Cards/HostConfig/HostConfig";
-import NewStorm from "../../Cards/NewStorm/NewStorm";
+import Storm from "../../Cards/Storm/Storm";
 import SystemInfo from "../../Cards/SystemInfo/SystemInfo";
 
 
@@ -11,10 +10,9 @@ const Main = () => {
 
     return (
         <main className={`main main-${colorScheme}`}>
-            <NewStorm />
+            <Storm />
             <div className="left-cards-container">
                 <SystemInfo />
-                <HostConfig />
             </div>
         </main>
     )

@@ -2,3 +2,4 @@ firebase_functions
 pymongo
 python-dotenv
 httpx
+logfire[httpx]

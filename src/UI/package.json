@@ -21,6 +21,7 @@
         "lucide-react": "^0.554.0",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
+        "recharts": "^3.4.1",
         "socket.io-client": "^4.8.1"
     },
     "devDependencies": {
@@ -28,6 +29,7 @@
         "@types/react": "^19.2.6",
         "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^5.1.1",
+        "baseline-browser-mapping": "^2.9.15",
         "eslint": "^9.39.1",
         "eslint-plugin-react": "^7.37.5",
         "eslint-plugin-react-hooks": "^7.0.1",

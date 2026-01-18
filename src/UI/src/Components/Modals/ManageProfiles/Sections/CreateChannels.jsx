@@ -7,6 +7,9 @@ import RadioGroup from '@mui/material/RadioGroup';
 import Radio from '@mui/material/Radio';
 import Button from '@mui/material/Button';
 import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useNotifications } from '@toolpad/core/useNotifications';
 import { Tv, RefreshCw } from 'lucide-react';
 import { logEvent } from 'firebase/analytics';
@@ -15,15 +18,17 @@ import * as atatus from 'atatus-spa';
 
 import "./Sections.css";
 import ErrorText from '../../../Elements/ErrorText';
+import GenerateChannelNamesDialog from '../../../Dialogs/GenerateChannelNamesDialog';
 import { useCustomMUIProps } from '../../../../context/CustomMUIPropsContext';
 import { useStormData } from '../../../../context/StormDataContext';
+import { useAppState } from '../../../../context/AppStateContext';
 import { analytics } from '../../../../config/firebase';
 
 const CreateChannels = () => {
     const { colorScheme } = useColorScheme();
     const { btnProps, inputProps } = useCustomMUIProps();
-    const formControls = useStormData();
     const notifications = useNotifications();
+    const appState = useAppState();
 
     const [logoRequired, setLogoRequired] = useState(false);
     const [logoSelection, setLogoSelection] = useState('random');
@@ -42,6 +47,7 @@ const CreateChannels = () => {
     const [errorText, setErrorText] = useState("");
     const [validated, setValidated] = useState(false);
     const [totalChannels, setTotalChannels] = useState({});
+    const [aiDialogOpen, setAiDialogOpen] = useState(false);
 
     const channelsChangeHandler = (value) => {
         setErrorText('');
@@ -51,6 +57,16 @@ const CreateChannels = () => {
 
         const channels = value.split('\n').map(channel => channel.trim()).filter(channel => channel !== '');
         setChannels(channels);
+    };
+
+    const handleAiDialogClose = (generatedNames) => {
+        setAiDialogOpen(false);
+        if (generatedNames && generatedNames.length > 0) {
+            setChannels(generatedNames);
+            setChannelsString(generatedNames.join('\n'));
+            setChannelsError(false);
+            setChannelsHelperText('');
+        }
     };
 
     const onLogosPathChangeHandler = (value) => {
@@ -68,7 +84,7 @@ const CreateChannels = () => {
 
         setValidatingPath(true);
 
-        fetch(`${formControls.hostAddress}/environment/channels/verify_dir`, {
+        fetch(`${appState.hostAddress}/environment/channels/verify_dir`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -123,10 +139,15 @@ const CreateChannels = () => {
     const onStartHandler = () => {
         setErrorText('');
 
+        // Check if user is logged in
+        if (!appState.isLoggedIn) {
+            setErrorText('Not logged in. Log in first.');
+            return;
+        }
+
         if (logoRequired && logoSelection === "custom" && !validated) {
             setChannelsLogoPathError(true);
             setChannelsLogoPathHelperText('Enter a system path and click Validate');
-            console.log("a")
             return;
         }
 
@@ -152,7 +173,7 @@ const CreateChannels = () => {
 
         setCreatingChannels(true);
 
-        fetch(`${formControls.hostAddress}/environment/channels/create`, {
+        fetch(`${appState.hostAddress}/environment/channels/create`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -167,7 +188,7 @@ const CreateChannels = () => {
                     });
                 } else {
                     setErrorText(data.message);
-                    
+
                     logEvent(analytics, 'create_channels_failed');
                     notifications.show(data.message, {
                         severity: 'error'
@@ -193,7 +214,7 @@ const CreateChannels = () => {
     return (
         <div className={`create-channels-container ${colorScheme}-text`}>
             <div className="section-header">
-                <Tv className="section-logo" size={20} color={"var(--input-active-red-dark)"} />
+                <Tv className="section-logo" size={20} color={colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)"} />
                 <h3 className={`section-title ${colorScheme}-text`}>Create Channels</h3>
             </div>
             <div className='create-channels-grid'>
@@ -214,7 +235,7 @@ const CreateChannels = () => {
                                     defaultValue="basic"
                                     name="channel-index-radio-group"
                                     onChange={(e) => setLogoSelection(e.target.value)}
-                                    disabled={formControls.stormInProgress || formControls.loading}
+                                    disabled={creatingChannels}
                                 >
                                     <div className="logo-radio-container">
                                         <div className="logo-radio">
@@ -255,7 +276,7 @@ const CreateChannels = () => {
                                         marginTop: "1rem",
                                         '.MuiInputBase-root.MuiOutlinedInput-root': {
                                             paddingRight: ".4rem",
-                                            backgroundColor: colorScheme === 'light' ? "var(--very-light-red)" : "var(--dark-gray)",
+                                            backgroundColor: colorScheme === 'light' ? "var(--light-surface)" : "var(--dark-gray)",
                                             borderRadius: "var(--border-radius)",
                                         }
                                     }}
@@ -274,7 +295,7 @@ const CreateChannels = () => {
                                                             ...btnProps,
                                                             marginTop: "0",
                                                             // height: "3.5rem",
-                                                            backgroundColor: colorScheme === 'light' ? "var(--bright-red-2)" : "var(--input-active-red-dark)"
+                                                            backgroundColor: colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)"
                                                         }}
                                                         disabled={creatingChannels || validatingPath}
                                                         onClick={onValidatePathHandler}
@@ -297,22 +318,61 @@ const CreateChannels = () => {
                             </div>
 
                         ) : (
-                            <TextField
-                                multiline
-                                fullWidth
-                                rows={4}
-                                variant="outlined"
-                                label="Channel names"
-                                sx={{
-                                    ...inputProps,
-                                    marginTop: "1rem"
-                                }}
-                                value={channelsString}
-                                onChange={e => channelsChangeHandler(e.target.value)}
-                                error={channelsError}
-                                helperText={channelsHelperText}
-                                disabled={creatingChannels}
-                            />
+                            <>
+                                <TextField
+                                    multiline
+                                    fullWidth
+                                    rows={4}
+                                    variant="outlined"
+                                    label="Channel names"
+                                    sx={{
+                                        ...inputProps,
+                                        marginTop: "1rem",
+                                        '& .MuiInputBase-root': {
+                                            alignItems: 'flex-start',
+                                        },
+                                    }}
+                                    value={channelsString}
+                                    onChange={e => channelsChangeHandler(e.target.value)}
+                                    error={channelsError}
+                                    helperText={channelsHelperText}
+                                    disabled={creatingChannels}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment
+                                                position="end"
+                                                sx={{
+                                                    alignSelf: 'flex-start',
+                                                    marginTop: '-8px',
+                                                    marginRight: '-8px',
+                                                }}
+                                            >
+                                                <Tooltip title="Generate channel names with AI">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => setAiDialogOpen(true)}
+                                                        disabled={creatingChannels}
+                                                        sx={{
+                                                            backgroundColor: 'transparent',
+                                                            color: colorScheme === 'light' ? 'var(--dark-text)' : 'var(--light-text)',
+                                                            padding: '4px',
+                                                            '&:hover': {
+                                                                backgroundColor: colorScheme === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.08)',
+                                                            },
+                                                        }}
+                                                    >
+                                                        <AutoAwesomeIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                                <GenerateChannelNamesDialog
+                                    open={aiDialogOpen}
+                                    onClose={handleAiDialogClose}
+                                />
+                            </>
                         )
                     }
                 </div>
@@ -325,7 +385,7 @@ const CreateChannels = () => {
                     marginTop: "1rem",
                 }}
                 disabled={creatingChannels}
-                startIcon={creatingChannels ? <RefreshCw size={20} className="spin"/> : null}
+                startIcon={creatingChannels ? <RefreshCw size={20} className="spin" /> : null}
                 onClick={onStartHandler}
             >
                 {

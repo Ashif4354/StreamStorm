@@ -1,9 +1,11 @@
 name: Linux build & artifacts
 
 on:
-  push:
-    branches: [ master ]
+  # push:
+  #   branches: [ master ]
   workflow_dispatch:
+  repository_dispatch:
+    types: [cross-os-build]
 
 jobs:
   linux-build:

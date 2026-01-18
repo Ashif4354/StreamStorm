@@ -3,48 +3,38 @@ import { createContext, useState, useContext } from 'react';
 import { useNotifications } from '@toolpad/core/useNotifications';
 
 import { RAM_PER_PROFILE } from "../lib/Constants";
-import fetchRAM from "../lib/FetchRAM"
 
 const SystemInfoContext = createContext();
 
-const SystemInfoProvider = ({children}) => {
+const SystemInfoProvider = ({ children }) => {
 
     const [availableRAM, setAvailableRAM] = useState(null);
     const [debugMode, setDebugMode] = useState(false);
-    
-    const [debugList, setDebugList] = useState([]);
-    const [pollingIntervals, setPollingIntervals] = useState([]);
+    const [debugCounter, setDebugCounter] = useState(0);
 
     const notifications = useNotifications();
 
-    const systemInfoControls = { availableRAM, setAvailableRAM, fetchRAM, RAM_PER_PROFILE, debugMode, setDebugList, setPollingIntervals };
-
-
-    const stopPolling = () => {
-        setPollingIntervals(currentIntervals => {
-            currentIntervals.forEach(interval => clearInterval(interval));
-            return [];
-        })
-    }
-     
-    useEffect(() => { 
-        if (debugList.length == 10) {            
-            setDebugMode(true);
-            stopPolling();
-
-            notifications.show('Debug mode enabled!', { severity: 'info' });
-        }   
-    }, [debugList]);
+    const systemInfoControls = { availableRAM, setAvailableRAM, RAM_PER_PROFILE, debugMode, setDebugCounter };
 
     useEffect(() => {
-        window.enableStreamStormDebugMode = () => {
+        if (debugCounter >= 10 && !debugMode) {
             setDebugMode(true);
-            stopPolling();
 
             notifications.show('Debug mode enabled!', { severity: 'info' });
         }
-        // stopPolling(); //comment this line in production
-    }, []);
+    }, [debugCounter, debugMode, notifications]);
+    
+    useEffect(() => {
+        window.enableStreamStormDebugMode = () => {
+            setDebugMode(true);
+
+            notifications.show('Debug mode enabled!', { severity: 'info' });
+        };
+
+        return () => {
+            delete window.enableStreamStormDebugMode;
+        };
+    }, [notifications]);
 
     return (
         <SystemInfoContext.Provider value={systemInfoControls}>

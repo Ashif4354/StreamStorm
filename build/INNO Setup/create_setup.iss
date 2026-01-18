@@ -50,7 +50,6 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "D:\PROGRAMMING\PROJECTS\StreamStorm\export\windows\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\PROGRAMMING\PROJECTS\StreamStorm\export\windows\dgupdaterupdate\*"; DestDir: "{app}\dgupdaterupdate"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\PROGRAMMING\PROJECTS\StreamStorm\export\windows\dgupdaterconf.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\PROGRAMMING\PROJECTS\StreamStorm\export\windows\RAMMap.exe"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

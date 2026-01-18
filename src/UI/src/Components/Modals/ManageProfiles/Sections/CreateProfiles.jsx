@@ -12,12 +12,13 @@ import "./Sections.css";
 import ErrorText from '../../../Elements/ErrorText';
 import { analytics } from '../../../../config/firebase';
 import { useCustomMUIProps } from '../../../../context/CustomMUIPropsContext';
+import { useAppState } from '../../../../context/AppStateContext';
 
 const CreateProfiles = () => {
 
     const { btnProps, inputProps } = useCustomMUIProps();
     const { colorScheme } = useColorScheme();
-    const [hostAddress] = useLocalStorageState("hostAddress");
+    const { hostAddress } = useAppState();
     const notifications = useNotifications();
 
 
@@ -45,8 +46,9 @@ const CreateProfiles = () => {
 
         const data = {
             count: profiles,
+            cookiesLogin: false
         }
-        
+
         logEvent(analytics, "create_profiles", { count: profiles });
 
         fetch(`${hostAddress}/environment/profiles/create`, {
@@ -88,11 +90,11 @@ const CreateProfiles = () => {
     return (
         <div className="create-profiles-container">
             <div className="section-header">
-                <UserPlus className="section-logo" size={20} color={"var(--input-active-red-dark)"} />
+                <UserPlus className="section-logo" size={20} color={colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)"} />
                 <h3 className={`section-title ${colorScheme}-text`}>Create / Fix Profiles</h3>
             </div>
 
-            <div className="section-content-grid">                
+            <div className="section-content-grid">
 
                 <TextField
                     fullWidth

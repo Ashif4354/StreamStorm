@@ -28,7 +28,9 @@ class StormControlsClass {
         logEvent(analytics, "channel_selection_mode", { mode: stormData.channelSelection });
     }
 
-    startStorm(formControls, systemInfoControls) {
+    startStorm(formControls, systemInfoControls, appState) {
+        // appState.setStormInProgress(true); // Comment this line in production
+        // return; // Comment this line in production
 
         const dataValid = ValidateStormData(formControls, systemInfoControls);
 
@@ -40,7 +42,7 @@ class StormControlsClass {
         this.log_analytics(stormData);
 
         formControls.setLoading(true);
-        this.setControlsDisabled(true);
+        // this.setControlsDisabled(true);
 
         fetch(`${this.hostAddress}/storm/start`, {
             method: 'POST',
@@ -55,8 +57,10 @@ class StormControlsClass {
                     this.notifications.show('Storm started successfully!', {
                         severity: 'success',
                     });
-                    this.setControlsDisabled(false);
-                    formControls.setStormInProgress(true);
+                    appState.setAllChannels(data.channels);
+                    // this.setControlsDisabled(false);
+                    appState.setStormInProgress(true);
+                    appState.setStormStatus("in Progress");
                     logEvent(analytics, "storm_started");
                 } else {
                     formControls.setErrorText(data.message || 'Request failed');
@@ -75,7 +79,7 @@ class StormControlsClass {
             })
             .finally(() => {
                 formControls.setLoading(false);
-                this.setControlsDisabled(false);
+                // this.setControlsDisabled(false);
             });
     }
 
@@ -98,6 +102,11 @@ class StormControlsClass {
                         severity: 'success',
                     });
                     logEvent(analytics, "storm_stopped");
+                } else {
+                    this.notifications.show(data.message || 'Failed to stop the storm', {
+                        severity: 'error',
+                    });
+                    logEvent(analytics, "storm_stop_failed");
                 }
 
             })
@@ -115,12 +124,41 @@ class StormControlsClass {
 
     }
 
+    stopStorm2(setStopping) {
+        setStopping(true);
+
+        fetch(`${this.hostAddress}/storm/stop`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    logEvent(analytics, "storm_stopped_2");
+                } else {
+                    logEvent(analytics, "storm_stop_2_failed");
+                }
+
+            })
+            .catch(error => {
+                atatus.notify(error, {}, ['storm_stop_2_error']);
+                logEvent(analytics, "storm_stop_2_error");
+            })
+            .finally(() => {
+                setStopping(false);
+            });
+
+    }
+
     pauseStorm() {
         this.setPausing(true);
         this.setControlsDisabled(true);
 
         fetch(`${this.hostAddress}/storm/pause`, {
-            method: 'POST',
+            method: 'POST', 
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -133,6 +171,11 @@ class StormControlsClass {
                         severity: 'success',
                     });
                     logEvent(analytics, "storm_paused");
+                } else {
+                    this.notifications.show(data.message || 'Failed to pause the storm', {
+                        severity: 'error',
+                    });
+                    logEvent(analytics, "storm_pause_failed");
                 }
             })
             .catch(error => {
@@ -167,6 +210,11 @@ class StormControlsClass {
                         severity: 'success',
                     });
                     logEvent(analytics, "storm_resumed");
+                } else {
+                    this.notifications.show(data.message || 'Failed to resume the storm', {
+                        severity: 'error',
+                    });
+                    logEvent(analytics, "storm_resume_failed");
                 }
             })
             .catch(error => {

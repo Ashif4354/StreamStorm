@@ -22,7 +22,9 @@ h2 {
     margin: 0;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
     scroll-margin-top: var(--header-height);
 }
 
@@ -450,9 +452,9 @@ button {
 @media (max-width: 768px) {
     .footer-elements {
         flex-direction: column;
-        gap:0rem;
+        gap: 0rem;
     }
-    
+
 }
 
 .footer-element {
@@ -840,6 +842,19 @@ button {
     max-width: 42rem;
 }
 
+.download-description a {
+    color: var(--gray-text);
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: inherit;
+    transition: color 0.2s ease-in-out;
+}
+
+.download-description a:hover {
+    color: var(--white);
+}
+
 .download-sections {
     display: flex;
     width: 100%;
@@ -956,6 +971,38 @@ button {
     margin: 1rem 0;
 }
 
+/* Linux Options Index Styles */
+.linux-options-index {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    color: var(--gray-text);
+    font-size: 0.95rem;
+}
+
+.linux-option-link {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+}
+
+.linux-option-link:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+.linux-option-separator {
+    color: var(--gray-text);
+    margin: 0 0.25rem;
+}
+
 /* Responsive Design for Linux Installation */
 @media (min-width: 769px) {
     .linux-install-method {
@@ -989,8 +1036,8 @@ button {
 
 /* Mac Coming Soon Styles */
 .mac-coming-soon {
-    width: 100%;
-    margin: 0rem 2rem;
+    width: 90%;
+    margin: 0;
     padding: 3rem 2rem;
     background-color: var(--dark-gray);
     border-radius: var(--border-radius);
@@ -1040,11 +1087,81 @@ button {
     text-decoration: underline;
 }
 
+/* Mac Source Steps Styles */
+.source-steps {
+    width: 90%;
+    margin-top: 1rem;
+    padding: 1.5rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius);
+    text-align: left;
+}
+
+.step-intro {
+    color: var(--light-white);
+    font-size: 1.1rem;
+    margin: 0 0 1rem 0;
+}
+
+.steps-list {
+    list-style: decimal;
+    padding-left: 1.5rem;
+    color: var(--gray-text);
+    line-height: 1.8;
+    margin: 0;
+}
+
+.steps-list li {
+    margin-bottom: 1rem;
+    color: var(--gray-text);
+}
+
+.steps-list li strong {
+    color: var(--light-white);
+    display: block;
+    margin-bottom: 0.3rem;
+}
+
+.steps-list li a {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+}
+
+.steps-list li a:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+.code-block {
+    display: block;
+    background-color: rgba(0, 0, 0, 0.4);
+    padding: 0.6rem 1rem;
+    border-radius: 0.4rem;
+    margin-top: 0.5rem;
+    font-family: 'Menlo', 'Consolas', 'Monaco', monospace;
+    color: var(--light-white);
+    font-size: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.step-note {
+    color: var(--gray-text);
+    font-size: 0.95rem;
+    margin: 1rem 0 0 0;
+    padding: 0.75rem 1rem;
+    background-color: rgba(72, 179, 234, 0.1);
+    border-left: 3px solid var(--accent-color);
+    border-radius: 0 0.3rem 0.3rem 0;
+}
+
 /* Responsive Design for Mac Coming Soon */
 @media (max-width: 768px) {
     .mac-coming-soon {
-        margin: 2rem 0;
-        padding: 2rem 1rem;
+        width: 100%;
+        margin: 1.5rem 0;
+        padding: 1.5rem 1rem;
     }
 
     .coming-soon-icon {
@@ -1058,6 +1175,35 @@ button {
 
     .coming-soon-description {
         font-size: 0.95rem;
+    }
+
+    .source-steps {
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .step-intro {
+        font-size: 1rem;
+    }
+
+    .steps-list {
+        padding-left: 1.2rem;
+    }
+
+    .steps-list li {
+        margin-bottom: 0.75rem;
+    }
+
+    .code-block {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        overflow-x: auto;
+        word-break: break-all;
+    }
+
+    .step-note {
+        font-size: 0.9rem;
+        padding: 0.6rem 0.75rem;
     }
 }
 
@@ -1198,4 +1344,3 @@ button {
         font-size: 0.9rem;
     }
 }
-

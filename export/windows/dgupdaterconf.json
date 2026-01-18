@@ -6,7 +6,6 @@
     "mongodb_connection_string_client": "mongodb+srv://streamstorm:streamstorm@streamstorm.w6jml3j.mongodb.net/",
     "files_in_latest_version": [
         "\\dgupdaterconf.json",
-        "\\RAMMap.exe",
         "\\StreamStorm.exe"
     ],
     "no_of_files": 3

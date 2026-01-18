@@ -1,4 +1,5 @@
 :root {
+    /* ===== DARK THEME COLORS (DO NOT MODIFY) ===== */
     --very-light-red: #f6e9e9;
     --bright-red: #e84a4a;
     --bright-red-2: #ef4444;
@@ -23,7 +24,53 @@
     --input-active-red-light-hover: #b41d1de6;
 
     --font-family: 'Inter', sans-serif;
-    --border-radius: 0.5rem;    
+    --border-radius: 0.5rem;
+
+    --info-card-light-green: #16a34a;
+    --info-card-dark-green: #4ade80;
+    --info-card-red: #ef4444;
+    --info-card-yellow: #f59e0b;
+
+    --log-error: #f87171;
+    --log-info: #60a5fa;
+    --log-warning: #ffb600;
+
+    /* ===== LIGHT THEME COLORS (NEW) ===== */
+    /* Main backgrounds */
+    --light-bg: #f8fafc;
+    /* Slate-50 - main page background */
+    --light-card-bg: #ffffff;
+    /* White - card backgrounds */
+    --light-surface: #f1f5f9;
+    /* Slate-100 - input/button backgrounds */
+    --light-surface-hover: #e2e8f0;
+    /* Slate-200 - hover states */
+
+    /* Borders */
+    --light-border: #e2e8f0;
+    /* Slate-200 - borders */
+    --light-border-focus: #cbd5e1;
+    /* Slate-300 - focus borders */
+
+    /* Primary accent (Indigo) */
+    --light-primary: #6366f1;
+    /* Indigo-500 - primary color */
+    --light-primary-hover: #4f46e5;
+    /* Indigo-600 - primary hover */
+    --light-primary-light: #eef2ff;
+    /* Indigo-50 - light primary bg */
+    --light-primary-soft: #c7d2fe;
+    /* Indigo-200 - soft primary */
+
+    /* Button backgrounds */
+    --light-btn-bg: #eef2ff;
+    /* Indigo-50 - button background */
+    --light-btn-hover: #e0e7ff;
+    /* Indigo-100 - button hover */
+
+    /* Header */
+    --light-header-bg: #6366f1;
+    /* Indigo-500 - header background */
 
 }
 
@@ -44,7 +91,7 @@ body {
 }
 
 .main-container-light {
-    background-color: var(--very-light-red);
+    background-color: var(--light-bg);
     color: var(--dark-text);
 }
 
@@ -59,7 +106,7 @@ body {
 }
 
 .light-bordered-container {
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--light-border);
     border-radius: var(--border-radius);
 }
 

@@ -5,19 +5,17 @@ import { logEvent } from "firebase/analytics";
 import * as atatus from "atatus-spa";
 
 import "./Dialogs.css";
-import { useLocalStorageState } from "@toolpad/core/useLocalStorageState";
-import { useNotifications } from "@toolpad/core/useNotifications";
 import ErrorText from "../Elements/ErrorText";
 import { useCustomMUIProps } from "../../context/CustomMUIPropsContext";
 import { analytics } from "../../config/firebase";
+import { useAppState } from "../../context/AppStateContext";
 
 const AddChannels = ({ payload, open, onClose }) => {
     const { mode, defaultSelectedChannels, systemInfoControls } = payload;
     const { btnProps } = useCustomMUIProps();
 
     const { colorScheme } = useColorScheme();
-    const [hostAddress] = useLocalStorageState('hostAddress');
-    const notifications = useNotifications();
+    const { hostAddress } = useAppState();
 
     const [channelsData, setChannelsData] = useState([]);
     const [channelsDataLoading, setChannelsDataLoading] = useState(false);
@@ -77,16 +75,13 @@ const AddChannels = ({ payload, open, onClose }) => {
         onClose(selectedChannels.map((channel) => parseInt(channel)));
     };
 
-    
+
     useEffect(() => {
         if (open) {
             getChannelData();
         }
     }, [open, hostAddress]);
 
-    useEffect(() => {
-        systemInfoControls.fetchRAM(hostAddress, notifications, systemInfoControls);
-    }, [hostAddress]);
 
     useEffect(() => {
         if (systemInfoControls.availableRAM) {
@@ -104,7 +99,7 @@ const AddChannels = ({ payload, open, onClose }) => {
             onClose={() => onClose(null)}
             sx={{
                 "& .MuiDialog-paper": {
-                    backgroundColor: colorScheme === 'light' ? "var(--white)" : "var(--light-gray)",
+                    backgroundColor: colorScheme === 'light' ? "var(--light-card-bg)" : "var(--light-gray)",
                     backgroundImage: "none",
                     borderRadius: "var(--border-radius)",
                 },
@@ -212,9 +207,9 @@ const AddChannels = ({ payload, open, onClose }) => {
                     disabled={channelsDataLoading || selectedChannels.length === 0}
                     sx={{
                         ...btnProps,
-                        backgroundColor: "var(--input-active-red-dark)",
+                        backgroundColor: colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)",
                         '&:hover': {
-                            backgroundColor: colorScheme === 'light' ? "var(--input-active-red-light-hover)" : "var(--input-active-red-dark-hover)",
+                            backgroundColor: colorScheme === 'light' ? "var(--light-primary-hover)" : "var(--input-active-red-dark-hover)",
                         },
                     }}
                 >

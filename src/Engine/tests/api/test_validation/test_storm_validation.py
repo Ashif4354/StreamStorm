@@ -1,15 +1,15 @@
-from os.path import join, abspath
 from typing import NoReturn
 from json import load
-from fastapi.testclient import TestClient
+from pathlib import Path
 from logging import Logger, getLogger
-
 from unittest.mock import AsyncMock
+
+from fastapi.testclient import TestClient
 from pytest import MonkeyPatch, mark
 from pytest_mock import MockerFixture
 
 from fastapi.responses import Response
-from StreamStorm.core.StreamStorm import StreamStorm
+from lib.core.StreamStorm import StreamStorm
 
 
 logger: Logger = getLogger(f"tests.{__name__}")
@@ -83,7 +83,7 @@ def test_change_slow_mode(ss_instance: StreamStorm, client: TestClient, data: di
     result: int = data["result"]
     del data["result"] 
     
-    ss_instance.ready_event.set()  
+    ss_instance.context.ready_event.set()  
         
     response: Response = client.post("/storm/change_slow_mode", json=data)
     logger.debug(response.json())
@@ -93,7 +93,7 @@ def test_change_slow_mode(ss_instance: StreamStorm, client: TestClient, data: di
     
 @mark.parametrize("data", start_more_channels_data)
 def test_start_more_channels(mocker: MockerFixture, ss_instance: StreamStorm, client: TestClient, data: dict) -> NoReturn:
-    mocker.patch("StreamStorm.api.routers.StormRouter.StreamStorm.start", new=AsyncMock())
+    mocker.patch("lib.api.routers.StormRouter.StreamStorm.start", new=AsyncMock())
     
     logger.debug("DATA ID: %s", data["id"])
     del data["id"]
@@ -101,7 +101,7 @@ def test_start_more_channels(mocker: MockerFixture, ss_instance: StreamStorm, cl
     result: int = data["result"]
     del data["result"]    
     
-    ss_instance.ready_event.set()
+    ss_instance.context.ready_event.set()
     
     response: Response = client.post("/storm/start_more_channels", json=data)
     logger.debug(response.json())
@@ -119,10 +119,12 @@ def test_get_channels_data(monkeypatch: MonkeyPatch, ss_instance: StreamStorm, c
     del data["result"]    
     
     if result == 200:
-        from StreamStorm.api.routers import StormRouter
-        assets_dir: str = join(abspath("."), "tests", "assets_for_tests")
+        from lib.api.routers import StormRouter
+        # assets_dir: str = join(abspath("."), "tests", "assets_for_tests")
+        assets_for_tests_dir: Path = Path(__file__).parent.parent.parent.resolve() / "assets_for_tests"
+        data_json_path: Path = Path(assets_for_tests_dir) / "Environment" / "data.json"
         
-        monkeypatch.setattr(StormRouter, "user_data_dir", lambda *args, **kwargs: assets_dir)
+        monkeypatch.setattr(StormRouter.settings, "data_json_path", data_json_path)
     
     response: Response = client.post("/storm/get_channels_data", json=data)
     logger.debug(response.json())

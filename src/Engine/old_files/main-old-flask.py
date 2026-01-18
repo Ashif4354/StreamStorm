@@ -13,9 +13,9 @@ from waitress import serve
 # from multiprocessing import Manager
 # from multiprocessing.managers import SyncManager
 
-from StreamStorm.StreamStorm import StreamStorm
-from StreamStorm.Profiles import Profiles
-from Engine.StreamStorm.api.Validation import (
+from lib.StreamStorm import StreamStorm
+from lib.Profiles import Profiles
+from Engine.lib.api.Validation import (
     Validate,
     StormData,
     ProfileData,

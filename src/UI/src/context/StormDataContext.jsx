@@ -2,20 +2,16 @@
 /* eslint-disable react/prop-types */
 import { createContext, useState, useRef, useContext } from 'react';
 import { useNotifications } from "@toolpad/core/useNotifications";
-import { useLocalStorageState } from "@toolpad/core/useLocalStorageState";
-import { DEFAULT_HOST_ADDRESS } from '../lib/Constants';
 
 const StormDataContext = createContext();
 
 const StormDataProvider = ({ children }) => {
 
     const notifications = useNotifications();
-    const [hostAddress] = useLocalStorageState('hostAddress', DEFAULT_HOST_ADDRESS);
 
     const SC = useRef(null);
 
     const [loading, setLoading] = useState(false);
-    const [stormInProgress, setStormInProgress] = useState(false);
 
     const [videoURL, setVideoURL] = useState("");
     const [videoURLError, setVideoURLError] = useState(false);
@@ -53,6 +49,8 @@ const StormDataProvider = ({ children }) => {
     const [endChannelIndexError, setEndChannelIndexError] = useState(false);
     const [endChannelIndexHelperText, setEndChannelIndexHelperText] = useState("");
 
+    const [channels, setChannels] = useState([]);
+
     const [advancedSelectedChannels, setAdvancedSelectedChannels] = useState([]);
     const [advancedChannelsErrorText, setAdvancedChannelsErrorText] = useState("");
 
@@ -61,6 +59,7 @@ const StormDataProvider = ({ children }) => {
     const [engineVersion, setEngineVersion] = useState('...');  
 
     const getChannels = () => {
+        let channels;
         const getRange = (start, end) => {
             const range = [];
             
@@ -72,16 +71,19 @@ const StormDataProvider = ({ children }) => {
         }
 
         if (channelSelection === 'basic') {
-            return getRange(1, noOfChannels);
+            channels = getRange(1, noOfChannels);
         } else if (channelSelection === 'intermediate') {
-            return getRange(startChannelIndex, endChannelIndex);
+            channels = getRange(startChannelIndex, endChannelIndex);
         } else if (channelSelection === 'advanced') {
-            return advancedSelectedChannels;
-        }
+            channels = advancedSelectedChannels;
+        }   
+
+        setChannels(channels);
+        return channels;
     }
 
     const formControls = {
-        loading, setLoading, stormInProgress, setStormInProgress, notifications,
+        loading, setLoading, notifications,
         videoURL, setVideoURL, videoURLError, setVideoURLError, videoURLHelperText, setVideoURLHelperText, chatURL, setChatURL,
         messages, setMessages, messagesString, setMessagesString, messagesError, setMessagesError, messagesHelperText, setMessagesHelperText,
         subscribe, setSubscribe, subscribeAndWait, setSubscribeAndWait,
@@ -92,8 +94,8 @@ const StormDataProvider = ({ children }) => {
         startChannelIndex, setStartChannelIndex, startChannelIndexError, setStartChannelIndexError, startChannelIndexHelperText, setStartChannelIndexHelperText,
         endChannelIndex, setEndChannelIndex, endChannelIndexError, setEndChannelIndexError, endChannelIndexHelperText, setEndChannelIndexHelperText,
         advancedSelectedChannels, setAdvancedSelectedChannels, advancedChannelsErrorText, setAdvancedChannelsErrorText,
-        loadInBackground, setLoadInBackground, errorText, setErrorText,
-        hostAddress, SC, engineVersion, setEngineVersion,
+        loadInBackground, setLoadInBackground, errorText, setErrorText, channels, setChannels,
+        SC, engineVersion, setEngineVersion,
 
         getStormData: () => {
             return {

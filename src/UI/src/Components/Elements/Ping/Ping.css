@@ -17,6 +17,18 @@
 
 }
 
+.yellow-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: .75rem;
+    height: .75rem;
+    border-radius: 50%;
+    background-color: #ffa929;
+
+}
+
 .ping {
     position: relative;
     display: inline-block;

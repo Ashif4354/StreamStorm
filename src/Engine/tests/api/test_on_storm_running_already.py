@@ -1,17 +1,19 @@
 from logging import Logger, getLogger
 
 from fastapi import Response
-from pytest import MonkeyPatch, fixture
+from pytest import fixture
 from pytest_mock import MockerFixture
 
 from fastapi.testclient import TestClient
 
+from lib.core.EngineContext import EngineContext
+
 logger: Logger = getLogger(f"tests.{__name__}")
 
 @fixture(autouse=True)
-def set_ss_instance(mocker: MockerFixture, monkeypatch: MonkeyPatch):
-    mocker.patch("StreamStorm.api.routers.StormRouter.StreamStorm.ss_instance", object())
-    monkeypatch.setenv("BUSY", "0")
+def set_ss_instance(mocker: MockerFixture):
+    mocker.patch("lib.api.routers.StormRouter.StreamStorm.ss_instance", object())
+    EngineContext.reset()
     
     
     

@@ -12,14 +12,14 @@ const AreYouSure = ({ payload, open, onClose }) => {
             onClose={() => onClose(null)}
             sx={{
                 "& .MuiDialog-paper": {
-                    backgroundColor: colorScheme === 'light' ? "var(--white)" : "var(--light-gray)",
+                    backgroundColor: colorScheme === 'light' ? "var(--light-card-bg)" : "var(--light-gray)",
                     backgroundImage: "none",
                     borderRadius: "var(--border-radius)",
                 },
             }}
         >
             <DialogTitle>
-                Confirm                
+                Confirm
             </DialogTitle>
             <DialogContent>
                 <DialogContentText>
@@ -46,9 +46,9 @@ const AreYouSure = ({ payload, open, onClose }) => {
                     sx={{
                         ...btnProps,
                         width: "100px",
-                        backgroundColor: "var(--input-active-red-dark)",
+                        backgroundColor: colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)",
                         '&:hover': {
-                            backgroundColor: colorScheme === 'light' ? "var(--input-active-red-light-hover)" : "var(--input-active-red-dark-hover)",
+                            backgroundColor: colorScheme === 'light' ? "var(--light-primary-hover)" : "var(--input-active-red-dark-hover)",
                         },
                     }}
                 >

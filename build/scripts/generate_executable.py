@@ -22,25 +22,25 @@ OS: str = system()
 def check_engine_env():
     """Check if the Engine environment is set to production before building."""
     
-    from src.Engine.StreamStorm.config.config import CONFIG  # noqa: E402
+    from src.Engine.lib.settings import settings  # noqa: E402
     
     log_info("Checking environment configuration...")
     
-    if CONFIG["ENV"] in ("development", "test"):
+    if settings.env in ("development", "test"):
         raise ValueError(
-            "Environment is not set to 'production' in Engine/config/config.py. "
+            "Environment is not set to 'production' in Engine/settings/settings.py. "
             "Change it to 'production' before building the release."
         )
         
     new_version: str = load(open(str(ROOT / "project.json")))["version"]
         
-    if CONFIG["VERSION"] != new_version:
+    if settings.version != new_version:
         raise ValueError(
-            "Version in Engine/config/config.py is not the same as the new version. "
+            "Version in Engine/settings/settings.py is not the same as the new version. "
             "Change it to the new version before building the release."
         )
     
-    log_info(f"Environment configuration check passed. ENV is set to '{CONFIG['ENV']}'.")
+    log_info(f"Environment configuration check passed. ENV is set to '{settings.env}'.")
 
 
 def generate_executable() -> None:
