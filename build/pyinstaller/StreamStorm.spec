@@ -2,8 +2,10 @@
 from pathlib import Path
 from platform import system
 from os import getcwd
+import os
 from PyInstaller.utils.hooks import copy_metadata, collect_all, collect_data_files
 import importlib.metadata
+import fakeredis
 
 ROOT = Path(getcwd()).parent.parent.resolve()
 ENGINE = ROOT / "src" / "Engine"
@@ -14,16 +16,28 @@ binaries = []
 hiddenimports = []
 
 lupa_datas, lupa_binaries, lupa_hiddenimports = collect_all('lupa')
-fakeredis_datas = collect_data_files('fakeredis')
 
-datas = lupa_datas + fakeredis_datas
-binaries += lupa_binaries
-hiddenimports += lupa_hiddenimports
+fr_datas, fr_binaries, fr_hidden = collect_all('fakeredis')
+
+fr_path = os.path.dirname(fakeredis.__file__)
+json_path = os.path.join(fr_path, 'commands.json')
+
+if os.path.exists(json_path):
+    print(f"Manually forcing inclusion of: {json_path}")
+    fr_datas.append((json_path, 'fakeredis'))
+else:
+    print(f"Warning: Could not find commands.json at {json_path}")
+
+# Combine everything
+datas = datas + lupa_datas + fr_datas
+binaries = binaries + lupa_binaries + fr_binaries
+hiddenimports = hiddenimports + lupa_hiddenimports + fr_hidden
 
 for dist in importlib.metadata.distributions():
     package_name = dist.metadata['Name']
     try:
-        datas += copy_metadata(package_name)
+        if package_name not in ['pip', 'setuptools', 'wheel']: 
+            datas += copy_metadata(package_name)
     except Exception as e:
         print(f"Skipping metadata for {package_name}: {e}")
 
@@ -68,13 +82,13 @@ exe = EXE(
     upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,                 # = --windowed
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    uac_admin=True,                # = --uac-admin
-    icon=[str(UI / "public" / "favicon.ico")],   # = --icon
-    contents_directory="data",     # = --contents-directory=data
+    uac_admin=True,
+    icon=[str(UI / "public" / "favicon.ico")],
+    contents_directory="data",
 )
