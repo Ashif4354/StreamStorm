@@ -64,7 +64,7 @@ class StormData(BaseModel):
     )
     background: bool = Field(
         ...,
-        description="Whether to run browser instances in headless/background mode. Set to true for invisible operation, false to see browser windows for debugging. Default: false",
+        description="Whether to run browser instances in headless/background mode."
     )
 
     @field_validator("video_url")

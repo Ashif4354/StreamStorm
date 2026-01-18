@@ -81,6 +81,8 @@ async def start(data: StormData) -> JSONResponse:
         data.subscribe_and_wait_time (int): Time in seconds to wait after subscribing
         data.background (bool): Whether to run browsers in headless/background mode
     
+    The background flag must be false unless specified by the user explicitly that they want to run the storm in background mode.
+    
     Returns:
         success (bool): True if the storm started successfully
         message (str): Confirmation message
