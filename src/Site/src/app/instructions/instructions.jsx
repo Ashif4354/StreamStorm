@@ -135,6 +135,11 @@ const Instructions = () => {
             <li className="instructions-list-item">The application will automatically save the cookies after successful login.</li>
             <li className="instructions-list-item">These cookies will be used to authenticate when starting the storm.</li>
           </ul>
+          <div className="instructions-warning">
+            <p className="instructions-warning-text">
+              <strong>Note:</strong> If your Google login is not reflected, it means the cookies have expired or corrupted and you need to try again.
+            </p>
+          </div>
 
           <h4>Login with Cookie Files</h4>
           <ul className="instructions-list">
@@ -147,7 +152,7 @@ const Instructions = () => {
 
           <div className="instructions-warning">
             <p className="instructions-warning-text">
-              <strong>Note:</strong> If the provided cookies are invalid or expired, the application will reject them. If your Google login is not reflected, it means the cookies have expired and you need to log in again.
+              <strong>Note:</strong> If the provided cookies are invalid or expired, the application will reject them. If your Google login is not reflected, it means the cookies have expired or invalid and you need to log in again.
             </p>
           </div>
 

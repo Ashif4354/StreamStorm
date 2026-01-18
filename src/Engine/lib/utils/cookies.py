@@ -24,37 +24,50 @@ class Cookies(BaseModel):
 
 
 def is_expired(cookie: dict[str, Any]) -> bool:
-    return cookie.get("expiry", 0) < time()
+    expiry: float = cookie.get("expiry", 0)
+
+    if not expiry:
+        return False
+
+    return expiry < time()
 
 
 def get_cookies() -> Optional[list]:
     from json import load, JSONDecodeError
     
-    cookies: Optional[list] = None
+    cookies_data: Optional[list] = None
 
     with suppress(FileNotFoundError, JSONDecodeError):
         with open(settings.cookies_path, "r", encoding="utf-8") as file:
-            cookies = load(file)
+            cookies_data = load(file)
 
-    if cookies is None:
+    if cookies_data is None:
         logger.warning("No cookies found.")
-        return cookies
+        return None
 
     try:
-        cookies = Cookies(cookies=cookies).model_dump()["cookies"]
+        validated_cookies = Cookies(cookies=cookies_data).model_dump()["cookies"]
         logger.info("Valid cookies found, Logging in with cookies now.")
 
     except (ValueError, TypeError) as e:
         logger.error(f"Error parsing cookies: {e}")
         logger.warning("Invalid cookies found.")
-        cookies = None
-    
-    for cookie in cookies:
-        if is_expired(cookie):
-            logger.error("Expired cookie found.")
-            raise SystemError("One or more cookies are expired, Login again or Provide valid cookies.")
+        return None
 
-    return cookies
+    final_cookies: list = []
+
+    for cookie in validated_cookies:
+        if is_expired(cookie):
+            logger.warning("Expired cookie found: %s", cookie.get("name"))
+            continue
+        
+        final_cookies.append(cookie)
+    
+    if not final_cookies:
+        logger.error("One or more cookies are expired, Login again or Provide valid cookies.")
+        raise SystemError("One or more cookies are expired, Login again or Provide valid cookies.")
+    
+    return final_cookies
     
 
 def parse_netscape_cookies(file_content: str, filename: str) -> list[dict[str, Any]]:
