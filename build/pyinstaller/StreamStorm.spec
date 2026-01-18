@@ -2,7 +2,7 @@
 from pathlib import Path
 from platform import system
 from os import getcwd
-from PyInstaller.utils.hooks import copy_metadata
+from PyInstaller.utils.hooks import copy_metadata, collect_all, collect_data_files
 import importlib.metadata
 
 ROOT = Path(getcwd()).parent.parent.resolve()
@@ -10,6 +10,11 @@ ENGINE = ROOT / "src" / "Engine"
 UI = ROOT / "src" / "UI"
 
 datas = []
+
+lupa_datas, lupa_binaries, lupa_hiddenimports = collect_all('lupa')
+fakeredis_datas = collect_data_files('fakeredis')
+
+datas = lupa_datas + fakeredis_datas
 
 for dist in importlib.metadata.distributions():
     package_name = dist.metadata['Name']
@@ -33,7 +38,7 @@ a = Analysis(
     pathex=[str(ROOT)],
     binaries=[],
     datas=datas,
-    hiddenimports=[],
+    hiddenimports=['lupa', 'lupa.lua51'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -56,7 +61,7 @@ exe = EXE(
     upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,                 # = --windowed
+    console=True,                 # = --windowed
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
