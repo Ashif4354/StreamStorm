@@ -1,6 +1,7 @@
 from typing import Any, Optional
 from contextlib import suppress
 from logging import getLogger, Logger
+from time import time
 
 from pydantic import BaseModel
 
@@ -20,6 +21,11 @@ class Cookie(BaseModel):
 
 class Cookies(BaseModel):
     cookies: list[Cookie]
+
+
+def is_expired(cookie: dict[str, Any]) -> bool:
+    return cookie.get("expiry", 0) < time()
+
 
 def get_cookies() -> Optional[list]:
     from json import load, JSONDecodeError
@@ -43,6 +49,11 @@ def get_cookies() -> Optional[list]:
         logger.warning("Invalid cookies found.")
         cookies = None
     
+    for cookie in cookies:
+        if is_expired(cookie):
+            logger.error("Expired cookie found.")
+            raise SystemError("One or more cookies are expired, Login again or Provide valid cookies.")
+
     return cookies
     
 
@@ -91,4 +102,4 @@ def parse_netscape_cookies(file_content: str, filename: str) -> list[dict[str, A
     return cookies
 
 
-__all__ = ["parse_netscape_cookies", "get_cookies"]
+__all__ = ["parse_netscape_cookies", "get_cookies", "is_expired"]

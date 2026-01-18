@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from ..validation import ProfileData
 from ...core.Profiles import Profiles
 from ...core.EngineContext import EngineContext
-from ...utils.cookies import parse_netscape_cookies
+from ...utils.cookies import parse_netscape_cookies, is_expired
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
 
@@ -178,6 +178,17 @@ async def save_cookies(files: list[UploadFile] = File(...)) -> JSONResponse:
                 "message": "No valid cookies found in uploaded files"
             }
         )
+
+    for cookie in all_cookies:
+
+        if is_expired(cookie):
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "message": "One or more cookies are expired, Provide valid cookies."
+                }
+            )
 
     # with open("cookies.json", "w") as f:
     #     from json import dump as json_dump
