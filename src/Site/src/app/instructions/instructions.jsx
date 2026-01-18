@@ -78,7 +78,7 @@ const Instructions = () => {
                   <a href="https://streamstorm.darkglance.in" target="_blank" rel="noopener noreferrer" className="instructions-link">StreamStorm Download Page</a>
                 </li>
                 <li className="instructions-list-item">
-                  <a href="https://github.com/Ashif4344/StreamStorm" target="_blank" rel="noopener noreferrer" className="instructions-link">GitHub Repository</a>
+                  <a href="https://github.com/Ashif4354/StreamStorm" target="_blank" rel="noopener noreferrer" className="instructions-link">GitHub Repository</a>
                 </li>
               </ul>
             </li>
