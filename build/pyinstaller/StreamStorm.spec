@@ -2,7 +2,7 @@
 from pathlib import Path
 from platform import system
 from os import getcwd
-from PyInstaller.utils.hooks import copy_metadata
+from PyInstaller.utils.hooks import copy_metadata, collect_all, collect_data_files
 import importlib.metadata
 
 ROOT = Path(getcwd()).parent.parent.resolve()
@@ -10,6 +10,15 @@ ENGINE = ROOT / "src" / "Engine"
 UI = ROOT / "src" / "UI"
 
 datas = []
+binaries = []
+hiddenimports = []
+
+lupa_datas, lupa_binaries, lupa_hiddenimports = collect_all('lupa')
+fakeredis_datas = collect_data_files('fakeredis')
+
+datas = lupa_datas + fakeredis_datas
+binaries += lupa_binaries
+hiddenimports += lupa_hiddenimports
 
 for dist in importlib.metadata.distributions():
     package_name = dist.metadata['Name']
@@ -21,19 +30,22 @@ for dist in importlib.metadata.distributions():
 match system():
     case "Windows":
         file_name = "StreamStorm"
+        print("🪟 Building for Windows")
     case "Darwin":
         file_name = "StreamStorm-mac"
+        print("🍎 Building for macOS")
     case "Linux":
         file_name = "StreamStorm-linux"
+        print("🐧 Building for Linux")
     case _:
         raise OSError(f"Unsupported OS: {system()}")
 
 a = Analysis(
     [str(ENGINE / "main.py")],
     pathex=[str(ROOT)],
-    binaries=[],
+    binaries=binaries,
     datas=datas,
-    hiddenimports=[],
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -56,7 +68,7 @@ exe = EXE(
     upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,                 # = --windowed
+    console=True,                 # = --windowed
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
