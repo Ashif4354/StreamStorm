@@ -1,10 +1,5 @@
 .PHONY: help run run-dev run-api run-api-dev pytest run-ui run-site build-ui build-site deb artifacts update-versions executable firebase-deploy dgupdater-commit-publish generate-setup-windows trigger-cross-os-build build-and-release
 
-# Set shell to bash for Unix systems (Linux/macOS)
-# Windows uses cmd.exe by default which is handled via ifeq
-ifneq ($(OS),Windows_NT)
-	SHELL := /bin/bash
-endif
 
 # Variables
 PY_SCRIPTS_DIR := build/scripts
@@ -21,8 +16,8 @@ else
 	ifeq ($(DETECTED_OS),Darwin)
 		DETECTED_OS := Darwin
 	endif
-	ACTIVATE_VENV := source venv/bin/activate &&
-	ACTIVATE_FUNCTIONS_VENV := source src/functions/venv/bin/activate &&
+	ACTIVATE_VENV := . venv/bin/activate &&
+	ACTIVATE_FUNCTIONS_VENV := . src/functions/venv/bin/activate &&
 endif
 
 help:
