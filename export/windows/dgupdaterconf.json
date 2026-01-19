@@ -2,7 +2,7 @@
     "obj_type": "config",
     "_id": "StreamStorm_config",
     "app_name": "StreamStorm",
-    "version": "4.0.0",
+    "version": "4.0.1",
     "mongodb_connection_string_client": "mongodb+srv://streamstorm:streamstorm@streamstorm.w6jml3j.mongodb.net/",
     "files_in_latest_version": [
         "\\dgupdaterconf.json",
