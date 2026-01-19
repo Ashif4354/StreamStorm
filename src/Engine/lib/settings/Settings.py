@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     port: int = 1919  # 1919, because 19 is the character number for "S" in the English alphabets.
 
     env: str = "production"  # Valid values {"development", "production", "test"}
-    version: str = "4.0.0"
+    version: str = "4.0.1"
     root: Path = ROOT
     os: str = system()
     run_only_api: bool = False
