@@ -60,6 +60,10 @@ const ServerContextProvider = ({ children }) => {
                             autoHideDuration: 3000,
                         });
                     }
+                    if (data.error) {
+                        console.error('Server context error:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['server_context_error']);
+                    }
                 }
             })
             .catch(error => {

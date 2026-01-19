@@ -60,8 +60,10 @@ const AppStateProvider = ({ children }) => {
                         setIsLoggedIn(data.general.is_logged_in ?? false);
                     }
                 } else {
-                    console.error("Failed to fetch settings:", data.message);
-                    atatus.notify(data.message, {}, ['settings_fetch_failed']);
+                    if (data.error) {
+                        console.error("Failed to fetch settings:", data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['settings_fetch_failed']);
+                    }
                 }
             } catch (error) {
                 console.error('Failed to fetch settings:', error);

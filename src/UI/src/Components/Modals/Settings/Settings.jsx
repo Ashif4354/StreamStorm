@@ -55,6 +55,11 @@ const Settings = (props) => {
                     setDefaultAIProvider(data.defaultProvider ?? null);
                     setDefaultAIModel(data.defaultModel ?? null);
                     setDefaultAIBaseUrl(data.defaultBaseUrl ?? null);
+                } else {
+                    if (data.error) {
+                        console.error('Failed to fetch API keys:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['api_keys_fetch_failed']);
+                    }
                 }
             } catch (error) {
                 console.error('Failed to fetch API keys:', error);
@@ -95,8 +100,13 @@ const Settings = (props) => {
                 setDefaultAIModel(data.defaultModel);
                 setDefaultAIBaseUrl(data.defaultBaseUrl ?? null);
                 return true;
+            } else {
+                if (data.error) {
+                    console.error('Failed to set default provider:', data.error);
+                    atatus.notify(new Error(data.error), { response: data }, ['set_default_provider_failed']);
+                }
+                return false;
             }
-            return false;
         } catch (error) {
             console.error('Failed to set default provider:', error);
             atatus.notify(error, {}, ['settings_set_default_provider_error']);

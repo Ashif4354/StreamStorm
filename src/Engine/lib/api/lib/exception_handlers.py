@@ -14,7 +14,11 @@ async def common_exception_handler(request: Request, exc: Exception) -> JSONResp
     
     return JSONResponse(
         status_code=500,
-        content={"success": False, "message": "An internal server error occurred"},
+        content={
+            "success": False,
+            "message": "An internal server error occurred",
+            "error": str(exc)
+        },
     )    
     
     

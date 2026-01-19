@@ -36,7 +36,11 @@ const AddChannels = ({ payload, open, onClose }) => {
             .then((response) => response.json())
             .then((data) => {
                 if (!data.success) {
-                    setErrorText(data.message || "Failed to fetch channels data.");
+                    setErrorText(data.message || 'Failed to fetch channels data.');
+                    if (data.error) {
+                        console.error('Failed to fetch channels data:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['channel_data_fetch_failed']);
+                    }
                     return;
                 }
                 setChannelsData(data.channels);

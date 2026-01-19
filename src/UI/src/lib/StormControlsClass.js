@@ -21,7 +21,7 @@ class StormControlsClass {
     log_analytics(stormData) {
         if (stormData.subscribe) { logEvent(analytics, "subscribe") }
         if (stormData.subscribe_and_wait) { logEvent(analytics, "subscribe_and_wait") }
-        if (stormData.subscribe_and_wait_time ) { logEvent(analytics, "subscribe_and_wait_time", { time: stormData.subscribe_and_wait_time }) }
+        if (stormData.subscribe_and_wait_time) { logEvent(analytics, "subscribe_and_wait_time", { time: stormData.subscribe_and_wait_time }) }
         if (stormData.slow_mode != 5) { logEvent(analytics, "slow_mode_change", { time: stormData.slow_mode }) }
         if (stormData.background) { logEvent(analytics, "background_load") }
         logEvent(analytics, "channel_count", { count: stormData.channels.length });
@@ -67,6 +67,10 @@ class StormControlsClass {
                     this.notifications.show("Failed to start storm", {
                         severity: 'error',
                     });
+                    if (data.error) {
+                        console.error('Failed to start storm:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['storm_start_failed']);
+                    }
                     logEvent(analytics, "storm_start_failed");
                 }
             })
@@ -106,6 +110,10 @@ class StormControlsClass {
                     this.notifications.show(data.message || 'Failed to stop the storm', {
                         severity: 'error',
                     });
+                    if (data.error) {
+                        console.error('Failed to stop storm:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['storm_stop_failed']);
+                    }
                     logEvent(analytics, "storm_stop_failed");
                 }
 
@@ -139,6 +147,10 @@ class StormControlsClass {
                 if (data.success) {
                     logEvent(analytics, "storm_stopped_2");
                 } else {
+                    if (data.error) {
+                        console.error('Failed to stop storm (2):', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['storm_stop_2_failed']);
+                    }
                     logEvent(analytics, "storm_stop_2_failed");
                 }
 
@@ -158,7 +170,7 @@ class StormControlsClass {
         this.setControlsDisabled(true);
 
         fetch(`${this.hostAddress}/storm/pause`, {
-            method: 'POST', 
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -175,6 +187,10 @@ class StormControlsClass {
                     this.notifications.show(data.message || 'Failed to pause the storm', {
                         severity: 'error',
                     });
+                    if (data.error) {
+                        console.error('Failed to pause storm:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['storm_pause_failed']);
+                    }
                     logEvent(analytics, "storm_pause_failed");
                 }
             })
@@ -214,6 +230,10 @@ class StormControlsClass {
                     this.notifications.show(data.message || 'Failed to resume the storm', {
                         severity: 'error',
                     });
+                    if (data.error) {
+                        console.error('Failed to resume storm:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['storm_resume_failed']);
+                    }
                     logEvent(analytics, "storm_resume_failed");
                 }
             })
@@ -252,6 +272,10 @@ class StormControlsClass {
                     this.notifications.show(data.message || 'Failed to set dont-wait', {
                         severity: 'error',
                     });
+                    if (data.error) {
+                        console.error('Failed to set dont-wait:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['dont_wait_failed']);
+                    }
                     logEvent(analytics, "dont_wait_failed");
                 }
             })
@@ -269,7 +293,7 @@ class StormControlsClass {
     }
 
     changeMessages(messages, setMessages, setMessagesString) {
-        
+
         this.setChangeMessagesLoading(true);
         this.setControlsDisabled(true);
 
@@ -293,6 +317,10 @@ class StormControlsClass {
                     this.notifications.show(data.message || 'Failed to change messages', {
                         severity: 'error',
                     });
+                    if (data.error) {
+                        console.error('Failed to change messages:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['change_messages_failed']);
+                    }
                     logEvent(analytics, "change_messages_failed");
                 }
             })
@@ -332,6 +360,10 @@ class StormControlsClass {
                     this.notifications.show(data.message || 'Failed to change slow mode', {
                         severity: 'error',
                     });
+                    if (data.error) {
+                        console.error('Failed to change slow mode:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['change_slow_mode_failed']);
+                    }
                     logEvent(analytics, "change_slow_mode_failed");
                 }
             })
@@ -370,6 +402,10 @@ class StormControlsClass {
                     this.notifications.show(data.message || 'Failed to start more channels', {
                         severity: 'error',
                     });
+                    if (data.error) {
+                        console.error('Failed to start more channels:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['start_more_channels_failed']);
+                    }
                     logEvent(analytics, "start_more_channels_failed");
                 }
             })

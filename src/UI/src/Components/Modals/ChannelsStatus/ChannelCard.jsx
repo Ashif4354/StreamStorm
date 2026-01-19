@@ -60,7 +60,11 @@ const ChannelCard = (props) => {
                         notifications.show('Instance Killed', { severity: 'success' });
                         logEvent(analytics, "kill_instance_success", { instance: id });
                     } else {
-                        notifications.show(data.message, { severity: 'error' });
+                        notifications.show(data.message || 'Failed to kill instance', { severity: 'error' });
+                        if (data.error) {
+                            console.error('Failed to kill instance:', data.error);
+                            atatus.notify(new Error(data.error), { response: data }, ['kill_instance_failed']);
+                        }
                         logEvent(analytics, "kill_instance_failed", { instance: id });
                     }
                 })

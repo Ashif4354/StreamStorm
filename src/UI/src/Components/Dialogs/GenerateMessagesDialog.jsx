@@ -56,7 +56,11 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
 
             if (!data.success) {
                 setError(true);
-                setHelperText(data.message || "Failed to generate messages.");
+                setHelperText(data.message || 'Failed to generate messages.');
+                if (data.error) {
+                    console.error('Failed to generate messages:', data.error);
+                    atatus.notify(new Error(data.error), { response: data }, ['ai_generate_messages_failed']);
+                }
                 logEvent(analytics, "ai_generate_messages_failed");
                 return;
             }

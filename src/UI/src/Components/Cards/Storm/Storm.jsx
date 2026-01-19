@@ -47,7 +47,10 @@ const Storm = () => {
                         appState.setStormInProgress(false);
                     }
                 } else {
-                    console.error("Failed to fetch storm status:", data.message);
+                    if (data.error) {
+                        console.error("Failed to fetch storm status:", data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['storm_status_check_failed']);
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching storm status:", error);

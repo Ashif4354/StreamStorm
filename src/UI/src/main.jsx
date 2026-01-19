@@ -4,7 +4,10 @@ atatus.config(import.meta.env.VITE_ATATUS_RUM_API_KEY,
     {
         tags: [import.meta.env.VITE_APP_ENV || 'unknown'],
         version: import.meta.env.VITE_APP_VERSION || 'unknown',
-        console: true
+        console: true,
+        consoleTimeline: true,
+        consoleErrorNotify: true,
+        consoleTimelineLevels: ["log","debug","info","warn","error"]
     }
 ).install();
 
