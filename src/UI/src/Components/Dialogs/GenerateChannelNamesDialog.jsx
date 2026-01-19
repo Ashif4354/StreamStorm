@@ -55,7 +55,11 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
 
             if (!data.success) {
                 setError(true);
-                setHelperText(data.message || "Failed to generate channel names.");
+                setHelperText(data.message || 'Failed to generate channel names.');
+                if (data.error) {
+                    console.error('Failed to generate channel names:', data.error);
+                    atatus.notify(new Error(data.error), { response: data }, ['ai_generate_channel_names_failed']);
+                }
                 logEvent(analytics, "ai_generate_channel_names_failed");
                 return;
             }

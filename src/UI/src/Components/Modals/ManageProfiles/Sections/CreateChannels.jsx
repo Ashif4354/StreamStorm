@@ -114,8 +114,11 @@ const CreateChannels = () => {
                         severity: 'error'
                     });
 
+                    if (data.error) {
+                        console.error('Failed to validate directory:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['validate_path_failed']);
+                    }
                     logEvent(analytics, 'validate_path_failed');
-                    atatus.notify()
                 }
             })
             .catch((error) => {
@@ -187,10 +190,14 @@ const CreateChannels = () => {
                         severity: 'success'
                     });
                 } else {
-                    setErrorText(data.message);
+                    setErrorText(data.message || 'Failed to create channels');
 
+                    if (data.error) {
+                        console.error('Failed to create channels:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['create_channels_failed']);
+                    }
                     logEvent(analytics, 'create_channels_failed');
-                    notifications.show(data.message, {
+                    notifications.show(data.message || 'Failed to create channels', {
                         severity: 'error'
                     });
                 }

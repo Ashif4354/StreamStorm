@@ -9,6 +9,8 @@ import RadioSetting from './RadioSetting';
 import ButtonSetting from './ButtonSetting';
 import AreYouSure from '../../../../Dialogs/AreYouSure';
 
+import * as atatus from 'atatus-spa';
+
 const GeneralSettings = () => {
     const { colorScheme } = useColorScheme();
     const { hostAddress, loginMethod, setLoginMethod, setIsLoggedIn, settingsLoading } = useAppState();
@@ -46,8 +48,14 @@ const GeneralSettings = () => {
                 setTimeout(() => setSuccess(null), 3000);
             } else {
                 setError(data.message || 'Failed to save settings');
+                if (data.error) {
+                    console.error('Failed to save settings:', data.error);
+                    atatus.notify(new Error(data.error), { response: data }, ['general_settings_save_failed']);
+                }
             }
         } catch (err) {
+            console.error('Failed to save settings:', err);
+            atatus.notify(err, {}, ['general_settings_save_error']);
             setError('Failed to save settings');
         } finally {
             setSaving(false);
@@ -79,8 +87,14 @@ const GeneralSettings = () => {
                 setTimeout(() => setSuccess(null), 5000);
             } else {
                 setError(data.message || 'Failed to clear login data');
+                if (data.error) {
+                    console.error('Failed to clear login data:', data.error);
+                    atatus.notify(new Error(data.error), { response: data }, ['clear_login_data_failed']);
+                }
             }
         } catch (err) {
+            console.error('Failed to clear login data:', err);
+            atatus.notify(err, {}, ['clear_login_data_error']);
             setError('Failed to clear login data');
         } finally {
             setClearing(false);

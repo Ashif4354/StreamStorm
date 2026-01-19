@@ -1,5 +1,4 @@
-import PropTypes from "prop-types";
-import { Paper, Typography, Box, Divider } from "@mui/material";
+import { Paper, Typography, Box } from "@mui/material";
 
 export default function MUIRechartsTooltip({
     active,
@@ -74,11 +73,3 @@ export default function MUIRechartsTooltip({
         </Paper>
     );
 }
-
-MUIRechartsTooltip.propTypes = {
-    active: PropTypes.bool,
-    payload: PropTypes.array,
-    label: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    formatter: PropTypes.func,
-    sx: PropTypes.object,
-};

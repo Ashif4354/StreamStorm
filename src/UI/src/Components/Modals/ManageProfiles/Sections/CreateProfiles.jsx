@@ -67,10 +67,14 @@ const CreateProfiles = () => {
                     });
                     logEvent(analytics, "create_profiles_success", { count: profiles });
                 } else {
-                    setErrorText(data.message || "An error occurred while creating profiles.");
+                    setErrorText(data.message || 'An error occurred while creating profiles.');
                     notifications.show("Failed to create profiles.", {
                         severity: "error",
                     });
+                    if (data.error) {
+                        console.error('Failed to create profiles:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['create_profiles_failed']);
+                    }
                     logEvent(analytics, "create_profiles_failed", { count: profiles });
                 }
             })

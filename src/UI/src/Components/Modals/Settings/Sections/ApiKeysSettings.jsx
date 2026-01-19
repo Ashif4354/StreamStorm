@@ -196,7 +196,7 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
                     baseUrl,
                     model: savedModel
                 });
-                
+
                 if (responseData.defaultModelUpdated && onDefaultModelUpdated) {
                     onDefaultModelUpdated(savedModel);
                 }
@@ -205,7 +205,7 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
                 });
                 logEvent(analytics, "ai_api_key_save_success", { provider: provider.id });
             } else {
-                throw new Error('Failed to save');
+                throw new Error(responseData.error || responseData.message || 'Failed to save');
             }
         } catch (error) {
             console.error(`Failed to save ${provider.name} settings:`, error);

@@ -58,10 +58,14 @@ const DeleteAllProfiles = () => {
                     });
                     logEvent(analytics, "delete_all_profiles_success");
                 } else {
-                    setErrorText(data.message || "Failed to delete all profiles");
+                    setErrorText(data.message || 'Failed to delete all profiles');
                     notifications.show("Failed to delete all profiles", {
                         severity: 'error',
                     });
+                    if (data.error) {
+                        console.error('Failed to delete all profiles:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['delete_all_profiles_failed']);
+                    }
                     logEvent(analytics, "delete_all_profiles_failed");
                 }
             })

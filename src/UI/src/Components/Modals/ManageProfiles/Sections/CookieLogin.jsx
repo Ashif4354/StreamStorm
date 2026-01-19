@@ -53,10 +53,14 @@ const CookieLogin = () => {
                     });
                     logEvent(analytics, "cookie_login_success");
                 } else {
-                    setErrorText(data.message || "An error occurred during login.");
+                    setErrorText(data.message || 'An error occurred during login.');
                     notifications.show("Failed to login.", {
                         severity: "error",
                     });
+                    if (data.error) {
+                        console.error('Failed to cookie login:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['cookie_login_failed']);
+                    }
                     logEvent(analytics, "cookie_login_failed");
                 }
             })
@@ -114,10 +118,14 @@ const CookieLogin = () => {
                 });
                 logEvent(analytics, "cookie_upload_success");
             } else {
-                setUploadError(data.message || "Failed to upload cookies.");
+                setUploadError(data.message || 'Failed to upload cookies.');
                 notifications.show("Failed to upload cookies.", {
                     severity: "error",
                 });
+                if (data.error) {
+                    console.error('Failed to upload cookies:', data.error);
+                    atatus.notify(new Error(data.error), { response: data }, ['cookie_upload_failed']);
+                }
                 logEvent(analytics, "cookie_upload_failed");
             }
         } catch (error) {
