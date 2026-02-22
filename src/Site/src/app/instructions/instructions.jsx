@@ -29,6 +29,7 @@ const Instructions = () => {
                 <a href="#using-the-app" className="instructions-index-link">Using The Application</a>
                 <ul className="instructions-index-list">
                   <li><a href="#step1" className="instructions-index-link">Step 1. Manage Environment (Login)</a></li>
+                  <li><a href="#multiple-accounts" className="instructions-index-link">Adding Multiple Google Accounts</a></li>
                   <li><a href="#step2" className="instructions-index-link">Step 2. Starting The Storm</a></li>
                 </ul>
               </li>
@@ -134,6 +135,7 @@ const Instructions = () => {
             <li className="instructions-list-item">Log in with your Google account.</li>
             <li className="instructions-list-item">The application will automatically save the cookies after successful login.</li>
             <li className="instructions-list-item">These cookies will be used to authenticate when starting the storm.</li>
+            <li className="instructions-list-item">Want to use multiple Google accounts? See <a href="#multiple-accounts" className="instructions-index-link"><i>Adding Multiple Google Accounts</i></a>.</li>
           </ul>
           <div className="instructions-warning">
             <p className="instructions-warning-text">
@@ -178,6 +180,24 @@ const Instructions = () => {
           </ul>
           <p className="instructions-paragraph">The reason for creating all these profiles is that each channel requires a separate profile to avoid any conflicts or issues with opening the browser window, since one browser window locks its own profile from being accessed by another instance of the same browser.</p>
           <p className="instructions-note"><code className="instructions-inline-code">There is also provision to delete all temp profiles created by the application, in case you want to start fresh.</code></p>
+
+          <h3 id="multiple-accounts" className="instructions-step-heading">Adding Multiple Google Accounts</h3>
+          <p className="instructions-paragraph">StreamStorm supports logging in with multiple Google accounts. This allows you to use channels from different Google accounts in a single storm, giving you more channels to work with.</p>
+
+          <ul className="instructions-list">
+            <li className="instructions-list-item">First, complete the initial login using any of the methods above (see <a href="#step1" className="instructions-index-link">Step 1</a>).</li>
+            <li className="instructions-list-item">Once logged in, an <code className="instructions-inline-code">Add Another Google Account</code> button will appear below the "Login with Google" button in the Manage Environment modal.</li>
+            <li className="instructions-list-item">Click the <code className="instructions-inline-code">Add Another Google Account</code> button.</li>
+            <li className="instructions-list-item">A browser window will open with Google login page.</li>
+            <li className="instructions-list-item">Log in with your additional Google account.</li>
+            <li className="instructions-list-item">After logging in, the browser will close automatically and the new account's channels will be available for storming.</li>
+            <li className="instructions-list-item">You can repeat this process to add as many accounts as you need.</li>
+          </ul>
+          <div className="instructions-warning">
+            <p className="instructions-warning-text">
+              <strong>Note:</strong> Each additional account must have its own YouTube channels created. Channels from all added accounts will be available when starting a storm.
+            </p>
+          </div>
 
           <h3 id="step2" className="instructions-step-heading">Step 2. Starting The Storm</h3>
           <p className="instructions-paragraph">First open the application and make sure you have logged in as mentioned in <code className="instructions-inline-code">Step 1.</code></p>
