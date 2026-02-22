@@ -82,7 +82,7 @@ class SeparateInstance(Playwright):
 
             await asyncio_sleep(3)
             logger.debug(f"[{self.index}] [{self.channel_name}] Selecting channel {self.index}...")
-            await self.__click_channel(self.index)
+            await self.__click_channel(self.index, self.channel_name)
 
             logger.debug(f"[{self.index}] [{self.channel_name}] Login completed successfully")
             
@@ -131,10 +131,16 @@ class SeparateInstance(Playwright):
         return self._is_alive
 
 
-    async def __click_channel(self, index: int) -> None:
+    async def __click_channel(self, index: int, name: str | None = None) -> None:
         logger.debug(f"[{self.index}] [{self.channel_name}] Clicking on channel at position {index}")
+
+        if name is not None:
+            xpath = f"//*[@id='contents']/ytd-account-item-renderer[.//text()[normalize-space(.)='{name}']"
+        else:
+            xpath = f"//*[@id='contents']/ytd-account-item-renderer[{index}]"
+            
         brand_account: bool = await self.find_and_click_element(
-            f"//*[@id='contents']/ytd-account-item-renderer[{index}]",
+            xpath,
             "channel_element"
         )
         if brand_account:
