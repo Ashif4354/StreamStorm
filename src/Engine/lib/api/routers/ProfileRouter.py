@@ -261,7 +261,7 @@ async def add_account() -> JSONResponse:
             status_code=400,
             content={
                 "success": False,
-                "message": str(e)
+                "message": "No cookies found. Login first."
             }
         )
 
@@ -272,7 +272,7 @@ async def add_account() -> JSONResponse:
             status_code=500,
             content={
                 "success": False,
-                "message": f"Failed to add account: {str(e)}"
+                "message": "Failed to add account. Try again."
             }
         )
 
