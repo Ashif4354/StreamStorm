@@ -233,3 +233,56 @@ async def save_cookies(files: list[UploadFile] = File(...)) -> JSONResponse:
             "message": f"Successfully saved {len(final_cookies)} cookies from {len(files)} file(s)"
         }
     )
+
+
+@router.post("/add_account", operation_id="add_google_account", summary="Add another Google account to the environment.")
+async def add_account() -> JSONResponse:
+    """
+    Add a new Google account to the existing environment.
+    
+    Opens a browser window for the user to log in with an additional
+    Google account. Requires an existing login (cookies must be present).
+    
+    Returns:
+        success (bool): True if the account was added successfully
+        message (str): Confirmation message
+    """
+    EngineContext.set_busy("Adding Google account")
+    profiles: Profiles = Profiles()
+
+    try:
+        await run_in_threadpool(profiles.add_account)
+        logger.info("Successfully added a new Google account")
+
+    except ValueError as e:
+        logger.error(f"Error while adding account: {e}")
+        EngineContext.reset()
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "message": str(e)
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Error occurred while adding account: {e}")
+        EngineContext.reset()
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "message": f"Failed to add account: {str(e)}"
+            }
+        )
+
+    finally:
+        EngineContext.reset()
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            "success": True,
+            "message": "Google account added successfully"
+        }
+    )
