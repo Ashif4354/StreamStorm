@@ -135,7 +135,7 @@ class SeparateInstance(Playwright):
         logger.debug(f"[{self.index}] [{self.channel_name}] Clicking on channel at position {index}")
 
         if name is not None:
-            xpath = f"//*[@id='contents']/ytd-account-item-renderer[.//text()[normalize-space(.)='{name}']"
+            xpath = f"//*[@id='contents']/ytd-account-item-renderer[.//text()[normalize-space(.)='{name}']]"
         else:
             xpath = f"//*[@id='contents']/ytd-account-item-renderer[{index}]"
             
