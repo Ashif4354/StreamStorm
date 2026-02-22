@@ -7,6 +7,7 @@ from logging import Logger, getLogger
 
 from .UndetectedDrivers import UndetectedDrivers
 from ..settings import settings
+from ..utils.cookies import get_cookies
 
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
@@ -114,5 +115,15 @@ class Profiles:
     def delete_all_temp_profiles(self) -> None:
         
         self.__delete_environment_dir()
+
+    
+    def add_account(self) -> None:
+        if (cookies:= get_cookies()) is None:
+            raise ValueError("No cookies found. Login first.")
+
+        UD: UndetectedDrivers = UndetectedDrivers(self.base_profile_dir)
+        UD.initiate_base_profile() # Here we are not passing cookies because the base profile already has the required cookies.
+        UD.youtube_login(add_account=True)
+        
 
 __all__: list[str] = ["Profiles"]

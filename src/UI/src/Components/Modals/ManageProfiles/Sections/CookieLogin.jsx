@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Cookie, RefreshCw, LogIn, Upload, FileUp } from 'lucide-react';
+import { Cookie, RefreshCw, LogIn, Upload, FileUp, UserPlus } from 'lucide-react';
 import { Button, useColorScheme, Alert, Divider, Typography } from '@mui/material';
 import { useNotifications } from '@toolpad/core/useNotifications';
 import { logEvent } from 'firebase/analytics';
@@ -27,6 +27,10 @@ const CookieLogin = () => {
     const [uploadLoading, setUploadLoading] = useState(false);
     const [uploadError, setUploadError] = useState("");
     const fileInputRef = useRef(null);
+
+    // Add account state
+    const [addAccountLoading, setAddAccountLoading] = useState(false);
+    const [addAccountError, setAddAccountError] = useState("");
 
     const handleCookieLogin = () => {
         setErrorText("");
@@ -140,6 +144,47 @@ const CookieLogin = () => {
         }
     };
 
+    const handleAddAccount = () => {
+        setAddAccountError("");
+        setAddAccountLoading(true);
+
+        logEvent(analytics, "add_account_start");
+
+        fetch(`${hostAddress}/environment/profiles/add_account`, {
+            method: "POST",
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success) {
+                    notifications.show(data.message || "Google account added successfully!", {
+                        severity: "success",
+                    });
+                    logEvent(analytics, "add_account_success");
+                } else {
+                    setAddAccountError(data.message || 'Failed to add account.');
+                    notifications.show("Failed to add account.", {
+                        severity: "error",
+                    });
+                    if (data.error) {
+                        console.error('Failed to add account:', data.error);
+                        atatus.notify(new Error(data.error), { response: data }, ['add_account_failed']);
+                    }
+                    logEvent(analytics, "add_account_failed");
+                }
+            })
+            .catch((error) => {
+                setAddAccountError("An error occurred while adding account. Try again.");
+                notifications.show("Failed to add account.", {
+                    severity: "error",
+                });
+                atatus.notify(error, {}, ['add_account_error']);
+                logEvent(analytics, "add_account_error");
+            })
+            .finally(() => {
+                setAddAccountLoading(false);
+            });
+    };
+
     return (
         <div className="create-profiles-container">
             <div className="section-header">
@@ -184,6 +229,29 @@ const CookieLogin = () => {
                 </Button>
 
                 <ErrorText errorText={errorText} />
+
+                {isLoggedIn && (
+                    <>
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            className="create-profiles-button"
+                            disabled={addAccountLoading}
+                            startIcon={addAccountLoading ? <RefreshCw size={20} className="spin" /> : <UserPlus size={20} />}
+                            sx={{
+                                ...btnProps,
+                                marginTop: "0.75rem",
+                            }}
+                            onClick={handleAddAccount}
+                        >
+                            {addAccountLoading
+                                ? "Opening Browser..."
+                                : "Add Another Google Account"
+                            }
+                        </Button>
+                        <ErrorText errorText={addAccountError} />
+                    </>
+                )}
             </div>
 
             {/* OR Divider */}

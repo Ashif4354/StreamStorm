@@ -119,6 +119,8 @@ class Settings(BaseSettings):
         "/storm/start",
         "/environment/profiles/create",
         "/environment/profiles/delete",
+        "/channels/create",
+        "/environment/profiles/add_account",
     }
 
     storm_control_tools: set[str] = {

@@ -55,13 +55,14 @@ class StreamStorm(Profiles):
         self.context.assigned_profiles = {}
         self.context.message_count = 0
         self.context.message_rate = 0.0
+        self.context.login_method = settings.login_method
         
 
     def load_cookies(self) -> None:
 
         cookies: list = get_cookies()
         
-        if not cookies and settings.login_method == "cookies":
+        if not cookies and self.context.login_method == "cookies":
             raise SystemError("Cookies not found or invalid: Try logging in again")
         
         self.cookies = cookies
@@ -169,7 +170,7 @@ class StreamStorm(Profiles):
 
         if self.context.total_channels < len(self.context.channels):
             logger.error(f"Insufficient channels: available={self.context.total_channels}, required={len(self.context.channels)}")
-            raise SystemError("Not enough channels available in your YouTube Account. Create enough channels first. Then create Profiles again in the app.")
+            raise SystemError(f"Not enough channels available in your YouTube Account. Create enough channels first. Then {"create Profiles" if self.context.login_method == "profiles" else "Login"} again in the app.")
     
 
     async def get_active_channels(self) -> list[int]:

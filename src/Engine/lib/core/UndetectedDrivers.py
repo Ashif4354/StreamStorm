@@ -35,6 +35,7 @@ class UndetectedDrivers(Selenium):
         
         self.youtube_url: str = "https://www.youtube.com"
         self.youtube_login_url: str = "https://accounts.google.com/ServiceLogin?service=youtube"
+        self.add_account_url: str = "https://accounts.google.com/AddSession?continue=https://www.youtube.com/signin?action_handle_signin=true&app=desktop&hl=en-GB&next=/&hl=en-GB&passive=false&service=youtube&uilel=0"
         self.data_json_path: str = join(dirname(normpath(self.base_profile_dir)), "data.json")
         
         super().__init__(base_profile_dir, background=False)
@@ -206,8 +207,12 @@ class UndetectedDrivers(Selenium):
         return True
         
 
-    def youtube_login(self, for_create_channels: bool = False, logged_in: bool = False) -> None:
-        if not logged_in:
+    def youtube_login(self, for_create_channels: bool = False, logged_in: bool = False, add_account: bool = False) -> None:
+
+        if add_account:
+            self.go_to_page(self.add_account_url)
+
+        if not logged_in and not add_account:
             self.go_to_page(self.youtube_login_url)
 
         default_tab: str = self.driver.current_window_handle

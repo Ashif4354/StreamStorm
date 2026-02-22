@@ -16,7 +16,9 @@ def path_storm_endpoint(mocker: MockerFixture):
     EngineContext.reset()
     
 @fixture
-def ss_instance():
+def ss_instance(mocker: MockerFixture):
+    mocker.patch("lib.core.StreamStorm.get_cookies", return_value=[{"name": "test", "value": "cookie"}])
+
     data = StormData(
         video_url="https://www.youtube.com/watch?v=PpQxArPYr0E",
         chat_url="https://www.youtube.com/live_chat?v=PpQxArPYr0E",

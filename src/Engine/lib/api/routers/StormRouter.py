@@ -414,7 +414,7 @@ async def get_channels_data(data: GetChannelsData) -> JSONResponse:
             status_code=404,
             content={
                 "success": False,
-                "message": "Config file not found. Create profiles first.",
+                "message": f"Config file not found. {"Create profiles" if settings.login_method == "profiles" else "Login"} first.",
             }
         )
 

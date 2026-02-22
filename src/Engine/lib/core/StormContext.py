@@ -34,7 +34,9 @@ class StormContext:
         self.run_stopper_event: Event = Event()
         self.ready_event: Event = Event()
         self.pause_event: Event = Event()
-        self.message_counter_lock: Lock = Lock()        
+        self.message_counter_lock: Lock = Lock()     
+
+        self.login_method: str = "cookies"   
 
         self.initiate_channels()
 

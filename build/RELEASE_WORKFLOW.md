@@ -5,6 +5,7 @@ This document outlines the steps to release a new version of StreamStorm.
 ## Prerequisites
 
 - Ensure all code changes are complete and tested
+- Ensure all changes are merged into the `master` branch — all release steps must be performed from the `master` branch
 - Update the version number in `src/Engine/lib/settings/Settings.py`
 
 ---
