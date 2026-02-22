@@ -164,7 +164,7 @@ wheels = [
 
 [[package]]
 name = "atatus"
-version = "2.2.0"
+version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
@@ -173,7 +173,7 @@ dependencies = [
     { name = "urllib3" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8c/ce/7458687dad24f8df4955f697eeb3b28b99f833d6ba5ab9f1f5e8dad47bb5/atatus-2.2.0.tar.gz", hash = "sha256:4d88c3c03188f36be396884e6a2fca99946b1dda6d61598a8bd19fdaab7083c7", size = 201385, upload-time = "2026-01-13T04:52:44.908Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8b/1e/ff470c40105d91e503aaeac60bd0eaa7894c8c7846d8771f8ed70273f394/atatus-2.3.0.tar.gz", hash = "sha256:b414f91a00abd4546926ce5fb4d64dc4ce7a54066e86c7232e39f73538cdd79f", size = 202281, upload-time = "2026-02-12T10:54:54.182Z" }
 
 [[package]]
 name = "attrs"
@@ -3446,7 +3446,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "atatus", specifier = ">=2.2.0" },
+    { name = "atatus", specifier = ">=2.3.0" },
     { name = "auto-py-to-exe", specifier = ">=2.46.0" },
     { name = "pyinstaller", specifier = ">=6.15.0" },
     { name = "pytest", specifier = ">=8.4.1" },
