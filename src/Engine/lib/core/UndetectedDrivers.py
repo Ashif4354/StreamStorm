@@ -1,3 +1,4 @@
+from re import search
 from os.path import dirname, normpath, join
 from json import dump
 from random import randint
@@ -65,9 +66,22 @@ class UndetectedDrivers(Selenium):
 
     def initiate_base_profile(self, cookies: list | None = None) -> None:
         
-        self.driver = Chrome(
-            user_data_dir=self.base_profile_dir,
-        )
+        try:
+            self.driver = Chrome(
+                user_data_dir=self.base_profile_dir,
+            )
+        except Exception as e:
+            if "Current browser version is" not in str(e):
+                raise RuntimeError(f"Failed to initiate base profile: {e}") from e
+            
+            installed_version: str = search(r"Current browser version is (\d+\.\d+\.\d+)", str(e)).group(1)
+            installed_version = int(installed_version.split(".")[0])
+
+            self.driver = Chrome(
+                user_data_dir=self.base_profile_dir,
+                version_main=installed_version,
+            )
+            
 
         if cookies:
             self.go_to_page(self.youtube_url)
