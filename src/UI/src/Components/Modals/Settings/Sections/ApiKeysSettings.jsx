@@ -91,6 +91,8 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
     const [baseUrlHelperText, setBaseUrlHelperText] = useState('');
     const [modelError, setModelError] = useState(false);
     const [modelHelperText, setModelHelperText] = useState('');
+    const [customModelError, setCustomModelError] = useState(false);
+    const [customModelHelperText, setCustomModelHelperText] = useState('');
 
     // Check if using custom URL (for OpenAI)
     const isCustomUrl = provider.hasBaseUrl && baseUrl.trim() !== '' && baseUrl.trim() !== DEFAULT_OPENAI_URL;
@@ -155,7 +157,6 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
         // Validate Model
         const finalModel = model === 'other' ? customModel : model;
         if (!isCustomUrl) {
-            // Only validate model if not using custom URL
             if (!finalModel || finalModel.trim() === "") {
                 setModelError(true);
                 setModelHelperText("Model is required.");
@@ -164,6 +165,17 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
                 setModelError(false);
                 setModelHelperText('');
             }
+        } else {
+            // For custom URL, validate custom model
+            if (!finalModel || finalModel.trim() === "") {
+                setCustomModelError(true);
+                setCustomModelHelperText("Model is required.");
+                isValid = false;
+            } else {
+                setCustomModelError(false);
+                setCustomModelHelperText('');
+            }
+
         }
 
         return isValid;
@@ -230,6 +242,8 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
         setBaseUrlHelperText(provider.baseUrlDescription || '');
         setModelError(false);
         setModelHelperText('');
+        setCustomModelError(false);
+        setCustomModelHelperText('');
 
         onUpdateApiKey(provider.id, {
             apiKey: '',
@@ -420,7 +434,13 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
                                         placeholder="Enter model name"
                                         sx={inputProps}
                                         value={customModel}
-                                        onChange={(e) => setCustomModel(e.target.value)}
+                                        onChange={(e) => {
+                                            setCustomModel(e.target.value);
+                                            setCustomModelError(false);
+                                            setCustomModelHelperText('');
+                                        }}
+                                        error={customModelError}
+                                        helperText={customModelHelperText}
                                     />
                                 </div>
                             )}

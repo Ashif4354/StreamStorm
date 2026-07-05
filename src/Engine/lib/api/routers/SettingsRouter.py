@@ -1,28 +1,32 @@
 from logging import Logger, getLogger
+from os.path import exists
 from shutil import rmtree
 from typing import Literal
-from os.path import exists
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from ...settings.SavedSettings import AISettings
-from ..validation import AIProviderKeyData, SetDefaultProviderData, GeneralSettingsData
 from ...settings import settings
+from ...settings.SavedSettings import AISettings
+from ..validation import AIProviderKeyData, GeneralSettingsData, SetDefaultProviderData
 
 logger: Logger = getLogger(f"fastapi.{__name__}")
 
 router: APIRouter = APIRouter(prefix="/settings", tags=["Settings"])
 
 
-@router.post("/general", operation_id="set_general_settings", summary="Update general application settings.")
+@router.post(
+    "/general",
+    operation_id="set_general_settings",
+    summary="Update general application settings.",
+)
 def set_general_settings(data: GeneralSettingsData) -> JSONResponse:
     """
     Update general application settings.
-    
+
     Args:
         data.login_method (str): Login method to use - 'cookies' or 'profiles'
-    
+
     Returns:
         success (bool): True if settings were saved successfully
         message (str): Confirmation message
@@ -53,26 +57,30 @@ def set_general_settings(data: GeneralSettingsData) -> JSONResponse:
         )
 
 
-@router.delete("/general/clear-login-data", operation_id="clear_login_data", summary="Clear all login data including cookies and profiles.")
+@router.delete(
+    "/general/clear-login-data",
+    operation_id="clear_login_data",
+    summary="Clear all login data including cookies and profiles.",
+)
 def clear_login_data() -> JSONResponse:
     """
     Clear all login data from the Environment directory.
-    
+
     This removes:
     - cookies.json (saved browser cookies)
     - All temp profiles
     - Base profile
     - data.json (channel data)
-    
+
     Returns:
         success (bool): True if data was cleared successfully
         message (str): Confirmation or error message
     """
     logger.info("Clearing all login data from Environment directory")
-    
+
     try:
         environment_dir = settings.environment_dir
-        
+
         if not exists(environment_dir):
             return JSONResponse(
                 status_code=200,
@@ -81,11 +89,11 @@ def clear_login_data() -> JSONResponse:
                     "message": "No login data found to clear",
                 },
             )
-        
+
         # Remove the entire Environment directory and its contents
         rmtree(environment_dir)
         logger.info(f"Cleared Environment directory: {environment_dir}")
-        
+
         return JSONResponse(
             status_code=200,
             content={
@@ -93,26 +101,32 @@ def clear_login_data() -> JSONResponse:
                 "message": "All login data cleared successfully",
             },
         )
-    
+
     except Exception as e:
         logger.error(f"Error clearing login data: {e}")
-        
+
         return JSONResponse(
             status_code=500,
-            content={"success": False, "message": f"Error clearing login data: {str(e)}"},
+            content={
+                "success": False,
+                "message": f"Error clearing login data: {str(e)}",
+            },
         )
 
 
-
-@router.get("/", operation_id="get_settings", summary="Get all application settings including engine config, AI provider, and general settings.")
+@router.get(
+    "/",
+    operation_id="get_settings",
+    summary="Get all application settings including engine config, AI provider, and general settings.",
+)
 def get_settings() -> JSONResponse:
     """
     Get all application settings.
-    
-    Returns engine configuration (version, log file path), 
+
+    Returns engine configuration (version, log file path),
     default AI provider settings under the 'ai' sub-key,
     and general settings under the 'general' sub-key.
-    
+
     Returns:
         success (bool): True if the request was successful
         version (str): StreamStorm engine version
@@ -154,14 +168,18 @@ def get_settings() -> JSONResponse:
         )
 
 
-@router.get("/ai/keys", operation_id="get_ai_provider_keys", summary="Get all AI provider configurations and keys.")
+@router.get(
+    "/ai/keys",
+    operation_id="get_ai_provider_keys",
+    summary="Get all AI provider configurations and keys.",
+)
 def get_ai_keys() -> JSONResponse:
     """
     Get all AI provider configurations and keys.
-    
+
     Returns the complete AI settings including API keys (masked),
     models, base URLs, and default provider configuration.
-    
+
     Returns:
         success (bool): True if the request was successful
         providers (dict): Configuration for each AI provider (openai, anthropic, google)
@@ -175,8 +193,7 @@ def get_ai_keys() -> JSONResponse:
         logger.info("AI provider keys fetched successfully")
 
         return JSONResponse(
-            status_code=200, 
-            content={"success": True, **settings.ai.model_dump()}
+            status_code=200, content={"success": True, **settings.ai.model_dump()}
         )
 
     except Exception as e:
@@ -188,23 +205,27 @@ def get_ai_keys() -> JSONResponse:
         )
 
 
-@router.post("/ai/keys/{provider_id}", operation_id="save_ai_provider_key", summary="Save API key and settings for an AI provider.")
+@router.post(
+    "/ai/keys/{provider_id}",
+    operation_id="save_ai_provider_key",
+    summary="Save API key and settings for an AI provider.",
+)
 def save_ai_key(
     provider_id: Literal["openai", "anthropic", "google"], data: AIProviderKeyData
 ) -> JSONResponse:
     """
     Save API key and settings for a specific AI provider.
-    
+
     Updates the configuration for the specified AI provider including
     API key, model, and optionally base URL. If the provider is the
     current default, also updates the default model.
-    
+
     Args:
         provider_id (str): Provider to configure - 'openai', 'anthropic', or 'google'
         data.api_key (str): API key for the provider
         data.model (str): Model name to use
         data.base_url (str, optional): Custom base URL for the API
-    
+
     Returns:
         success (bool): True if settings were saved successfully
         message (str): Confirmation message
@@ -228,6 +249,7 @@ def save_ai_key(
         # If this provider is the current default, update defaultModel as well
         if ai_settings.defaultProvider == provider_id:
             ai_settings.defaultModel = data.model
+            ai_settings.defaultBaseUrl = data.base_url
 
             logger.info(f"Updated defaultModel to: {data.model}")
 
@@ -246,27 +268,30 @@ def save_ai_key(
 
     except Exception as e:
         logger.error(f"Error saving AI key for {provider_id}: {e}")
-        
+
         return JSONResponse(
             status_code=500,
             content={"success": False, "message": f"Error saving settings: {str(e)}"},
         )
 
 
-
-@router.post("/ai/default", operation_id="set_default_ai_provider", summary="Set the default AI provider for message generation.")
+@router.post(
+    "/ai/default",
+    operation_id="set_default_ai_provider",
+    summary="Set the default AI provider for message generation.",
+)
 def set_default_provider(data: SetDefaultProviderData) -> JSONResponse:
     """
     Set the default AI provider for message generation.
-    
+
     Updates the default AI provider, model, and base URL used for
     generating messages and channel names via AI.
-    
+
     Args:
         data.provider (str): Provider to set as default - 'openai', 'anthropic', or 'google'
         data.model (str): Model name to use with the provider
         data.base_url (str): Base URL for the provider API
-    
+
     Returns:
         success (bool): True if the default was set successfully
         message (str): Confirmation message
@@ -274,7 +299,7 @@ def set_default_provider(data: SetDefaultProviderData) -> JSONResponse:
         defaultModel (str): Updated default model
         defaultBaseUrl (str): Updated base URL
     """
-    
+
     logger.info(
         f"Setting default AI provider to: {data.provider} with model: {data.model}"
     )
@@ -314,6 +339,3 @@ def set_default_provider(data: SetDefaultProviderData) -> JSONResponse:
                 "message": f"Error setting default provider: {str(e)}",
             },
         )
-
-
-
