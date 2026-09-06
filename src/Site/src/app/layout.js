@@ -1,4 +1,3 @@
-import Script from "next/script";
 import { ThemeProvider } from '@mui/material/styles';
 import { GoogleTagManager } from '@next/third-parties/google'
 import { DownloadCountProvider } from "@/context/DownloadCountContext";
@@ -23,7 +22,7 @@ export const metadata = {
         title: 'StreamStorm - Spam YouTube live chat',
         description: 'Bot to spam YouTube Live chat using multiple accounts in parallel.',
         url: 'https://streamstorm.darkglance.in/',
-        siteName: 'StreamStorm by DarkGlance',
+        siteName: 'StreamStorm',
         images: [{
             url: 'https://streamstorm.darkglance.in/assets/ss.png',
         }],
@@ -43,6 +42,14 @@ export const metadata = {
     }
 }
 
+const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'StreamStorm',
+    alternateName: ['Stream Storm', 'streamstorm.darkglance.in'],
+    url: 'https://streamstorm.darkglance.in/',
+};
+
 export default function RootLayout({ children }) {
     return (
         <html lang="en">
@@ -50,21 +57,10 @@ export default function RootLayout({ children }) {
             <head>
                 <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
                 <link rel="author" href="https://github.com/Ashif4354" />
-                <Script
-                    id="website-schema"
+                <script
                     type="application/ld+json"
-                    strategy="beforeInteractive"
-
-                >
-                    {
-                        JSON.stringify({
-                            "@context": "https://schema.org",
-                            "@type": "WebSite",
-                            "name": "StreamStorm",
-                            "url": "https://streamstorm.darkglance.in"
-                        })
-                    }
-                </Script>
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                />
             </head>
             <body>
                 <noscript>
