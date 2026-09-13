@@ -320,3 +320,33 @@ def test_generate_channel_names(client: TestClient, mocker: MockerFixture) -> No
     logger.debug(response.json())
 
     assert response.status_code == 200
+
+
+def test_start_storm_system_error(client: TestClient, mocker: MockerFixture) -> NoReturn:
+    from lib.core.EngineContext import EngineContext
+    EngineContext.reset()
+
+    mocker.patch(
+        "lib.core.StreamStorm.StreamStorm.start",
+        side_effect=SystemError("Not enough temp profiles available. Create Enough profiles first.")
+    )
+
+    test_payload: dict = {
+        "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "chat_url": "https://www.youtube.com/live_chat?v=dQw4w9WgXcQ",
+        "messages": ["Never gonna give you up"],
+        "subscribe": False,
+        "subscribe_and_wait": False,
+        "subscribe_and_wait_time": 70,
+        "slow_mode": 5,
+        "channels": [1, 2],
+        "background": True
+    }
+
+    response: Response = client.post("/storm/start", json=test_payload)
+    logger.debug(response.json())
+
+    assert response.status_code == 400
+    assert not response.json()["success"]
+    assert response.json()["message"] == "Not enough temp profiles available. Create Enough profiles first."
+    assert response.json()["error"] == "Not enough temp profiles available. Create Enough profiles first."

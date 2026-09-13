@@ -11,6 +11,7 @@ from selenium.common.exceptions import SessionNotCreatedException
 from ..settings import settings
 from ..utils.CustomLogger import custom_logger
 from .lib.exception_handlers import (
+    business_exception_handler,
     common_exception_handler,
     session_not_created_exception_handler,
     validation_exception_handler,
@@ -63,7 +64,7 @@ app: FastAPI = FastAPI(lifespan=lifespan)
 app.exception_handlers = {
     Exception: common_exception_handler,
     HTTPException: common_exception_handler,
-    SystemError: common_exception_handler,
+    SystemError: business_exception_handler,
     RuntimeError: common_exception_handler,
     RequestValidationError: validation_exception_handler,
     SessionNotCreatedException: session_not_created_exception_handler,

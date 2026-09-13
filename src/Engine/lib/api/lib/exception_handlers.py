@@ -22,6 +22,23 @@ async def common_exception_handler(request: Request, exc: Exception) -> JSONResp
     )    
     
     
+async def business_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """
+    Handler for expected domain and business logic errors (e.g. not enough profiles, invalid cookies).
+    Returns 400 Bad Request and exposes the message to the client.
+    """
+    logger.error(f"Business logic error: {str(exc)}")
+    
+    return JSONResponse(
+        status_code=400,
+        content={
+            "success": False,
+            "message": str(exc),
+            "error": str(exc)
+        },
+    )    
+    
+    
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = exc.errors()
     
@@ -88,6 +105,7 @@ async def session_not_created_exception_handler(request: Request, exc: Exception
     
 __all__: list[str] = [
     "common_exception_handler",
+    "business_exception_handler",
     "validation_exception_handler",
     "session_not_created_exception_handler"
 ]
