@@ -6,7 +6,7 @@ from firebase_functions import logger
 from .GetIstTime import get_ist_time
 
 
-def send_discord_webhook(type_: str) -> None:
+def send_discord_webhook(type_: str, count: int) -> None:
     """
     Sends a notification to a Discord webhook.
     """
@@ -27,7 +27,7 @@ def send_discord_webhook(type_: str) -> None:
         "embeds": [
             {
                 "title": "New Download" if type_ == "download" else "New Visit",
-                "description": content + f"\nDate-Time: {get_ist_time()}",
+                "description": content + f"\nDate-Time: {get_ist_time()}\nCount: {count}",
                 "color": 0x00FF00,
             }
         ]
