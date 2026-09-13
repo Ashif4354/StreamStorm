@@ -45,7 +45,7 @@ def visit_count(req: https_fn.Request) -> https_fn.Response:
     doc: DocumentSnapshot = doc_ref.get()
     count: int = doc.to_dict().get("visit", 0)
 
-    send_discord_webhook("visit")
+    send_discord_webhook("visit", count)
 
     logger.info(f"New visit count: {count}")
     return {"success": True, "count": count}
@@ -62,13 +62,17 @@ def downloads_count(req: https_fn.Request) -> https_fn.Response:
     data: dict = req.data
     logger.info(f"Request data: {data}")
     doc_ref: DocumentReference = get_doc_ref("streamstorm", "counts")
-
+    
+    count: int | None = None
+    
     if data.get("mode") == "set":
         doc_ref.update({"downloads": Increment(1)})
-        send_discord_webhook("download")
+        count = doc_ref.get().to_dict().get("downloads", 0)
+        send_discord_webhook("download", count)
 
     doc: DocumentSnapshot = doc_ref.get()
-    count: int = doc.to_dict().get("downloads", 0)
+    if count is None:
+        count = doc.to_dict().get("downloads", 0)
 
     logger.info(f"New downloads count: {count}")
     return {"success": True, "count": count}
