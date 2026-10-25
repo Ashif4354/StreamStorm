@@ -31,11 +31,12 @@ Standard Atatus RUM tag (per official Atatus documentation):
   if (window.__STREAMSTORM_ATATUS_RUM_INIT__) return;
 
   function initialize() {
-    var rum = window.atatusRum;
+    var rum = window.ATATUS_RUM || window.atatusRum;
     if (!rum || typeof rum.init !== 'function' || window.__STREAMSTORM_ATATUS_RUM_INIT__) return;
 
+    window.ATATUS_RUM = window.atatusRum = rum;
     rum.init({
-      licenseKey: 'PASTE_RUM_LICENSE_KEY',
+      licenseKey: '{{ATATUS_RUM_API_KEY}}',
       appName: 'APP_NAME',
       env: 'production',
       version: '4.2.0',
@@ -54,7 +55,8 @@ Standard Atatus RUM tag (per official Atatus documentation):
     if (typeof window.__flushAtatusRumQueue === 'function') window.__flushAtatusRumQueue();
   }
 
-  if (window.atatusRum && typeof window.atatusRum.init === 'function') {
+  var existing = window.ATATUS_RUM || window.atatusRum;
+  if (existing && typeof existing.init === 'function') {
     initialize();
   } else {
     var script = document.createElement('script');
