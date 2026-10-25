@@ -13,17 +13,37 @@ logger: Logger = getLogger(f"fastapi.{__name__}")
 class PydanticAI(AIBase):
     def __init__(
         self,
-        provider_name: str = settings.ai.defaultProvider,
-        model_name: str = settings.ai.defaultModel,
+        provider_name: str | None = None,
+        model_name: str | None = None,
         api_key: str = "",
-        base_url: str | None = settings.ai.defaultBaseUrl,
+        base_url: str | None = None,
     ):
         """
         Initializes the AI service with a specific provider.
         """
+        if provider_name is None:
+            provider_name = settings.ai.defaultProvider
+        if model_name is None:
+            model_name = settings.ai.defaultModel
+        if base_url is None:
+            base_url = settings.ai.defaultBaseUrl
+
+        if not provider_name or not model_name:
+            raise SystemError("Default AI provider and model are not configured.")
+
+        provider = getattr(settings.ai.providers, provider_name.lower(), None)
+        if provider is None:
+            raise SystemError(f"Unsupported AI provider: {provider_name}")
+
         if not api_key:
-            api_key: str = getattr(settings.ai.providers, provider_name).apiKey
-        
+            api_key = provider.apiKey
+
+        if not api_key:
+            raise SystemError(f"API key for {provider_name} is not configured.")
+
+        if base_url is None:
+            base_url = provider.baseUrl
+
         self.model: Model = ModelFactory.get_model(
             provider_name, model_name=model_name, api_key=api_key, base_url=base_url
         )

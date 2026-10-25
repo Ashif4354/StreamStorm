@@ -97,9 +97,21 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
     // Check if using custom URL (for OpenAI)
     const isCustomUrl = provider.hasBaseUrl && baseUrl.trim() !== '' && baseUrl.trim() !== DEFAULT_OPENAI_URL;
 
-    // Check if provider is configured (has API key and model)
-    const isConfigured = apiKey.trim().length >= 10 && (
-        isCustomUrl ? customModel.trim() !== '' : (model !== '' && model !== 'other' || customModel.trim() !== '')
+    // Check if provider is saved and configured (has saved API key and model with no unsaved changes)
+    const savedData = apiKeysData?.[provider.id];
+    const currentModel = isCustomUrl ? customModel.trim() : (model === 'other' ? customModel.trim() : model);
+    const currentBaseUrl = provider.hasBaseUrl ? baseUrl.trim() : null;
+    const savedBaseUrl = provider.hasBaseUrl ? (savedData?.baseUrl || provider.defaultBaseUrl || '').trim() : null;
+
+    const isConfigured = Boolean(
+        savedData &&
+        savedData.apiKey &&
+        savedData.apiKey.trim().length >= 10 &&
+        savedData.model &&
+        savedData.model.trim() !== '' &&
+        savedData.apiKey === apiKey &&
+        savedData.model === currentModel &&
+        (!provider.hasBaseUrl || savedBaseUrl === currentBaseUrl)
     );
 
     // Load data from parent when apiKeysData changes
