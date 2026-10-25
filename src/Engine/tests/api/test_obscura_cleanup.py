@@ -247,3 +247,90 @@ def test_obscura_hydration_and_channel_switch_on_click():
         pw.page.evaluate.assert_called_once()
 
     asyncio.run(_run())
+
+
+def test_shared_playwright_refcounting():
+    async def _run():
+        from lib.core.Playwright import Playwright
+
+        mock_pw_driver = AsyncMock()
+        mock_pw_driver.stop = AsyncMock()
+
+        # Reset state before test
+        Playwright._shared_playwright = None
+        Playwright._shared_playwright_refcount = 0
+
+        with patch("lib.core.Playwright.async_playwright") as mock_apw:
+            mock_starter = MagicMock()
+            mock_starter.start = AsyncMock(return_value=mock_pw_driver)
+            mock_apw.return_value = mock_starter
+
+            pw1 = Playwright(user_data_dir="/tmp/p1", background=True, index=1, channel_name="Ch1")
+            pw2 = Playwright(user_data_dir="/tmp/p2", background=True, index=2, channel_name="Ch2")
+
+            with patch.object(pw1, "_Playwright__get_chromium_options", AsyncMock(return_value={"args": [], "viewport": {}})), \
+                 patch.object(pw2, "_Playwright__get_chromium_options", AsyncMock(return_value={"args": [], "viewport": {}})), \
+                 patch.object(pw1, "_Playwright__get_browser_version", AsyncMock(return_value="131.0")), \
+                 patch.object(pw2, "_Playwright__get_browser_version", AsyncMock(return_value="131.0")):
+
+                mock_pw_driver.chromium.connect_over_cdp = AsyncMock()
+                mock_browser = AsyncMock()
+                mock_context = AsyncMock()
+                mock_page = AsyncMock()
+                mock_pw_driver.chromium.connect_over_cdp.return_value = mock_browser
+                mock_browser.new_context.return_value = mock_context
+                mock_context.new_page.return_value = mock_page
+
+                await pw1.open_browser(obscura_port=9222)
+                assert Playwright._shared_playwright_refcount == 1
+                assert pw1.playwright is mock_pw_driver
+
+                await pw2.open_browser(obscura_port=9223)
+                assert Playwright._shared_playwright_refcount == 2
+                assert pw2.playwright is mock_pw_driver
+                mock_starter.start.assert_called_once()  # Shared! Only started once
+
+                # Close first instance
+                await pw1.close_browser("Instance 1 closed")
+                assert Playwright._shared_playwright_refcount == 1
+                assert Playwright._shared_playwright is mock_pw_driver
+                mock_pw_driver.stop.assert_not_called()  # Still active for pw2
+
+                # Close second instance
+                await pw2.close_browser("Instance 2 closed")
+                assert Playwright._shared_playwright_refcount == 0
+                assert Playwright._shared_playwright is None
+                mock_pw_driver.stop.assert_called_once()  # Stopped when last instance closed
+
+    asyncio.run(_run())
+
+
+def test_obscura_spawn_instance_command_flags():
+    from lib.core.Obscura import Obscura
+    from lib.core.StormContext import StormContext
+
+    obs = Obscura()
+    obs.obscura_path = "/usr/bin/obscura"
+    ctx = StormContext()
+    ctx.obscura_current_port = 9222
+
+    captured_cmd = []
+
+    def mock_popen(cmd, *args, **kwargs):
+        captured_cmd.extend(cmd)
+        mock_proc = MagicMock()
+        mock_proc.poll.return_value = None
+        mock_proc.pid = 9999
+        return mock_proc
+
+    with patch("lib.core.Obscura.Popen", side_effect=mock_popen), \
+         patch.object(obs, "is_port_in_use", side_effect=[False, True]):
+        port = obs.spawn_instance(ctx)
+        assert port == 9222
+        assert captured_cmd[0] == "/usr/bin/obscura"
+        assert "--v8-flags=--max-old-space-size=32" in captured_cmd
+        assert "serve" in captured_cmd
+        assert "--port" in captured_cmd
+        assert "9222" in captured_cmd
+        assert "--quiet" in captured_cmd
+

@@ -122,7 +122,14 @@ class Obscura:
                 retries += 1
                 continue
 
-            cmd: list[str] = [self.obscura_path or "obscura", "serve", "--port", f"{port}"]
+            cmd: list[str] = [
+                self.obscura_path or "obscura",
+                "--v8-flags=--max-old-space-size=32",
+                "serve",
+                "--port",
+                f"{port}",
+                "--quiet",
+            ]
         
             kwargs: dict = {}    
             

@@ -318,6 +318,10 @@ class Playwright(BrowserAutomator):
     _chrome_version: str = None
     _version_lock: Lock = Lock()
 
+    _shared_playwright: AsyncPlaywright | None = None
+    _shared_playwright_refcount: int = 0
+    _playwright_lock: Lock = Lock()
+
     def __init__(self, user_data_dir: str, background: bool, cookies: list[dict] | None = None, index: int = 0, channel_name: str = "") -> None:
         self.user_data_dir: str = user_data_dir
         self.background: bool = background
@@ -424,7 +428,12 @@ class Playwright(BrowserAutomator):
             logger.debug(f"[{self.index}] [{self.channel_name}] Obscura hydration skipped/error: {e}")
 
     async def open_browser(self, obscura_port: int | None = None) -> None:
-        self.playwright: AsyncPlaywright = await async_playwright().start()
+        async with Playwright._playwright_lock:
+            if Playwright._shared_playwright is None:
+                Playwright._shared_playwright = await async_playwright().start()
+            Playwright._shared_playwright_refcount += 1
+            self.playwright = Playwright._shared_playwright
+
         self._is_obscura = bool(obscura_port and settings.browser_engine == "obscura")
 
         browser_options: dict[str, str | bool | list[str]] = await self.__get_chromium_options()
@@ -606,10 +615,22 @@ class Playwright(BrowserAutomator):
                     logger.debug(f"[{self.index}] [{self.channel_name}] Error closing browser: {e}")
             
             if hasattr(self, 'playwright') and self.playwright:
-                try:
-                    await self.playwright.stop()
-                except Exception as e:
-                    logger.debug(f"[{self.index}] [{self.channel_name}] Error stopping playwright: {e}")
+                async with Playwright._playwright_lock:
+                    if self.playwright is Playwright._shared_playwright:
+                        Playwright._shared_playwright_refcount -= 1
+                        if Playwright._shared_playwright_refcount <= 0:
+                            try:
+                                await Playwright._shared_playwright.stop()
+                            except Exception as e:
+                                logger.debug(f"[{self.index}] [{self.channel_name}] Error stopping shared playwright: {e}")
+                            Playwright._shared_playwright = None
+                            Playwright._shared_playwright_refcount = 0
+                    else:
+                        try:
+                            await self.playwright.stop()
+                        except Exception as e:
+                            logger.debug(f"[{self.index}] [{self.channel_name}] Error stopping playwright: {e}")
+                    self.playwright = None
                     
             logger.debug(f"[{self.index}] [{self.channel_name}] Browser resources cleaned up")
         except Exception as e:
