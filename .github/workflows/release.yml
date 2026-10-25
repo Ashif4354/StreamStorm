@@ -1,0 +1,187 @@
+name: Release Workflow
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  validate-release:
+    name: Validate Release Tag and Version
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      version: ${{ steps.release.outputs.version }}
+      commit_sha: ${{ steps.release.outputs.commit_sha }}
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+
+      - name: Validate tag and project version
+        id: release
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tag '$RELEASE_TAG' must match vX.X.X (for example, v4.2.1)."
+            exit 1
+          fi
+          VERSION="${RELEASE_TAG#v}"
+          PROJECT_VERSION=$(python3 -c 'import json; print(json.load(open("project.json", encoding="utf-8"))["version"])')
+          if [[ "$PROJECT_VERSION" != "$VERSION" ]]; then
+            echo "::error::Tag version ($VERSION) does not match project.json version ($PROJECT_VERSION). Bump and push the version before publishing the release."
+            exit 1
+          fi
+          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  linux-build:
+    name: Build Linux (.deb & .tar.gz)
+    runs-on: ubuntu-22.04
+    needs: validate-release
+    steps:
+      - name: Check GLIBC version
+        run: ldd --version
+
+      - name: Checkout release commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-release.outputs.commit_sha }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Cache pip and uv venv
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/uv
+            src/Engine/.venv
+          key: ${{ runner.os }}-pip-${{ hashFiles('src/Engine/pyproject.toml') }}-engine
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Upgrade pip & install uv
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install uv
+
+      - name: Build Linux executable
+        env:
+          STREAMSTORM_SENTRY_DSN: ${{ secrets.STREAMSTORM_SENTRY_DSN }}
+        run: |
+          set -eux
+          chmod +x ./export/linux/DEBIAN/postinst
+          make executable
+
+      - name: Build .deb package
+        run: make deb
+
+      - name: Create StreamStorm tar.gz
+        run: |
+          set -eux
+          test -d export/linux/opt/StreamStorm
+          tar -czf export/installers/StreamStorm.tar.gz -C export/linux/opt StreamStorm
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifacts
+          path: |
+            export/installers/streamstorm.deb
+            export/installers/StreamStorm.tar.gz
+          if-no-files-found: error
+
+  windows-build:
+    name: Build Windows (.exe, dgupdater & setup)
+    runs-on: windows-latest
+    needs: validate-release
+    steps:
+      - name: Checkout release commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-release.outputs.commit_sha }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Cache pip and uv venv
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~\AppData\Local\pip\Cache
+            ~\AppData\Local\uv\cache
+            src/Engine/.venv
+          key: ${{ runner.os }}-pip-${{ hashFiles('src/Engine/pyproject.toml') }}-engine
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install build tools and uv
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install uv
+          choco install innosetup make -y --no-progress
+          "C:\Program Files (x86)\Inno Setup 6" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Build Windows executable
+        shell: cmd
+        env:
+          STREAMSTORM_SENTRY_DSN: ${{ secrets.STREAMSTORM_SENTRY_DSN }}
+        run: make executable
+
+      - name: Publish with dgupdater
+        shell: cmd
+        env:
+          VERSION: ${{ needs.validate-release.outputs.version }}
+          DGUPDATER_CONFIG: ${{ secrets.DGUPDATER_CONFIG }}
+          DGUPDATER_MONGODB_URI: ${{ secrets.DGUPDATER_MONGODB_URI }}
+        run: make dgupdater-commit-publish VERSION=%VERSION%
+
+      - name: Create Windows setup installer
+        shell: cmd
+        run: make generate-setup-windows
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: |
+            export/windows/StreamStorm.exe
+            export/installers/StreamStorm Setup.exe
+            export/installers/StreamStorm_Setup.exe
+          if-no-files-found: error
+
+  upload-release-assets:
+    name: Upload Assets to Release
+    runs-on: ubuntu-latest
+    needs: [validate-release, linux-build, windows-build]
+    steps:
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-artifacts
+          path: ./release-assets
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-artifacts
+          path: ./release-assets
+
+      - name: Upload assets to triggering GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.validate-release.outputs.tag }}
+        run: gh release upload "$TAG" ./release-assets/* --clobber

@@ -150,7 +150,7 @@ artifacts:
 update-versions:
 	@echo "Running update versions script..."
 	cd src/Engine && uv sync
-	$(ACTIVATE_VENV) $(PYTHON) $(PY_SCRIPTS_DIR)/update_versions.py
+	$(ACTIVATE_VENV) $(PYTHON) $(PY_SCRIPTS_DIR)/update_versions.py $(VERSION)
 
 executable:
 	@echo "Running generate executable script..."
@@ -167,7 +167,7 @@ firebase-deploy:
 dgupdater-commit-publish:
 	@echo "Running dgupdater commit and publish script..."
 	cd src/Engine && uv sync
-	$(ACTIVATE_VENV) $(PYTHON) $(PY_SCRIPTS_DIR)/dgupdater_commit_and_publish.py
+	$(ACTIVATE_VENV) $(PYTHON) $(PY_SCRIPTS_DIR)/dgupdater_commit_and_publish.py $(VERSION)
 
 generate-setup-windows:
 ifeq ($(DETECTED_OS),Windows)

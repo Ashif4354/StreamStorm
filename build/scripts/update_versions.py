@@ -3,9 +3,10 @@
 from pathlib import Path
 ROOT: Path = Path(__file__).parent.parent.parent.resolve()
 
-from sys import path  # noqa: E402
+from sys import path, argv  # noqa: E402
 path.insert(0, str(ROOT))
 
+import os  # noqa: E402
 from tomlkit import TOMLDocument, parse, dumps  # noqa: E402
 from json import dump, load  # noqa: E402
 from re import sub  # noqa: E402
@@ -16,9 +17,11 @@ basicConfig(level=INFO)
 log_info(f"Root directory: {ROOT}")
 
 
-def update_versions(new_version: str) -> None:
+def update_versions(new_version: str, allow_same_version: bool = False) -> None:
     """Update version numbers in all configuration files."""
-    
+    if new_version.lower().startswith("v"):
+        new_version = new_version[1:]
+
     new_version_split: list[int] = [int(i) for i in new_version.split(".")]
     
     # project.json
@@ -26,8 +29,14 @@ def update_versions(new_version: str) -> None:
         project_data: dict = load(f)
         current_version: list[int] = [int(i) for i in project_data["version"].split(".")]
 
-        if new_version_split <= current_version:
-            raise ValueError("New version must be greater than current version.")
+        if new_version_split < current_version:
+            raise ValueError(
+                f"New version ({new_version}) cannot be less than current version ({project_data['version']})."
+            )
+        if new_version_split == current_version and not allow_same_version:
+            raise ValueError(
+                f"New version ({new_version}) must be strictly greater than current version ({project_data['version']})."
+            )
 
         project_data["version"] = new_version
         
@@ -103,8 +112,22 @@ def update_versions(new_version: str) -> None:
 
 def main() -> None:
     """Main entry point."""
-    new_version: str = input("Enter the new version: ")
-    update_versions(new_version)
+    allow_same_version = (
+        "--allow-same-version" in argv
+        or os.environ.get("ALLOW_SAME_VERSION", "").lower() in ("true", "1")
+    )
+    args = [arg for arg in argv[1:] if not arg.startswith("--")]
+
+    if args and args[0].strip():
+        new_version = args[0].strip()
+    elif os.environ.get("NEW_VERSION"):
+        new_version = os.environ["NEW_VERSION"].strip()
+    elif os.environ.get("VERSION"):
+        new_version = os.environ["VERSION"].strip()
+    else:
+        new_version = input("Enter the new version: ")
+
+    update_versions(new_version, allow_same_version=allow_same_version)
     log_info("Update versions process completed.")
 
 
