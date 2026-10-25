@@ -119,7 +119,6 @@ def init_sentry() -> bool:
         traces_sample_rate=1.0,
         attach_stacktrace=True,
         include_local_variables=True,
-        send_default_pii=False,
         max_breadcrumbs=100,
         max_value_length=8192,
         event_scrubber=EventScrubber(

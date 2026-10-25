@@ -82,6 +82,7 @@ def serve_api() -> None:
         host=HOST,
         port=PORT,
         log_level="warning",
+        ws="websockets-sansio",
     )
 
 
@@ -90,7 +91,7 @@ def main() -> None:
         serve_api()
         return
 
-    if settings.os == "Windows":
+    if settings.os == "Windows" and settings.env == "production":
         check_update(parallel=True)
 
     Thread(target=serve_api, daemon=True).start()

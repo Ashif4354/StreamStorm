@@ -77,7 +77,7 @@ def test_init_configures_full_error_tracking():
             assert "profiles_sample_rate" not in kwargs
             assert kwargs["attach_stacktrace"] is True
             assert kwargs["include_local_variables"] is True
-            assert kwargs["send_default_pii"] is False
+            assert "send_default_pii" not in kwargs
             assert kwargs["before_send"] is sentry_module._before_send
 
             integration_types = {type(i) for i in kwargs["integrations"]}
