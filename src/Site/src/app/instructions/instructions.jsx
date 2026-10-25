@@ -57,7 +57,7 @@ const Instructions = () => {
               <li>
                 <a href="#settings-menu" className="instructions-index-link">Settings Menu</a>
                 <ul className="instructions-index-list">
-                  <li><a href="#settings-general" className="instructions-index-link">General</a></li>
+                  <li><a href="#settings-general" className="instructions-index-link">General (Engine & Login Method)</a></li>
                   <li>
                     <a href="#settings-host" className="instructions-index-link">Host Configuration</a>
                     <ul className="instructions-index-list">
@@ -120,9 +120,16 @@ const Instructions = () => {
             <li className="instructions-list-item">You need to have a YouTube account (Google account) to use the application.</li>
             <li className="instructions-list-item">In your YouTube account, you need to have at least one channel created. More channels are recommended for better results.</li>
             <li className="instructions-list-item">If you don't have many channels, we have a feature that can create channels for you. <a href="#creating-channels" className="instructions-index-link"><i>click to proceed</i></a></li>
-            <li className="instructions-list-item">You need to have Chrome browser installed on your system.</li>
+            <li className="instructions-list-item">Supported Operating Systems: <strong>Windows</strong>, <strong>macOS</strong>, and <strong>Linux</strong>.</li>
             <li className="instructions-list-item">Stable internet connection to function properly.</li>
-            <li className="instructions-list-item">To use one channel you need to have at least 300MB of free RAM available on your system. The more channels you use, the more RAM is required.</li>
+            <li className="instructions-list-item">
+              <strong>RAM Requirements:</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item"><strong>Obscura Engine (Default & Recommended):</strong> Only ~150MB of free RAM per channel. This allows running significantly more concurrent channels on low-end and high-end systems alike.</li>
+                <li className="instructions-list-item"><strong>Chromium Engine:</strong> Requires ~235MB-350MB of free RAM per channel.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">Chrome / Chromium browser is only required if you choose to use the Chromium engine or the Browser Profiles login method. When using the default Obscura engine, no desktop Chrome installation is required.</li>
           </ul>
 
           <h2 id="using-the-app" className="instructions-section-heading">Using The Application</h2>
@@ -170,7 +177,7 @@ const Instructions = () => {
           </div>
 
           <h4>Alternative: Browser Profiles Login (Legacy)</h4>
-          <p className="instructions-paragraph">The temp profiles-based login is still available for users who prefer it. You can switch the login method in the <a href="#settings-general" className="instructions-index-link">Settings → General</a> section.</p>
+          <p className="instructions-paragraph">The temp profiles-based login is still available for users who prefer it. You can switch the login method in the <a href="#settings-general" className="instructions-index-link">Settings → General</a> section. <strong>Note:</strong> Browser Profiles requires the <strong>Chromium</strong> engine; Obscura runs exclusively with cookie-based login.</p>
           <ul className="instructions-list">
             <li className="instructions-list-item">
               To use browser profiles login:
@@ -400,6 +407,13 @@ const Instructions = () => {
               </ul>
             </li>
             <li className="instructions-list-item">
+              <strong>System Info & Resource Monitor</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item">Live real-time charts displaying system CPU usage and RAM headroom alongside StreamStorm's process footprint.</li>
+                <li className="instructions-list-item">Helps monitor resource consumption dynamically while adding or scaling storming channels.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
               <strong>Live Log Feed</strong>
               <ul className="instructions-list">
                 <li className="instructions-list-item">A real-time log stream showing all storm activities, including message sends, errors, and status changes.</li>
@@ -519,10 +533,17 @@ const Instructions = () => {
           <h3 id="settings-general" className="instructions-step-heading">General</h3>
           <ul className="instructions-list">
             <li className="instructions-list-item">
+              <strong>Engine</strong>
+              <ul className="instructions-list">
+                <li className="instructions-list-item"><code className="instructions-inline-code">Obscura</code> (Default & Recommended) - Ultra-lightweight headless automation engine. Consumes only ~150MB RAM per channel (a ~60% reduction compared to standard browsers) and shares a single Playwright driver process. Works with Cookie-based login across Windows, macOS, and Linux.</li>
+                <li className="instructions-list-item"><code className="instructions-inline-code">Chromium</code> - Standard native Chromium browser engine (~250MB-350MB RAM per channel). Supports full graphical rendering and is required when using the Browser Profiles login method.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">
               <strong>Login Method</strong>
               <ul className="instructions-list">
-                <li className="instructions-list-item"><code className="instructions-inline-code">Cookies Based Login</code> (Default) - Uses saved cookies for authentication. More efficient and reliable.</li>
-                <li className="instructions-list-item"><code className="instructions-inline-code">Browser Profiles</code> - Uses separate browser profiles for each channel. Legacy method that requires more storage.</li>
+                <li className="instructions-list-item"><code className="instructions-inline-code">Cookies Based Login</code> (Default) - Uses saved cookies for authentication. Faster startup, minimal disk usage, and compatible with both Obscura and Chromium engines.</li>
+                <li className="instructions-list-item"><code className="instructions-inline-code">Browser Profiles</code> - Uses separate browser profile directories for each channel. Legacy method requiring more storage space and requires the Chromium engine.</li>
               </ul>
             </li>
             <li className="instructions-list-item">
@@ -609,7 +630,13 @@ const Instructions = () => {
           </div>
           <h2 id="precautions" className="instructions-section-heading">Precautions</h2>
           <ul className="instructions-list">
-            <li className="instructions-list-item">The less free RAM you have after clicking <code className="instructions-inline-code">Start Storm</code>, the more likely the storming process will be slower, and the more likely it is to fail. So choose the number of accounts responsibly. For example, if you have 10 GB of free RAM, use only 6-7 GB for storm and keep the rest free, for a smooth flow.</li>
+            <li className="instructions-list-item">The less free RAM you have after clicking <code className="instructions-inline-code">Start Storm</code>, the more likely the storming process will be slower, and the more likely it is to fail. Choose the number of accounts responsibly according to your selected engine:
+              <ul className="instructions-list">
+                <li className="instructions-list-item"><strong>With Obscura (Default):</strong> Each channel uses only ~150MB of RAM. If you have 8GB of free RAM, you can comfortably run 40+ channels while leaving plenty of headroom for your operating system.</li>
+                <li className="instructions-list-item"><strong>With Chromium:</strong> Each channel uses ~250MB-350MB of RAM. If you have 8GB of free RAM, limit your run to around 15–20 channels.</li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">Check the <strong>System Info</strong> card on the live dashboard while the storm is running to monitor real-time CPU and RAM trends.</li>
           </ul>
 
           <h2 id="mcp-server" className="instructions-section-heading">Using the StreamStorm MCP Server</h2>
