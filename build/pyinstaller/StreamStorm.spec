@@ -3,7 +3,8 @@ from pathlib import Path
 from platform import system
 from os import getcwd
 import os
-from PyInstaller.utils.hooks import copy_metadata, collect_all, collect_data_files
+from PyInstaller.utils.hooks import copy_metadata, collect_all, collect_data_files, collect_submodules
+import tempfile
 import importlib.metadata
 import fakeredis
 
@@ -28,10 +29,42 @@ if os.path.exists(json_path):
 else:
     print(f"Warning: Could not find commands.json at {json_path}")
 
+# Sentry: bundle ONLY the DSN (never the whole Engine/.env, which may hold other secrets).
+# The DSN comes from the STREAMSTORM_SENTRY_DSN env var (e.g. a GitHub Actions secret) or
+# from the git-ignored src/Engine/.env. It is read at runtime by Settings.py from sys._MEIPASS/.env.
+def _find_sentry_dsn():
+    dsn = os.environ.get("STREAMSTORM_SENTRY_DSN", "").strip()
+    if dsn:
+        return dsn
+
+    env_file = ENGINE / ".env"
+    if env_file.exists():
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            key, sep, value = line.partition("=")
+            if sep and key.strip() == "STREAMSTORM_SENTRY_DSN":
+                return value.strip().strip('"').strip("'")
+
+    return ""
+
+sentry_dsn = _find_sentry_dsn()
+sentry_datas = []
+
+if sentry_dsn:
+    sentry_env_dir = Path(tempfile.mkdtemp(prefix="streamstorm_sentry_"))
+    sentry_env_file = sentry_env_dir / ".env"
+    sentry_env_file.write_text(f"STREAMSTORM_SENTRY_DSN={sentry_dsn}\n", encoding="utf-8")
+    sentry_datas.append((str(sentry_env_file), "."))
+    print("Bundled Sentry DSN into the executable")
+else:
+    print("Warning: STREAMSTORM_SENTRY_DSN not found - this build will have Sentry disabled")
+
+# Sentry auto-enabling integrations are imported dynamically, so PyInstaller cannot detect them
+sentry_hidden = collect_submodules("sentry_sdk")
+
 # Combine everything
-datas = datas + lupa_datas + fr_datas
+datas = datas + lupa_datas + fr_datas + sentry_datas
 binaries = binaries + lupa_binaries + fr_binaries
-hiddenimports = hiddenimports + lupa_hiddenimports + fr_hidden
+hiddenimports = hiddenimports + lupa_hiddenimports + fr_hidden + sentry_hidden
 
 for dist in importlib.metadata.distributions():
     package_name = dist.metadata['Name']

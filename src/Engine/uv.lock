@@ -163,19 +163,6 @@ wheels = [
 ]
 
 [[package]]
-name = "atatus"
-version = "2.3.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "certifi" },
-    { name = "ecs-logging" },
-    { name = "requests" },
-    { name = "urllib3" },
-    { name = "wrapt" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/8b/1e/ff470c40105d91e503aaeac60bd0eaa7894c8c7846d8771f8ed70273f394/atatus-2.3.0.tar.gz", hash = "sha256:b414f91a00abd4546926ce5fb4d64dc4ce7a54066e86c7232e39f73538cdd79f", size = 202281, upload-time = "2026-02-12T10:54:54.182Z" }
-
-[[package]]
 name = "attrs"
 version = "25.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -536,15 +523,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/ae/b6/03bb70946330e88ffec97aefd3ea75ba575cb2e762061e0e62a213befee8/docutils-0.22.4.tar.gz", hash = "sha256:4db53b1fde9abecbb74d91230d32ab626d94f6badfc575d6db9194a49df29968", size = 2291750, upload-time = "2025-12-18T19:00:26.443Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/02/10/5da547df7a391dcde17f59520a231527b8571e6f46fc8efb02ccb370ab12/docutils-0.22.4-py3-none-any.whl", hash = "sha256:d0013f540772d1420576855455d050a2180186c91c15779301ac2ccb3eeb68de", size = 633196, upload-time = "2025-12-18T19:00:18.077Z" },
-]
-
-[[package]]
-name = "ecs-logging"
-version = "2.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/40/9d/49b6b8ecd9b42ee61691ceea6b8757391f371f11df87315bf64240c04d2b/ecs_logging-2.2.0.tar.gz", hash = "sha256:1dc9e216f614129db0e6a2f9f926da4e4cf8edf8de16d1045a20aa8e950291d3", size = 7769, upload-time = "2024-06-28T07:23:20.162Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/26/b4/cdc7961ef5979080766c806b6da014352cbbc4ef6194785e6886988bf48e/ecs_logging-2.2.0-py3-none-any.whl", hash = "sha256:f6e22d267770b06f797076f49b5fcc9d97108b22f452f5f9ed4b5367b1e61b5b", size = 10443, upload-time = "2024-06-28T07:23:18.843Z" },
 ]
 
 [[package]]
@@ -3263,15 +3241,20 @@ wheels = [
 
 [[package]]
 name = "sentry-sdk"
-version = "2.49.0"
+version = "2.73.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/02/94/23ac26616a883f492428d9ee9ad6eee391612125326b784dbfc30e1e7bab/sentry_sdk-2.49.0.tar.gz", hash = "sha256:c1878599cde410d481c04ef50ee3aedd4f600e4d0d253f4763041e468b332c30", size = 387228, upload-time = "2026-01-08T09:56:25.642Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c5/3b/1e47acf2456781c26e12007379ecc154bf310b8f64d40390d78b791d55c3/sentry_sdk-2.73.0.tar.gz", hash = "sha256:4a2ab97b16e4693c325ab361c7bbbb346dbc7d0bc0150922d795a25bac8d5280", size = 1079078, upload-time = "2026-10-22T09:08:49.63Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/88/43/1c586f9f413765201234541857cb82fda076f4b0f7bad4a0ec248da39cf3/sentry_sdk-2.49.0-py2.py3-none-any.whl", hash = "sha256:6ea78499133874445a20fe9c826c9e960070abeb7ae0cdf930314ab16bb97aa0", size = 415693, upload-time = "2026-01-08T09:56:21.872Z" },
+    { url = "https://files.pythonhosted.org/packages/b2/88/cabf98d017d7b940720e514e5f8ee02e3e6f7495caf93c30735a38387ec4/sentry_sdk-2.73.0-py3-none-any.whl", hash = "sha256:0bcfa6928ea5adbb89591858b514d27adac27c7a3cccc31b20ed10e0b09eda9e", size = 549011, upload-time = "2026-10-22T09:08:47.88Z" },
+]
+
+[package.optional-dependencies]
+fastapi = [
+    { name = "fastapi" },
 ]
 
 [[package]]
@@ -3400,6 +3383,7 @@ dependencies = [
     { name = "pywebview" },
     { name = "pywebview", extra = ["qt"], marker = "sys_platform == 'linux'" },
     { name = "selenium" },
+    { name = "sentry-sdk", extra = ["fastapi"] },
     { name = "setuptools" },
     { name = "undetected-chromedriver" },
     { name = "uvicorn" },
@@ -3408,7 +3392,6 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "atatus" },
     { name = "auto-py-to-exe" },
     { name = "pyinstaller" },
     { name = "pytest" },
@@ -3438,6 +3421,7 @@ requires-dist = [
     { name = "pywebview", marker = "sys_platform != 'linux'", specifier = ">=5.4" },
     { name = "pywebview", extras = ["qt"], marker = "sys_platform == 'linux'", specifier = ">=5.4" },
     { name = "selenium", specifier = ">=4.27.1" },
+    { name = "sentry-sdk", extras = ["fastapi"], specifier = ">=2.68.0" },
     { name = "setuptools", specifier = ">=80.9.0" },
     { name = "undetected-chromedriver", specifier = ">=3.5.5" },
     { name = "uvicorn", specifier = ">=0.40.0" },
@@ -3446,7 +3430,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "atatus", specifier = ">=2.3.0" },
     { name = "auto-py-to-exe", specifier = ">=2.46.0" },
     { name = "pyinstaller", specifier = ">=6.15.0" },
     { name = "pytest", specifier = ">=8.4.1" },

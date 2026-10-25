@@ -37,6 +37,12 @@ def check_engine_env(version: str):
             "Change it to the new version before building the release."
         )
     
+    if not settings.sentry_dsn.strip():
+        raise ValueError(
+            "STREAMSTORM_SENTRY_DSN is not set. Releases must ship with Sentry error tracking. "
+            "Set it in src/Engine/.env or as an environment variable before building the release."
+        )
+
     log_info(f"Environment configuration check passed. ENV is set to '{settings.env}'.")
     
 

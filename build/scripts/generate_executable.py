@@ -10,7 +10,7 @@ from subprocess import call  # noqa: E402
 from os import chdir  # noqa: E402
 from shutil import move, rmtree  # noqa: E402
 from platform import system  # noqa: E402
-from logging import basicConfig, INFO, info as log_info  # noqa: E402
+from logging import basicConfig, INFO, info as log_info, warning as log_warning  # noqa: E402
 from json import load # noqa: E402
 
 basicConfig(level=INFO)
@@ -40,6 +40,12 @@ def check_engine_env():
             "Change it to the new version before building the release."
         )
     
+    if not settings.sentry_dsn.strip():
+        log_warning(
+            "STREAMSTORM_SENTRY_DSN is not set. This executable will be built WITHOUT Sentry error tracking. "
+            "Set it in src/Engine/.env or as an environment variable."
+        )
+
     log_info(f"Environment configuration check passed. ENV is set to '{settings.env}'.")
 
 

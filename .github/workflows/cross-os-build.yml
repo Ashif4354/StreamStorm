@@ -39,6 +39,9 @@ jobs:
           python -m pip install uv
 
       - name: Make executable (project root)
+        env:
+          # Injected from GitHub repository secrets; bundled into the executable by StreamStorm.spec
+          STREAMSTORM_SENTRY_DSN: ${{ secrets.STREAMSTORM_SENTRY_DSN }}
         run: |
           set -eux
           chmod +x ./export/linux/DEBIAN/postinst

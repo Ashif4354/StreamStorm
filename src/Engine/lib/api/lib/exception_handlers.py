@@ -4,6 +4,8 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 
+from ...utils.sentry import capture_handled_exception
+
 logger: Logger = getLogger(f"fastapi.{__name__}")
 
 async def common_exception_handler(request: Request, exc: Exception) -> JSONResponse:
@@ -11,6 +13,7 @@ async def common_exception_handler(request: Request, exc: Exception) -> JSONResp
     Common exception handler for all exceptions.
     """
     logger.error(f"An error occurred: {str(exc)}")
+    capture_handled_exception(exc, "unexpected")
     
     return JSONResponse(
         status_code=500,
@@ -28,6 +31,7 @@ async def business_exception_handler(request: Request, exc: Exception) -> JSONRe
     Returns 400 Bad Request and exposes the message to the client.
     """
     logger.error(f"Business logic error: {str(exc)}")
+    capture_handled_exception(exc, "business")
     
     return JSONResponse(
         status_code=400,
@@ -73,6 +77,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         message: str = errors[0]["msg"].replace("Value error, ", "")
     
     logger.error(f"Validation error: {message}")
+    capture_handled_exception(exc, "validation")
     
     if "ctx" in errors[0]:
         del errors[0]["ctx"]
@@ -91,6 +96,7 @@ async def session_not_created_exception_handler(request: Request, exc: Exception
     message: str = str(exc)
     
     logger.error(f"Session not created: {message}")
+    capture_handled_exception(exc, "browser_session")
     
     if "this version of chromedriver only supports chrome version" in message.lower():
         return JSONResponse(

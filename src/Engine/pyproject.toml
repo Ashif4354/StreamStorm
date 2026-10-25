@@ -27,6 +27,7 @@ dependencies = [
     "pydantic-ai-slim[anthropic,fastmcp,google,openai]>=0.4.3",
     "pydantic-settings>=2.12.0",
     "fastmcp>=2.14.1",
+    "sentry-sdk[fastapi]>=2.68.0",
 ]
 
 [dependency-groups]
@@ -34,7 +35,6 @@ dev = [
     "auto-py-to-exe>=2.46.0",
     "pyinstaller>=6.15.0",
     "tomlkit>=0.13.3",
-    "atatus>=2.3.0",
     "python-dotenv>=1.1.1",
     "pytest>=8.4.1",
     "pytest-mock>=3.14.1",

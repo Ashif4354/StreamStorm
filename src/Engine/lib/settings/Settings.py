@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 from os import makedirs
 from os.path import exists
@@ -62,9 +63,17 @@ def write_settings_json(settings: dict) -> None:
         file.write(dumps(settings, indent=4))
 
 
+_ENV_FILES: list[str | Path] = [".env", "../../.env", "../src/Engine/.env"]
+
+if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+    # In the PyInstaller executable, a build-time env file (containing only the Sentry DSN)
+    # is bundled inside the extracted bundle. It is placed first so any local .env overrides it.
+    _ENV_FILES.insert(0, Path(sys._MEIPASS) / ".env")
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(".env", "../../.env", "../src/Engine/.env"),
+        env_file=tuple(_ENV_FILES),
         env_file_encoding="utf-8",
         env_prefix="STREAMSTORM_",
         validate_assignment=True
@@ -79,8 +88,7 @@ class Settings(BaseSettings):
     os: str = system()
     run_only_api: bool = False
 
-    atatus_app_name: str = "StreamStormEngine"  # Fetches from env variable
-    atatus_license_key: str = "atatus_license_key"  # Fetches from env variable
+    sentry_dsn: str = ""  # Fetches from STREAMSTORM_SENTRY_DSN env variable. Empty disables Sentry.
     logfire_token: str = "logfire_token"  # Fetches from env variable
 
     app_data_dir: Path = APP_DATA_DIR

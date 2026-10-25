@@ -1,5 +1,5 @@
 from logging import DEBUG, Logger, getLogger
-from typing import Callable, Optional
+from typing import Callable
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
@@ -8,8 +8,8 @@ from fastapi.responses import JSONResponse
 from psutil import virtual_memory
 from selenium.common.exceptions import SessionNotCreatedException
 
-from ..settings import settings
 from ..utils.CustomLogger import custom_logger
+from ..utils.sentry import init_sentry
 from .lib.exception_handlers import (
     business_exception_handler,
     common_exception_handler,
@@ -28,34 +28,7 @@ custom_logger.setup_fastapi_logging()
 logger: Logger = getLogger(f"fastapi.{__name__}")
 logger.setLevel(DEBUG)
 
-if settings.env == "development":
-    logger.debug("Instrumenting atatus")
-
-    from atatus import Client, get_client, set_response_body
-    from atatus.contrib.starlette import Atatus, create_client
-
-    atatus_client: Optional[Client] = get_client()
-
-    if atatus_client is None:
-        atatus_client = create_client(
-            {
-                "APP_NAME": settings.atatus_app_name,
-                "LICENSE_KEY": settings.atatus_license_key,
-                "APP_VERSION": settings.version,
-                "TRACING": True,
-                "ANALYTICS": True,
-                "ANALYTICS_CAPTURE_OUTGOING": True,
-                "LOG_BODY": "all",
-                "LOG_LEVEL": "debug",
-                "LOG_FILE": "streamstorm.log",
-                "LLMOBS": True,
-            }
-        )
-
-    logger.debug("Atatus client created")
-
-else:
-    logger.debug("Skipping atatus instrumentation in production")
+init_sentry()  # No-op if already initialised, in tests, or when no DSN is configured
 
 app: FastAPI = FastAPI(lifespan=lifespan)
 
@@ -88,42 +61,6 @@ async def add_cors_headers(request: Request, call_next: Callable):
     response.headers["Access-Control-Allow-Headers"] = "*"
     return response
 
-
-if settings.env == "development":
-
-    @app.middleware("http")
-    async def add_atatus_set_response_body_middleware(
-        request: Request, call_next: Callable
-    ):
-        response: Response = await call_next(request)
-
-        response_body = b""
-        async for chunk in response.body_iterator:
-            response_body += chunk
-
-        if response_body:
-            try:
-                decoded_body = response_body.decode("utf-8")
-                set_response_body(decoded_body)
-            except Exception as e:
-                logger.error(f"Error setting response body: {e}")
-
-            headers = dict(response.headers)
-            headers.pop("content-length", None)
-
-            return Response(
-                content=response_body,
-                status_code=response.status_code,
-                headers=headers,
-                media_type=response.media_type,
-            )
-
-        return response
-
-    logger.debug("Atatus set_response_body middleware added to FastAPI app")
-
-    app.add_middleware(Atatus, client=atatus_client)
-    logger.debug("Atatus middleware added to FastAPI app")
 
 app.include_router(storm_router)
 app.include_router(environment_router)
