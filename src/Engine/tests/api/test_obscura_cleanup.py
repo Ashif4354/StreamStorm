@@ -275,8 +275,14 @@ def test_shared_playwright_refcounting():
 
                 mock_pw_driver.chromium.connect_over_cdp = AsyncMock()
                 mock_browser = AsyncMock()
+                mock_browser.on = MagicMock()
                 mock_context = AsyncMock()
+                mock_context.on = MagicMock()
+                mock_context.browser = mock_browser
                 mock_page = AsyncMock()
+                mock_page.on = MagicMock()
+                mock_page.set_default_navigation_timeout = MagicMock()
+                mock_page.set_default_timeout = MagicMock()
                 mock_pw_driver.chromium.connect_over_cdp.return_value = mock_browser
                 mock_browser.new_context.return_value = mock_context
                 mock_context.new_page.return_value = mock_page
