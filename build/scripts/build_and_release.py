@@ -111,6 +111,22 @@ def update_versions(new_version: str) -> None:
 
     control_file.write_text(text, encoding="utf-8")
 
+    # Engine/lib/settings/Settings.py
+    settings_file: Path = ROOT / "src" / "Engine" / "lib" / "settings" / "Settings.py"
+    log_info(f"Updating {settings_file}")
+    text = settings_file.read_text(encoding="utf-8")
+    text = sub(r'version:\s*str\s*=\s*".*"', f'version: str = "{new_version}"', text)
+    settings_file.write_text(text, encoding="utf-8")
+
+    # UI .env files
+    for env_name in [".env", ".env.production", ".env.example"]:
+        env_file: Path = ROOT / "src" / "UI" / env_name
+        if env_file.exists():
+            log_info(f"Updating {env_file}")
+            env_text = env_file.read_text(encoding="utf-8")
+            env_text = sub(r'^VITE_APP_VERSION\s*=.*$', f'VITE_APP_VERSION={new_version}', env_text, flags=__import__("re").MULTILINE)
+            env_file.write_text(env_text, encoding="utf-8")
+
 def generate_executable() -> None:
     log_info("Generating executable...")
     

@@ -2,6 +2,14 @@
 <html lang="en">
 
 <head>
+  <!-- Initialize dataLayer and StreamStorm version before GTM -->
+  <script>
+    window.__STREAMSTORM_VERSION__ = '%VITE_APP_VERSION%';
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      'app_version': '%VITE_APP_VERSION%'
+    });
+  </script>
   <!-- Google Tag Manager -->
   <script>
     (function (w, d, s, l, i) {

@@ -9,6 +9,13 @@ import AppProviders from './lib/AppProviders.jsx';
 import AtatusErrorBoundary from './Components/Elements/AtatusErrorBoundary';
 
 // Install transparent fetch payload observer & DOM input change listeners
+if (typeof window !== 'undefined') {
+    window.__STREAMSTORM_VERSION__ = import.meta.env.VITE_APP_VERSION;
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+        app_version: import.meta.env.VITE_APP_VERSION
+    });
+}
 atatus.installGlobalObservers();
 atatus.addTiming('react_init_start');
 

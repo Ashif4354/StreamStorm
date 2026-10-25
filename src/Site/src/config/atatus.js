@@ -14,6 +14,8 @@
  * - Automatic fetch payload logging, unmasked DOM input observer, & outbound/download link observer
  */
 
+import packageJson from '../../package.json';
+
 const isBrowser = typeof window !== 'undefined';
 
 const getRumAgent = () => isBrowser ? (window.atatusRum || window.ATATUS_RUM || null) : null;
@@ -298,7 +300,12 @@ export const installGlobalObservers = () => {
     observersInstalled = true;
 
     setGlobalContextProperty('appName', 'StreamStormSite');
-    setGlobalContextProperty('version', '4.2.0');
+    setGlobalContextProperty('version', packageJson.version);
+    if (isBrowser) {
+        window.__STREAMSTORM_VERSION__ = packageJson.version;
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ app_version: packageJson.version });
+    }
 
     // 1. Transparent Fetch Observer
     const originalFetch = window.fetch;

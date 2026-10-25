@@ -39,7 +39,7 @@ Standard Atatus RUM tag (per official Atatus documentation):
       licenseKey: '{{ATATUS_RUM_API_KEY}}',
       appName: 'APP_NAME',
       env: 'production',
-      version: '4.2.0',
+      version: '{{SS AppVersion}}' || window.__STREAMSTORM_VERSION__,
       sessionSampleRate: 100,
       sessionReplaySampleRate: 100,
       trackUserInteractions: true,
