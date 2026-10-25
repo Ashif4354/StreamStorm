@@ -6,6 +6,8 @@ from fastapi.testclient import TestClient
 
 from lib.core.StreamStorm import StreamStorm
 from lib.core.EngineContext import EngineContext
+from lib.core.SeparateInstance import SeparateInstance
+from lib.core.StormContext import StormContext
 
 
 @fixture(autouse=True)
@@ -60,7 +62,18 @@ def test_storm_data_instantiated(client: TestClient):
     assert not StreamStorm.ss_instance.context.run_stopper_event.is_set()
     
     assert StreamStorm.ss_instance.context.total_instances == len(channels)
-    
-    
-    
-    
+
+
+def test_separate_instance_slots_with_obscura_port():
+    context = StormContext()
+    instance = SeparateInstance(
+        index=1,
+        user_data_dir="C:\\test\\profile",
+        wait_time=1.0,
+        channel_name="TestChannel",
+        cookies=[],
+        storm_context=context,
+        obscura_port=9222
+    )
+    assert instance.obscura_port == 9222
+

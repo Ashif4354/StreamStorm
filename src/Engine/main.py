@@ -24,6 +24,7 @@ from uvicorn import run as run_uvicorn
 from webview import create_window, start
 
 from lib.settings import settings
+from lib.core.Obscura import Obscura
 from lib.utils.CombinedLifeSpan import combined_lifespan
 from lib.utils.CustomLogger import custom_logger
 from lib.utils.sentry import flush_sentry, init_sentry
@@ -38,6 +39,9 @@ from lib.mcp.mcpserver import mcp_app
 
 def exit_app() -> None:
     logger.debug("Exiting StreamStorm")
+    # Obscura is spawned detached so it would outlive us; SIGTERM below skips atexit on Windows
+    with suppress(Exception):
+        Obscura.kill_all()
     flush_sentry()
     kill(getpid(), SIGTERM)
 

@@ -1,5 +1,5 @@
 from typing import NoReturn
-from asyncio import sleep
+from asyncio import sleep, wait_for, TimeoutError as AsyncTimeoutError
 from logging import getLogger, Logger
 
 from ..core.StreamStorm import StreamStorm
@@ -18,20 +18,29 @@ async def background_storm_stopper() -> NoReturn:
         try:
             await sleep(5)
             
-            if StreamStorm.ss_instance is None:
+            current_instance = StreamStorm.ss_instance
+            if current_instance is None:
                 continue
             
-            await StreamStorm.ss_instance.context.run_stopper_event.wait()
-            
-            statuses: list[bool] = [await instance.is_instance_alive() for instance in StreamStorm.ss_instance.context.each_channel_instances.copy()]
+            try:
+                await wait_for(current_instance.context.run_stopper_event.wait(), timeout=5)
+            except AsyncTimeoutError:
+                if not current_instance.context.run_stopper_event.is_set():
+                    continue
+
+            if StreamStorm.ss_instance is not current_instance:
+                continue
+
+            statuses: list[bool] = [await instance.is_instance_alive() for instance in current_instance.context.each_channel_instances.copy()]
             
             if not len(statuses):
                 logger.debug("StreamStorm instance is marked dead by: Status length checker")
 
             if not any(statuses):
                 logger.debug("Resetting StreamStorm instance and clearing each channel instances")
-                await StreamStorm.ss_instance.cleanup()
-                StreamStorm.ss_instance = None
+                await current_instance.cleanup()
+                if StreamStorm.ss_instance is current_instance:
+                    StreamStorm.ss_instance = None
                 EngineContext.reset()
                 
                 await sio.emit('storm_stopped', room="streamstorm")                

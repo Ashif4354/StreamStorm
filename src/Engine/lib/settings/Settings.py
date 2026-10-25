@@ -94,11 +94,13 @@ class Settings(BaseSettings):
     app_data_dir: Path = APP_DATA_DIR
     settings_file_path: Path = SETTINGS_FILE_PATH
     environment_dir: Path = APP_DATA_DIR / "Environment"
+    screenshot_dir: Path = APP_DATA_DIR / "Screenshots"
     data_json_path: Path = environment_dir / "data.json"
     cookies_path: Path = environment_dir / "cookies.json"
     log_file_path: str = "" # Will be set by CustomLogger during logging setup
 
     login_method: Literal["cookies", "profiles"] = "cookies"
+    browser_engine: Literal["native", "obscura"] = "obscura"
 
     @property
     def is_logged_in(self) -> bool:

@@ -13,11 +13,12 @@ from .StormContext import StormContext
 from ..socketio.sio import sio
 from ..api.validation import StormData
 from ..settings import settings
+from .Obscura import Obscura
 
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 class StreamStorm(Profiles):
-    __slots__: tuple[str, ...] = ('context', 'cookies', '_background_tasks')
+    __slots__: tuple[str, ...] = ('context', 'cookies', '_background_tasks', 'obscura')
     
     ss_instance: Optional["StreamStorm"] = None
 
@@ -30,6 +31,11 @@ class StreamStorm(Profiles):
 
         self.init_context(data)
         self.load_cookies()
+        
+        self.obscura: Optional[Obscura] = None
+        if settings.browser_engine == "obscura" and settings.login_method == "cookies":
+            self.obscura = Obscura()
+        self.context.obscura = self.obscura
 
         StreamStorm.ss_instance = self
 
@@ -56,6 +62,7 @@ class StreamStorm(Profiles):
         self.context.message_count = 0
         self.context.message_rate = 0.0
         self.context.login_method = settings.login_method
+        self.context.browser_engine = settings.browser_engine
         
 
     def load_cookies(self) -> None:
@@ -200,6 +207,8 @@ class StreamStorm(Profiles):
         """Cancel all background tasks and clean up resources."""
         logger.info("Starting StreamStorm cleanup...")
         
+        self.context.run_stopper_event.set()
+
         for task in self._background_tasks:
             if not task.done():
                 task.cancel()
@@ -211,6 +220,9 @@ class StreamStorm(Profiles):
         
         self._background_tasks.clear()
         self.context.each_channel_instances.clear()
+
+        if self.obscura:
+            self.obscura.cleanup()
         
         logger.info("StreamStorm cleanup completed")
 
@@ -276,38 +288,48 @@ class StreamStorm(Profiles):
             raise SystemError("Not enough temp profiles available. Create Enough profiles first.")     
 
         async def start_each_worker() -> None:
-            
-            await sleep(3)  # Small delay to ensure everything is set up in UI before starting workers
+            try:
+                await sleep(3)  # Small delay to ensure everything is set up in UI before starting workers
 
-            await sio.emit("storm_started", room="streamstorm") # Emit storm started event to UI so that any extra connected clients know that the storm has started and will be able to hop in.
+                await sio.emit("storm_started", room="streamstorm") # Emit storm started event to UI so that any extra connected clients know that the storm has started and will be able to hop in.
 
-            async def wait_for_all_worker_to_be_ready() -> None:
-                while self.context.ready_to_storm_instances < self.context.total_instances:
-                    await sleep(1)
-                logger.info(f"All {self.context.total_instances} instances ready - starting storm")
-                self.context.ready_event.set()  # Set the event to signal that all instances are ready
+                async def wait_for_all_worker_to_be_ready() -> None:
+                    while self.context.ready_to_storm_instances < self.context.total_instances:
+                        await sleep(1)
+                    logger.info(f"All {self.context.total_instances} instances ready - starting storm")
+                    self.context.ready_event.set()  # Set the event to signal that all instances are ready
 
-            self._track_task(create_task(wait_for_all_worker_to_be_ready()))
-            self._track_task(create_task(self.messages_handler()))
-            
-            tasks: list[Task] = []
+                self._track_task(create_task(wait_for_all_worker_to_be_ready()))
+                self._track_task(create_task(self.messages_handler()))
+                
+                tasks: list[Task] = []
 
-            for index in range(len(self.context.channels)):
-                profile_dir: str = join(self.environment_dir, temp_profiles[index])
-                channel_name: str = self.context.all_channels[str(self.context.channels[index])]['name']
-                wait_time: float = self.get_start_storm_wait_time(index)
-   
-                logger.info(f"[{index}] [{channel_name}] Using profile: {profile_dir}, Wait time: {wait_time}s")
+                for index in range(len(self.context.channels)):
+                    profile_dir: str = join(self.environment_dir, temp_profiles[index])
+                    channel_name: str = self.context.all_channels[str(self.context.channels[index])]['name']
+                    wait_time: float = self.get_start_storm_wait_time(index)
+                    
+                    assigned_port: int = 0
+                    if settings.browser_engine == "obscura" and settings.login_method == "cookies" and self.obscura:
+                        assigned_port = self.obscura.spawn_instance(self.context)
 
-                si: SeparateInstance = SeparateInstance(self.context.channels[index], profile_dir, wait_time, channel_name, self.cookies, self.context)
+                    logger.info(f"[{index}] [{channel_name}] Using profile: {profile_dir}, Wait time: {wait_time}s, Assigned port: {assigned_port if assigned_port else 'N/A'}")
 
-                task: Task = create_task(si.start())
-                tasks.append(task)
-                await sleep(0.2)  # Small delay to avoid instant spike of the cpu load
+                    si: SeparateInstance = SeparateInstance(self.context.channels[index], profile_dir, wait_time, channel_name, self.cookies, self.context, assigned_port)
 
-            await gather(*tasks)  # Wait for all tasks to complete
+                    task: Task = create_task(si.start())
+                    tasks.append(task)
+                    await sleep(0.2)  # Small delay to avoid instant spike of the cpu load
 
-            logger.debug("Initial storm instances completed")
+                self.context.run_stopper_event.set()
+
+                await gather(*tasks)  # Wait for all tasks to complete
+
+                logger.debug("Initial storm instances completed")
+            except Exception as e:
+                logger.error(f"Error in start_each_worker: {e}")
+            finally:
+                self.context.run_stopper_event.set()
 
         self._track_task(create_task(start_each_worker()))
     
@@ -338,24 +360,34 @@ class StreamStorm(Profiles):
         self.context.total_instances += len(channels)
         
         async def start_each_worker() -> None:  
-            
-            tasks: list[Task] = [] 
-              
-            for index in range(len(channels)):
-                profile_dir: str = join(self.environment_dir, available_profiles[index])
-                channel_name: str = self.context.all_channels[str(channels[index])]['name']
-                wait_time: float = self.get_start_storm_wait_time(index)
+            try:
+                tasks: list[Task] = [] 
+                  
+                for index in range(len(channels)):
+                    profile_dir: str = join(self.environment_dir, available_profiles[index])
+                    channel_name: str = self.context.all_channels[str(channels[index])]['name']
+                    wait_time: float = self.get_start_storm_wait_time(index)
+                    
+                    assigned_port: int = 0
+                    if settings.browser_engine == "obscura" and settings.login_method == "cookies" and self.obscura:
+                        assigned_port = self.obscura.spawn_instance(self.context)
 
-                logger.debug(f"[{index}] [{channel_name}] Wait time: {wait_time}")
+                    logger.debug(f"[{index}] [{channel_name}] Wait time: {wait_time}, Assigned port: {assigned_port if assigned_port else 'N/A'}")
 
-                si: SeparateInstance = SeparateInstance(channels[index], profile_dir, wait_time, channel_name, self.cookies, self.context)
+                    si: SeparateInstance = SeparateInstance(channels[index], profile_dir, wait_time, channel_name, self.cookies, self.context, assigned_port)
 
-                task: Task = create_task(si.start())
-                tasks.append(task)
-                await sleep(0.2)
+                    task: Task = create_task(si.start())
+                    tasks.append(task)
+                    await sleep(0.2)
 
-            await gather(*tasks)
-            logger.debug("All added instances completed")
+                self.context.run_stopper_event.set()
+
+                await gather(*tasks)
+                logger.debug("All added instances completed")
+            except Exception as e:
+                logger.error(f"Error in start_more_channels worker: {e}")
+            finally:
+                self.context.run_stopper_event.set()
 
         self._track_task(create_task(start_each_worker()))       
 

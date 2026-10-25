@@ -63,7 +63,7 @@ def test_set_default_provider_validation(mocker: MockerFixture, client: TestClie
 
 
 @mark.parametrize("data", general_settings_data)
-def test_general_settings_validation(client: TestClient, data: dict) -> NoReturn:
+def test_general_settings_validation(mocker: MockerFixture, client: TestClient, tmp_path, data: dict) -> NoReturn:
     """Test validation for POST /settings/general"""
     
     logger.debug("DATA ID: %s", data["id"])
@@ -71,6 +71,9 @@ def test_general_settings_validation(client: TestClient, data: dict) -> NoReturn
     
     result: int = data["result"]
     del data["result"]
+    
+    # Mock settings file path
+    mocker.patch("lib.settings.Settings.SETTINGS_FILE_PATH", tmp_path / "settings.json")
     
     response: Response = client.post("/settings/general", json=data)
     logger.debug(response.json())

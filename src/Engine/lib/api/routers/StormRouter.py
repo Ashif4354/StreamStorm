@@ -127,6 +127,7 @@ async def start(data: StormData) -> JSONResponse:
         logger.info("Storm started successfully")
         
     except SystemError as e:
+        await StreamStormObj.cleanup()
         EngineContext.reset()
         StreamStorm.ss_instance = None
         cl.log_to_history(data, "Storm failed to start")
@@ -135,6 +136,7 @@ async def start(data: StormData) -> JSONResponse:
         raise e
     
     except Exception as e:
+        await StreamStormObj.cleanup()
         EngineContext.reset()
         StreamStorm.ss_instance = None
         cl.log_to_history(data, "Storm failed to start")
@@ -484,6 +486,9 @@ async def kill_instance(data: KillInstanceData) -> JSONResponse:
         for instance in StreamStorm.ss_instance.context.each_channel_instances:
             if instance.index == data.index:
                 await instance.close_browser(reason=f"Instance {data.index}. {data.name} killed by user")
+
+                if instance.obscura_port and StreamStorm.ss_instance.obscura:
+                    StreamStorm.ss_instance.obscura.stop_instance(instance.obscura_port, StreamStorm.ss_instance.context)
                 
                 StreamStorm.ss_instance.context.each_channel_instances.remove(instance)
                 StreamStorm.ss_instance.context.total_instances -= 1

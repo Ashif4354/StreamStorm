@@ -44,3 +44,13 @@ def mock_get_cookies():
         return_value=[{"name": "test", "value": "cookie"}]
     ):
         yield
+
+
+@fixture(autouse=True)
+def mock_obscura_which():
+    """Mock shutil.which for Obscura so API tests pass in CI environments without Obscura installed."""
+    with patch(
+        "lib.core.Obscura.which",
+        return_value="/usr/local/bin/obscura"
+    ):
+        yield
