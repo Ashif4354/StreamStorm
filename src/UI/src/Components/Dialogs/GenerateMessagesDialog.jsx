@@ -11,7 +11,7 @@ import {
     useColorScheme
 } from "@mui/material";
 import { useNotifications } from "@toolpad/core/useNotifications";
-import { safeLogEvent as logEvent } from '../../config/safeAnalytics.js';
+import { logEvent } from "firebase/analytics";
 import * as atatus from "../../lib/atatus";
 
 import { useCustomMUIProps } from "../../context/CustomMUIPropsContext";

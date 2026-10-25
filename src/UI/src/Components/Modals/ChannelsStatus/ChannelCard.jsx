@@ -1,6 +1,6 @@
 import { Card, Avatar, Chip, Button } from "@mui/material";
 import { useColorScheme } from '@mui/material/styles';
-import { safeLogEvent as logEvent } from '../../../config/safeAnalytics.js';
+import { logEvent } from "firebase/analytics";
 import * as atatus from "../../../lib/atatus";
 
 import { useAppState } from "../../../context/AppStateContext";

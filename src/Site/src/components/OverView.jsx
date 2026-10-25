@@ -1,7 +1,7 @@
 "use client";
 import LaunchIcon from '@mui/icons-material/Launch';
 import { analytics } from '@/config/firebase';
-import { safeLogEvent as logEvent } from '../config/safeAnalytics.js';
+import { logEvent } from 'firebase/analytics';
 import * as atatus from '@/config/atatus';
 
 const OverView = () => {

@@ -4,7 +4,7 @@ import { useColorScheme } from '@mui/material/styles';
 import { Switch, Button, Divider, Tooltip } from "@mui/material";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { RefreshCw, Users, StopCircle } from 'lucide-react';
-import { safeLogEvent as logEvent } from '../../../../../config/safeAnalytics.js';
+import { logEvent } from "firebase/analytics";
 import { useDialogs } from "@toolpad/core/useDialogs";
 
 import "./RightPanel.css";
