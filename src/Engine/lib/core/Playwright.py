@@ -403,7 +403,8 @@ class Playwright(BrowserAutomator):
             self.page.on("close", lambda _: mark_dead("page.on_close"))
             self.page.on("crash", lambda _: mark_dead("page.on_crash"))
             self.browser_context.on("close", lambda _: mark_dead("browser_context.on_close"))
-            self.browser_context.browser.on("disconnected", lambda _: mark_dead("browser_context.browser.on_disconnected"))
+            if self.browser_context.browser:
+                self.browser_context.browser.on("disconnected", lambda _: mark_dead("browser_context.browser.on_disconnected"))
 
         except Exception as _:
             self._is_alive = False
