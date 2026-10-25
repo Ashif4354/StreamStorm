@@ -23,6 +23,7 @@ const AppStateProvider = ({ children }) => {
 
     // General settings (stored in app state, synced with backend)
     const [loginMethod, setLoginMethod] = useState('cookies');
+    const [engine, setEngine] = useState('obscura');
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     const [settingsLoading, setSettingsLoading] = useState(true);
@@ -34,13 +35,15 @@ const AppStateProvider = ({ children }) => {
         atatus.addFeatureFlagEvaluation('storm_in_progress', stormInProgress);
     }, [stormInProgress, stormStatus]);
 
-    // Sync login method and status
+    // Sync login method, engine, and status
     useEffect(() => {
         atatus.addFeatureFlagEvaluation('login_method', loginMethod);
+        atatus.addFeatureFlagEvaluation('engine', engine);
         atatus.addFeatureFlagEvaluation('is_logged_in', isLoggedIn);
         atatus.setUserProperty('loginMethod', loginMethod);
+        atatus.setUserProperty('engine', engine);
         atatus.setUserProperty('isLoggedIn', isLoggedIn);
-    }, [loginMethod, isLoggedIn]);
+    }, [loginMethod, engine, isLoggedIn]);
 
     // Sync AI provider
     useEffect(() => {
@@ -87,6 +90,7 @@ const AppStateProvider = ({ children }) => {
                     // Set general settings from 'general' sub-key
                     if (data.general) {
                         setLoginMethod(data.general.login_method ?? 'cookies');
+                        setEngine(data.general.engine ?? 'obscura');
                         setIsLoggedIn(data.general.is_logged_in ?? false);
                     }
 
@@ -99,6 +103,7 @@ const AppStateProvider = ({ children }) => {
                     atatus.setUser({
                         id: data.general?.is_logged_in ? 'authenticated-operator' : 'anonymous-operator',
                         loginMethod: data.general?.login_method || 'cookies',
+                        engine: data.general?.engine || 'obscura',
                         isLoggedIn: data.general?.is_logged_in || false,
                     });
                     atatus.setGlobalContextProperty('engineVersion', data.version);
@@ -145,6 +150,7 @@ const AppStateProvider = ({ children }) => {
         defaultAIBaseUrl, setDefaultAIBaseUrl,
         // General Settings
         loginMethod, setLoginMethod,
+        engine, setEngine,
         isLoggedIn, setIsLoggedIn,
         settingsLoading
     };

@@ -5,7 +5,7 @@ from os.path import exists
 from platform import system
 from json import JSONDecodeError, dumps, loads
 from logging import Logger, getLogger
-from typing import Literal
+from typing import Any, Literal
 
 from platformdirs import user_data_dir
 from pydantic import model_validator, Field
@@ -38,13 +38,25 @@ def read_settings_json() -> SavedSettings:
     try:
         with open(SETTINGS_FILE_PATH, "r", encoding="utf-8") as file:
             content = file.read()
-            settings = loads(content)
+            loaded = loads(content)
 
             # Ensure AI section exists
-            if "ai" not in settings:
-                settings["ai"] = DEFAULT_SAVED_SETTINGS["ai"]
+            if "ai" not in loaded:
+                loaded["ai"] = DEFAULT_SAVED_SETTINGS["ai"]
 
-            return SavedSettings(**settings)
+            if "login_method" not in loaded:
+                loaded["login_method"] = "cookies"
+
+            if "engine" not in loaded:
+                old_engine = loaded.get("browser_engine", "obscura")
+                if old_engine == "native":
+                    old_engine = "chromium"
+                loaded["engine"] = old_engine
+
+            if loaded.get("engine") == "native":
+                loaded["engine"] = "chromium"
+
+            return SavedSettings(**loaded)
 
     except (JSONDecodeError, FileNotFoundError) as e:
         logger.error(f"Error reading settings file, recreating: {e}")
@@ -55,12 +67,12 @@ def read_settings_json() -> SavedSettings:
         return SavedSettings(**DEFAULT_SAVED_SETTINGS) 
 
 
-def write_settings_json(settings: dict) -> None:
+def write_settings_json(settings_dict: dict) -> None:
     """Write settings to file"""
     ensure_settings_json_file()
 
     with open(SETTINGS_FILE_PATH, "w", encoding="utf-8") as file:
-        file.write(dumps(settings, indent=4))
+        file.write(dumps(settings_dict, indent=4))
 
 
 _ENV_FILES: list[str | Path] = [".env", "../../.env", "../src/Engine/.env"]
@@ -100,7 +112,13 @@ class Settings(BaseSettings):
     log_file_path: str = "" # Will be set by CustomLogger during logging setup
 
     login_method: Literal["cookies", "profiles"] = "cookies"
-    browser_engine: Literal["native", "obscura"] = "obscura"
+    engine: Literal["chromium", "obscura"] = "obscura"
+
+    _initialized: bool = False
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        object.__setattr__(self, "_initialized", True)
 
     @property
     def is_logged_in(self) -> bool:
@@ -159,26 +177,34 @@ class Settings(BaseSettings):
     saved_settings: SavedSettings = Field(default_factory=SavedSettings) 
     ai: AISettings = Field(default_factory=AISettings)
 
+    def save(self) -> None:
+        """Write current persistent settings to settings.json"""
+        settings_json_content: dict = self.saved_settings.model_dump()
+        settings_json_content["ai"] = self.ai.model_dump()
+        settings_json_content["login_method"] = self.login_method
+        settings_json_content["engine"] = self.engine
+        write_settings_json(settings_json_content)
+
     @model_validator(mode="before")
     @classmethod
     def load_saved_settings(cls, data: dict) -> dict:
-        settings = read_settings_json()
-        data["saved_settings"] = settings
-        data["ai"] = settings.ai
-        data["login_method"] = settings.login_method
+        loaded = read_settings_json()
+        data["saved_settings"] = loaded
+        data["ai"] = loaded.ai
+        data["login_method"] = loaded.login_method
+        data["engine"] = loaded.engine
 
         return data
 
     @model_validator(mode="after")
     def save_settings(self) -> "Settings":
-        settings_json_content: dict = self.saved_settings.model_dump()
+        self.save()
+        return self
 
-        settings_json_content["ai"] = self.ai.model_dump()
-        settings_json_content["login_method"] = self.login_method
-
-        write_settings_json(settings_json_content)  
-
-        return self        
+    def __setattr__(self, name: str, value: Any) -> None:
+        super().__setattr__(name, value)
+        if getattr(self, "_initialized", False) and name in {"login_method", "engine", "ai"}:
+            self.save()
 
 
 settings: Settings = Settings()

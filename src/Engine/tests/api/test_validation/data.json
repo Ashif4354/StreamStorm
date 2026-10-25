@@ -1280,6 +1280,36 @@
             "id": "general_settings_6_wrong_type",
             "login_method": 123,
             "result": 422
+        },
+        {
+            "id": "general_settings_7_engine_obscura",
+            "login_method": "cookies",
+            "engine": "obscura",
+            "result": 200
+        },
+        {
+            "id": "general_settings_8_engine_chromium",
+            "login_method": "cookies",
+            "engine": "chromium",
+            "result": 200
+        },
+        {
+            "id": "general_settings_9_engine_native_invalid",
+            "login_method": "cookies",
+            "engine": "native",
+            "result": 422
+        },
+        {
+            "id": "general_settings_10_engine_invalid",
+            "login_method": "cookies",
+            "engine": "firefox",
+            "result": 422
+        },
+        {
+            "id": "general_settings_11_engine_null",
+            "login_method": "cookies",
+            "engine": null,
+            "result": 422
         }
     ]
 }

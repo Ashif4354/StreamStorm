@@ -25,19 +25,26 @@ def set_general_settings(data: GeneralSettingsData) -> JSONResponse:
     Update general application settings.
 
     Args:
-        data.login_method (str): Login method to use - 'cookies' or 'profiles'
+        data.login_method (str, optional): Login method to use - 'cookies' or 'profiles'
+        data.engine (str, optional): Browser engine to use - 'chromium' or 'obscura'
 
     Returns:
         success (bool): True if settings were saved successfully
         message (str): Confirmation message
         login_method (str): Updated login method
+        engine (str): Updated browser engine
     """
-    logger.info(f"Updating general settings: login_method={data.login_method}")
+    logger.info(f"Updating general settings: login_method={data.login_method}, engine={data.engine}")
 
     try:
-        settings.login_method = data.login_method
+        if data.login_method is not None:
+            settings.login_method = data.login_method
+        if data.engine is not None:
+            settings.engine = data.engine
 
-        logger.info(f"General settings updated: login_method={settings.login_method}")
+        settings.save()
+
+        logger.info(f"General settings updated: login_method={settings.login_method}, engine={settings.engine}")
 
         return JSONResponse(
             status_code=200,
@@ -45,6 +52,7 @@ def set_general_settings(data: GeneralSettingsData) -> JSONResponse:
                 "success": True,
                 "message": "Settings saved successfully",
                 "login_method": settings.login_method,
+                "engine": settings.engine,
             },
         )
 
@@ -154,6 +162,7 @@ def get_settings() -> JSONResponse:
                 },
                 "general": {
                     "login_method": settings.login_method,
+                    "engine": settings.engine,
                     "is_logged_in": settings.is_logged_in,
                 },
             },

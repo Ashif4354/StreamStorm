@@ -77,7 +77,7 @@ def test_streamstorm_cleanup_calls_obscura_cleanup():
              patch("lib.core.StreamStorm.Profiles.__init__", return_value=None), \
              patch("lib.core.StreamStorm.settings") as mock_settings:
 
-            mock_settings.browser_engine = "obscura"
+            mock_settings.engine = "obscura"
             mock_settings.login_method = "cookies"
 
             with patch("lib.core.StreamStorm.Obscura") as MockObscuraCls:
@@ -171,7 +171,7 @@ def test_storm_stopper_triggers_cleanup_when_all_instances_dead():
              patch("lib.utils.StormStopper.sio.emit", new=AsyncMock()) as mock_sio_emit, \
              patch("lib.utils.StormStopper.sleep", new=AsyncMock()) as mock_sleep:
 
-            mock_settings.browser_engine = "obscura"
+            mock_settings.engine = "obscura"
             mock_settings.login_method = "cookies"
 
             with patch("lib.core.StreamStorm.Obscura") as MockObscuraCls:

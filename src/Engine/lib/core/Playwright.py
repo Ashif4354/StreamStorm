@@ -434,7 +434,7 @@ class Playwright(BrowserAutomator):
             Playwright._shared_playwright_refcount += 1
             self.playwright = Playwright._shared_playwright
 
-        self._is_obscura = bool(obscura_port and settings.browser_engine == "obscura")
+        self._is_obscura = bool(obscura_port and settings.engine == "obscura")
 
         browser_options: dict[str, str | bool | list[str]] = await self.__get_chromium_options()
         logger.debug(f"[{self.index}] [{self.channel_name}] Browser options configured with {len(browser_options['args'])} arguments")

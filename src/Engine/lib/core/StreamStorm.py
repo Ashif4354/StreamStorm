@@ -33,7 +33,7 @@ class StreamStorm(Profiles):
         self.load_cookies()
         
         self.obscura: Optional[Obscura] = None
-        if settings.browser_engine == "obscura" and settings.login_method == "cookies":
+        if settings.engine == "obscura" and settings.login_method == "cookies":
             self.obscura = Obscura()
         self.context.obscura = self.obscura
 
@@ -62,7 +62,7 @@ class StreamStorm(Profiles):
         self.context.message_count = 0
         self.context.message_rate = 0.0
         self.context.login_method = settings.login_method
-        self.context.browser_engine = settings.browser_engine
+        self.context.engine = settings.engine
         
 
     def load_cookies(self) -> None:
@@ -310,7 +310,7 @@ class StreamStorm(Profiles):
                     wait_time: float = self.get_start_storm_wait_time(index)
                     
                     assigned_port: int = 0
-                    if settings.browser_engine == "obscura" and settings.login_method == "cookies" and self.obscura:
+                    if settings.engine == "obscura" and settings.login_method == "cookies" and self.obscura:
                         assigned_port = self.obscura.spawn_instance(self.context)
 
                     logger.info(f"[{index}] [{channel_name}] Using profile: {profile_dir}, Wait time: {wait_time}s, Assigned port: {assigned_port if assigned_port else 'N/A'}")
@@ -369,7 +369,7 @@ class StreamStorm(Profiles):
                     wait_time: float = self.get_start_storm_wait_time(index)
                     
                     assigned_port: int = 0
-                    if settings.browser_engine == "obscura" and settings.login_method == "cookies" and self.obscura:
+                    if settings.engine == "obscura" and settings.login_method == "cookies" and self.obscura:
                         assigned_port = self.obscura.spawn_instance(self.context)
 
                     logger.debug(f"[{index}] [{channel_name}] Wait time: {wait_time}, Assigned port: {assigned_port if assigned_port else 'N/A'}")

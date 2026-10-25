@@ -1,4 +1,3 @@
-
 from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
@@ -28,7 +27,8 @@ DEFAULT_SAVED_SETTINGS: dict = {
         "defaultModel": None,
         "defaultBaseUrl": None,
     },
-    "login_method": "cookies"
+    "login_method": "cookies",
+    "engine": "obscura"
 }
 """
 
@@ -57,6 +57,7 @@ class AISettings(BaseModel):
 class SavedSettings(BaseModel):
     ai: AISettings = Field(default_factory=AISettings)
     login_method: Literal["cookies", "profiles"] = "cookies"
+    engine: Literal["chromium", "obscura"] = "obscura"
 
 
 DEFAULT_SAVED_SETTINGS: dict = SavedSettings().model_dump()

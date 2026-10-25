@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Self, Optional
 from pathlib import Path
 from warnings import deprecated
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator, StrictInt, Field, AliasChoices
@@ -425,15 +425,29 @@ class GenerateMessagesRequest(BaseModel):
 
 class GeneralSettingsData(BaseModel):
     """Model for updating general application settings"""
-    login_method: str = Field(
-        ...,
+    login_method: Optional[str] = Field(
+        default=None,
         description="Login method to use - 'cookies' (faster, lower disk usage) or 'profiles' (persistent sessions, more disk space)"
+    )
+    engine: Optional[str] = Field(
+        default=None,
+        description="Browser engine to use - 'obscura' (lightweight headless) or 'chromium' (standard browser)"
     )
     
     @field_validator("login_method")
-    def validate_login_method(cls, value: str) -> str:
+    def validate_login_method(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            raise ValueError("login_method cannot be null")
         if value not in {"cookies", "profiles"}:
             raise ValueError("login_method must be 'cookies' or 'profiles'")
+        return value
+
+    @field_validator("engine")
+    def validate_engine(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            raise ValueError("engine cannot be null")
+        if value not in {"chromium", "obscura"}:
+            raise ValueError("engine must be 'chromium' or 'obscura'")
         return value
 
 

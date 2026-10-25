@@ -21,5 +21,6 @@
         "defaultModel": "gpt-4o",
         "defaultBaseUrl": "https://custom.openai.com/v1"
     },
-    "login_method": "cookies"
+    "login_method": "cookies",
+    "engine": "obscura"
 }

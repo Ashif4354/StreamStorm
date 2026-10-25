@@ -37,7 +37,7 @@ class StormContext:
         self.message_counter_lock: Lock = Lock()     
 
         self.login_method: str = "cookies"   
-        self.browser_engine: str = "obscura"
+        self.engine: str = "obscura"
         self.obscura_current_port: int = 9222
         self.freed_obscura_ports: list[int] = []
         self.obscura: Any = None
