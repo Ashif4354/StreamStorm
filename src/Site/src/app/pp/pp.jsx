@@ -32,17 +32,17 @@ const PrivacyPolicy = () => {
         <section>
           <h2>2. Telemetry, Monitoring &amp; Session Replays (Atatus RUM)</h2>
           <p>
-            StreamStorm sends product and diagnostic telemetry automatically while the website or desktop UI is in use. Atatus Browser RUM and Browser Logs are loaded through Google Tag Manager for session, performance, error, action, and log diagnostics. Firebase Analytics records selected product events, and Microsoft Clarity provides interaction analytics on pages where its Google Tag Manager tag is configured. There is no telemetry opt-in prompt.
+            StreamStorm sends product, performance, and diagnostic telemetry automatically while the website or desktop UI is in use. Atatus Browser Real User Monitoring (RUM) is loaded via Google Tag Manager for session, performance, error, action, and diagnostic monitoring. Firebase Analytics records selected product events, and Microsoft Clarity provides interaction analytics and heatmaps. There is no telemetry opt-in prompt.
           </p>
           <div>
             <strong>Telemetry categories:</strong>
             <ul>
-              <li><strong>Usage and interaction:</strong> page paths, navigation, feature use, settings choices, workflow outcomes, and selected non-secret input values used to improve product behavior.</li>
-              <li><strong>Session replay:</strong> replay records page interaction and DOM changes. Form controls and editable content are masked in replay. Custom product events can separately include non-secret values such as AI prompts when those values are relevant to the feature being diagnosed.</li>
-              <li><strong>Performance and errors:</strong> page/resource timings, web vitals, application errors, operation durations, and selected browser console and runtime diagnostics.</li>
-              <li><strong>Network diagnostics:</strong> sanitized JSON request/response data and request status/duration may be logged for troubleshooting. Credential-like fields and sensitive query parameters are redacted; request headers are not included in custom payload logs.</li>
-              <li><strong>Credential exclusion:</strong> passwords, API keys, YouTube cookies, authorization values, access/refresh tokens, and file contents are excluded or redacted by application telemetry filters. Cookie file names and upload counts may be collected, but the file contents are not.</li>
-              <li><strong>Session identifiers:</strong> Atatus, Firebase, and Clarity may use their own identifiers or storage to associate telemetry with sessions. These identifiers and associated diagnostics are handled by the respective providers.</li>
+              <li><strong>Session Replay &amp; Native Input Masking:</strong> Session replays record user navigation, button clicks, and UI interactions to diagnose errors and usability issues. Session replay is configured with native input masking (<code>defaultPrivacyLevel: &apos;mask-user-input&apos;</code>), which automatically masks text typed into input fields, textareas, and form controls.</li>
+              <li><strong>Performance &amp; Web Vitals:</strong> Page load times, resource timings, Core Web Vitals (LCP, FID, CLS, INP), and custom application timing metrics.</li>
+              <li><strong>Errors &amp; Exceptions:</strong> Uncaught JavaScript exceptions, unhandled promise rejections, and application error boundary incidents to ensure software stability.</li>
+              <li><strong>Product Actions:</strong> High-level application events triggered within the user interface (e.g., starting or stopping a storm, opening modals, channel selection counts).</li>
+              <li><strong>Local Credential Separation:</strong> Authentication credentials—including YouTube session cookies, local browser profiles, and third-party AI API keys—are stored strictly on your local machine and are never transmitted in application telemetry.</li>
+              <li><strong>Session Identifiers:</strong> Atatus, Firebase, and Microsoft Clarity use anonymous session identifiers and standard browser storage to correlate visits and sessions.</li>
             </ul>
           </div>
         </section>
@@ -90,7 +90,7 @@ const PrivacyPolicy = () => {
             StreamStorm&apos;s desktop engine runs locally on your computer:
           </p>
           <ul>
-            <li><strong>YouTube Authentication Data:</strong> Google/YouTube cookies or browser profiles generated during setup remain stored locally on your machine within your user profile directory. Authentication cookie values are excluded from application telemetry.</li>
+            <li><strong>YouTube Authentication Data:</strong> Google/YouTube cookies or browser profiles generated during setup remain stored locally on your machine within your user profile directory. They are stored locally and are never transmitted in telemetry or sent to third-party advertisers.</li>
             <li><strong>Custom AI API Keys:</strong> API keys provided for custom LLM integrations (OpenAI, Anthropic, Google Gemini, Ollama) are stored in your local configuration and communicated directly from your machine to the respective AI provider.</li>
             <li><strong>Network Traffic:</strong> The engine connects to the internet to check for software releases, download compatible browser drivers (chromedriver), interact with YouTube live chat streams as commanded by you, and transmit the monitoring telemetry detailed above.</li>
           </ul>

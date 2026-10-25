@@ -49,10 +49,10 @@ const TermsAndConditions = () => {
             Product and diagnostic telemetry starts automatically while you use StreamStorm; there is no opt-in prompt. By continuing to use the website or application, you acknowledge the telemetry practices described in our <a href="/pp">Privacy Policy</a>.
           </p>
           <ul>
-            <li><strong>Atatus:</strong> Receives session replay, performance, error, product action, and selected diagnostic log data. Editable fields are masked in replay; app telemetry filters redact credentials from structured events and network payloads.</li>
-            <li><strong>Firebase Analytics:</strong> Receives selected product events and event parameters used to understand feature usage.</li>
-            <li><strong>Microsoft Clarity:</strong> Receives behavioral analytics, heatmaps, and session recordings on pages where its Google Tag Manager tag is configured. Editable fields are marked for masking.</li>
-            <li><strong>Credential exclusion:</strong> StreamStorm telemetry is designed to redact passwords, API keys, YouTube cookies, authorization values, tokens, and uploaded file contents. Do not paste credentials into prompts or other product fields.</li>
+            <li><strong>Atatus Browser RUM:</strong> Collects session replay, performance metrics, error diagnostics, and application action events. Form inputs and user-typed text are masked in session replay via native configuration (<code>mask-user-input</code>).</li>
+            <li><strong>Firebase Analytics:</strong> Receives selected product events and aggregated usage statistics to understand feature adoption.</li>
+            <li><strong>Microsoft Clarity:</strong> Captures behavioral analytics, heatmaps, and session recordings on configured pages, with sensitive input controls masked.</li>
+            <li><strong>Local Credential Isolation:</strong> YouTube session cookies, browser automation profiles, and custom AI provider API keys remain stored locally on your computer and are never collected by application telemetry. Do not paste private credentials into public chat or support prompts.</li>
           </ul>
         </section>
 
