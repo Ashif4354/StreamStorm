@@ -7,7 +7,6 @@ import { HardDrive } from "lucide-react";
 import "./SystemInfo.css";
 import * as atatus from "../../../lib/atatus";
 import { useSystemInfo } from "../../../context/SystemInfoContext";
-import { useCustomMUIProps } from "../../../context/SystemInfoContext";
 import { useCustomMUIProps as useMUIProps } from "../../../context/CustomMUIPropsContext";
 import SystemInfoChart from "./SystemInfoChart";
 import { useSocket } from "../../../context/SocketContext";

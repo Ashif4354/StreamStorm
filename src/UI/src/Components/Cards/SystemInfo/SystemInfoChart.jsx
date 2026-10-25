@@ -45,7 +45,12 @@ const SystemInfoChart = ({ series, colorScheme }) => {
 	const ramColor = colorScheme === 'light' ? '#6366f1' : '#dc2828'; // Indigo for light, red for dark
 
 	return (
-		<ResponsiveContainer width="100%" aspect={1.618} maxHeight={175}>
+		<ResponsiveContainer
+			width="100%"
+			height={175}
+			minHeight={175}
+			initialDimension={{ width: 300, height: 175 }}
+		>
 			<AreaChart data={series}>
 				<XAxis
 					dataKey="timeStep"
