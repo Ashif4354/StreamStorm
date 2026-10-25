@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Cookie, RefreshCw, LogIn, Upload, FileUp, UserPlus } from 'lucide-react';
 import { Button, useColorScheme, Alert, Divider, Typography } from '@mui/material';
 import { useNotifications } from '@toolpad/core/useNotifications';
-import { logEvent } from 'firebase/analytics';
+import { safeLogEvent as logEvent } from '../../../../config/safeAnalytics.js';
 
 import * as atatus from '../../../../lib/atatus';
 

@@ -1,6 +1,6 @@
 import { useMediaQuery } from '@mui/material';
 import { analytics } from '@/config/firebase';
-import { logEvent } from 'firebase/analytics';
+import { safeLogEvent as logEvent } from '../config/safeAnalytics.js';
 import { usePathname } from 'next/navigation';
 import * as atatus from '@/config/atatus';
 

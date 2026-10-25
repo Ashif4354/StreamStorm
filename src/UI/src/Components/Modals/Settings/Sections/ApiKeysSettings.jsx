@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import { ChevronDown, Save, RotateCcw, Info, Check, Pin, Eye, EyeOff } from 'lucide-react';
 import { useNotifications } from "@toolpad/core/useNotifications";
-import { logEvent } from "firebase/analytics";
+import { safeLogEvent as logEvent } from '../../../../config/safeAnalytics.js';
 import * as atatus from '../../../../lib/atatus';
 
 import { useCustomMUIProps } from '../../../../context/CustomMUIPropsContext';

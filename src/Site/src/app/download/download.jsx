@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { logEvent } from 'firebase/analytics';
+import { safeLogEvent as logEvent } from '../../config/safeAnalytics.js';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 

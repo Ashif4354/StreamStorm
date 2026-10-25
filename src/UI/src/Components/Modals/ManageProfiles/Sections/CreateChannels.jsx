@@ -11,7 +11,7 @@ import Tooltip from '@mui/material/Tooltip';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useNotifications } from '@toolpad/core/useNotifications';
 import { Tv, RefreshCw } from 'lucide-react';
-import { logEvent } from 'firebase/analytics';
+import { safeLogEvent as logEvent } from '../../../../config/safeAnalytics.js';
 
 import * as atatus from '../../../../lib/atatus';
 

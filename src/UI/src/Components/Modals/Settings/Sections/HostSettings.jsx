@@ -4,7 +4,7 @@ import { useLocalStorageState } from "@toolpad/core/useLocalStorageState";
 import { useColorScheme } from '@mui/material/styles';
 import { Save, RotateCcw } from 'lucide-react';
 import { useNotifications } from "@toolpad/core/useNotifications";
-import { logEvent } from "firebase/analytics";
+import { safeLogEvent as logEvent } from '../../../../config/safeAnalytics.js';
 
 import * as atatus from "../../../../lib/atatus";
 import { DEFAULT_HOST_ADDRESS } from "../../../../lib/Constants";

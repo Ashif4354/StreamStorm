@@ -55,7 +55,7 @@ class AtatusErrorBoundary extends React.Component {
                         Something went wrong
                     </Typography>
                     <Typography variant="body1" sx={{ color: '#aaaaaa', maxWidth: 500, marginBottom: 3 }}>
-                        An unexpected application error occurred. The incident and full session diagnostic context have been recorded to Atatus.
+                        An unexpected application error occurred. A sanitized error report is sent to Atatus when telemetry is available.
                     </Typography>
                     {this.state.error?.message && (
                         <Box

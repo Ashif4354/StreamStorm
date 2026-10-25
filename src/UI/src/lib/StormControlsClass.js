@@ -1,4 +1,4 @@
-import { logEvent } from "firebase/analytics";
+import { safeLogEvent as logEvent } from '../config/safeAnalytics.js';
 import ValidateStormData from "./ValidateStormData";
 import { analytics } from "../config/firebase";
 import * as atatus from "./atatus";

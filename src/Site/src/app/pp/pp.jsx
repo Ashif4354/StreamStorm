@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from 'react';
-import { logEvent } from 'firebase/analytics';
+import { safeLogEvent as logEvent } from '../../config/safeAnalytics.js';
 import { analytics } from '@/config/firebase';
 import * as atatus from '@/config/atatus';
 
@@ -32,16 +32,17 @@ const PrivacyPolicy = () => {
         <section>
           <h2>2. Telemetry, Monitoring &amp; Session Replays (Atatus RUM)</h2>
           <p>
-            StreamStorm integrates <strong>Atatus Browser Real User Monitoring (RUM)</strong> and <strong>Atatus Browser Logs</strong> (loaded via official CDN <code>https://js-cdn.atatus.io/atatus-browser-agent/latest/</code> through Google Tag Manager) across both our web portal and desktop user interface to achieve 100% full observability, diagnose software bugs, monitor performance vitals, and ensure software stability.
+            StreamStorm sends product and diagnostic telemetry automatically while the website or desktop UI is in use. Atatus Browser RUM and Browser Logs are loaded through Google Tag Manager for session, performance, error, action, and log diagnostics. Firebase Analytics records selected product events, and Microsoft Clarity provides interaction analytics on pages where its Google Tag Manager tag is configured. There is no telemetry opt-in prompt.
           </p>
           <div>
-            <strong>Data Collected via Atatus (Configured with 100% Sampling &amp; Unmasked Privacy Level):</strong>
+            <strong>Telemetry categories:</strong>
             <ul>
-              <li><strong>100% Unmasked Session Replays (<code>defaultPrivacyLevel: &apos;allow&apos;</code>):</strong> To deliver complete visibility into application workflows and diagnose edge-case issues, visual session replay recording is enabled with unmasked privacy settings. This captures all screen interactions, cursor movements, clicks, form inputs, video URLs, chat messages, channel names, API configuration inputs, page transitions, and DOM state changes in full unmasked plaintext for comprehensive debugging fidelity.</li>
-              <li><strong>Browser Logs &amp; Diagnostics:</strong> All client console logs (<code>log</code>, <code>debug</code>, <code>info</code>, <code>warn</code>, <code>error</code>), runtime exceptions, and browser Reporting API diagnostics (CSP violations, deprecations, interventions) are collected and forwarded to Atatus for error diagnosis.</li>
-              <li><strong>Performance, Network Payloads &amp; Web Vitals:</strong> Page load times, resource timings, HTTP/WebSocket request and response payloads, Core Web Vitals (LCP, FID, CLS, INP), and custom application vitals (such as storm setup duration, socket sync, profile operations).</li>
-              <li><strong>Custom Operations, Feature Flags &amp; User Actions:</strong> All actions triggered within the app (e.g., launching a storm, stopping a storm, opening modals, configuring API keys, validating channels), feature flag evaluations, and their success or failure status.</li>
-              <li><strong>Session Persistence &amp; Cross-Subdomain Tracking:</strong> Anonymous user identifiers, session contexts, cookies, and <code>localStorage</code> state are persisted across pages and subdomains to correlate user journeys end-to-end.</li>
+              <li><strong>Usage and interaction:</strong> page paths, navigation, feature use, settings choices, workflow outcomes, and selected non-secret input values used to improve product behavior.</li>
+              <li><strong>Session replay:</strong> replay records page interaction and DOM changes. Form controls and editable content are masked in replay. Custom product events can separately include non-secret values such as AI prompts when those values are relevant to the feature being diagnosed.</li>
+              <li><strong>Performance and errors:</strong> page/resource timings, web vitals, application errors, operation durations, and selected browser console and runtime diagnostics.</li>
+              <li><strong>Network diagnostics:</strong> sanitized JSON request/response data and request status/duration may be logged for troubleshooting. Credential-like fields and sensitive query parameters are redacted; request headers are not included in custom payload logs.</li>
+              <li><strong>Credential exclusion:</strong> passwords, API keys, YouTube cookies, authorization values, access/refresh tokens, and file contents are excluded or redacted by application telemetry filters. Cookie file names and upload counts may be collected, but the file contents are not.</li>
+              <li><strong>Session identifiers:</strong> Atatus, Firebase, and Clarity may use their own identifiers or storage to associate telemetry with sessions. These identifiers and associated diagnostics are handled by the respective providers.</li>
             </ul>
           </div>
         </section>
@@ -49,7 +50,7 @@ const PrivacyPolicy = () => {
         <section>
           <h2>3. Behavioral Analytics &amp; Heatmaps (Microsoft Clarity via GTM)</h2>
           <p>
-            We use <strong>Microsoft Clarity</strong> (deployed via Google Tag Manager) to capture how users interact with our website and user interface through behavioral metrics, heatmaps, scroll depth tracking, click tracking, and session replays.
+            We use <strong>Microsoft Clarity</strong> (deployed via Google Tag Manager) for behavioral metrics, heatmaps, scroll depth, click activity, and session recordings on configured website and desktop UI pages. Input controls are masked, and StreamStorm marks editable fields for masking.
           </p>
           <p>
             Clarity data helps us understand user behavior, optimize navigation paths, identify UX friction points, and improve product usability. For further details on Microsoft Clarity&apos;s data practices, please review the <a href="https://privacy.microsoft.com/en-us/privacystatement" target="_blank" rel="noopener noreferrer">Microsoft Privacy Statement</a>.
@@ -89,7 +90,7 @@ const PrivacyPolicy = () => {
             StreamStorm&apos;s desktop engine runs locally on your computer:
           </p>
           <ul>
-            <li><strong>YouTube Authentication Data:</strong> Google/YouTube cookies or browser profiles generated during setup remain stored locally on your machine within your user profile directory. They are never sold or sent to third-party advertisers.</li>
+            <li><strong>YouTube Authentication Data:</strong> Google/YouTube cookies or browser profiles generated during setup remain stored locally on your machine within your user profile directory. Authentication cookie values are excluded from application telemetry.</li>
             <li><strong>Custom AI API Keys:</strong> API keys provided for custom LLM integrations (OpenAI, Anthropic, Google Gemini, Ollama) are stored in your local configuration and communicated directly from your machine to the respective AI provider.</li>
             <li><strong>Network Traffic:</strong> The engine connects to the internet to check for software releases, download compatible browser drivers (chromedriver), interact with YouTube live chat streams as commanded by you, and transmit the monitoring telemetry detailed above.</li>
           </ul>
@@ -98,7 +99,7 @@ const PrivacyPolicy = () => {
         <section>
           <h2>7. Data Retention &amp; Security</h2>
           <p>
-            Telemetry, error logs, and session recordings captured by Atatus and Microsoft Clarity are retained in accordance with their respective data retention policies (typically 30 to 90 days for diagnostic data). We implement standard technical safeguards to protect data transmission over encrypted HTTPS/TLS channels.
+            Telemetry, logs, and session recordings are processed and retained by Atatus, Google Firebase, and Microsoft Clarity under their current service terms and retention controls. StreamStorm does not promise a fixed retention period. Telemetry is transmitted over HTTPS/TLS where supported by the provider.
           </p>
         </section>
 

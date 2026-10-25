@@ -1,6 +1,6 @@
 import { useDownloadCount } from "@/context/DownloadCountContext";
 import { useState } from "react";
-import { logEvent } from "firebase/analytics";
+import { safeLogEvent as logEvent } from '../../../config/safeAnalytics.js';
 import { analytics } from "@/config/firebase";
 import * as atatus from "@/config/atatus";
 

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from 'react';
-import { logEvent } from 'firebase/analytics';
+import { safeLogEvent as logEvent } from '../../config/safeAnalytics.js';
 import { analytics } from '@/config/firebase';
 import * as atatus from '@/config/atatus';
 
@@ -46,12 +46,13 @@ const TermsAndConditions = () => {
         <section>
           <h2>3. Telemetry, Session Replays &amp; Observability Consent</h2>
           <p>
-            To provide continuous software reliability, error detection, and performance optimization, StreamStorm employs 100% unmasked observability tools across its web application and desktop user interface:
+            Product and diagnostic telemetry starts automatically while you use StreamStorm; there is no opt-in prompt. By continuing to use the website or application, you acknowledge the telemetry practices described in our <a href="/pp">Privacy Policy</a>.
           </p>
           <ul>
-            <li><strong>Atatus Browser RUM &amp; 100% Unmasked Session Replays:</strong> By using the application, you explicitly acknowledge and consent that 100% of your session is visually recorded and analyzed via Atatus Real User Monitoring (<code>js-cdn.atatus.io</code>) configured with <code>defaultPrivacyLevel: &apos;allow&apos;</code> (unmasked). This includes all mouse movements, clicks, navigation paths, form submissions, typed inputs (including video URLs, chat messages, channel names, and settings), network request/response payloads, DOM mutations, error traces, and console logs.</li>
-            <li><strong>Microsoft Clarity (via Google Tag Manager):</strong> You acknowledge and consent to behavioral analytics, clickmaps, scroll heatmaps, and full session recordings facilitated through Microsoft Clarity injected via Google Tag Manager.</li>
-            <li><strong>Application Logs &amp; Metrics:</strong> All browser console logs, Reporting API events, custom vital metrics, and API/WebSocket interaction payloads are automatically forwarded to remote monitoring dashboards.</li>
+            <li><strong>Atatus:</strong> Receives session replay, performance, error, product action, and selected diagnostic log data. Editable fields are masked in replay; app telemetry filters redact credentials from structured events and network payloads.</li>
+            <li><strong>Firebase Analytics:</strong> Receives selected product events and event parameters used to understand feature usage.</li>
+            <li><strong>Microsoft Clarity:</strong> Receives behavioral analytics, heatmaps, and session recordings on pages where its Google Tag Manager tag is configured. Editable fields are marked for masking.</li>
+            <li><strong>Credential exclusion:</strong> StreamStorm telemetry is designed to redact passwords, API keys, YouTube cookies, authorization values, tokens, and uploaded file contents. Do not paste credentials into prompts or other product fields.</li>
           </ul>
         </section>
 

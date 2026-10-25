@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Avatar, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, LinearProgress, List, ListItem, useColorScheme } from "@mui/material";
-import { logEvent } from "firebase/analytics";
+import { safeLogEvent as logEvent } from '../../config/safeAnalytics.js';
 
 import * as atatus from "../../lib/atatus";
 
