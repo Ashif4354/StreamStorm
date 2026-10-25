@@ -19,7 +19,7 @@ import {
 import { ChevronDown, Save, RotateCcw, Info, Check, Pin, Eye, EyeOff } from 'lucide-react';
 import { useNotifications } from "@toolpad/core/useNotifications";
 import { logEvent } from "firebase/analytics";
-import * as atatus from "atatus-spa";
+import * as atatus from '../../../../lib/atatus';
 
 import { useCustomMUIProps } from '../../../../context/CustomMUIPropsContext';
 import { useAppState } from '../../../../context/AppStateContext';
@@ -182,11 +182,19 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
     };
 
     const handleSave = async () => {
-        if (!validateInputs()) return;
+        if (!validateInputs()) {
+            atatus.addAction('save-api-key-validation-failed', { provider: provider.id });
+            return;
+        }
 
         const finalModel = model === 'other' ? customModel : model;
+        const targetModel = isCustomUrl ? customModel : finalModel;
 
         setSaveLoading(true);
+        atatus.addAction('save-api-key-triggered', { provider: provider.id, model: targetModel, hasBaseUrl: !!baseUrl });
+        atatus.startOperation(`save_api_key_${provider.id}`);
+        atatus.startDurationVital(`save_api_key_${provider.id}`);
+
         try {
             const response = await fetch(`${hostAddress}/settings/ai/keys/${provider.id}`, {
                 method: 'POST',
@@ -195,36 +203,48 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
                 },
                 body: JSON.stringify({
                     apiKey,
-                    model: isCustomUrl ? customModel : finalModel,
+                    model: targetModel,
                     ...(provider.hasBaseUrl && { baseUrl }),
                 }),
             });
 
             const responseData = await response.json();
+            atatus.stopDurationVital(`save_api_key_${provider.id}`);
+
             if (responseData.success) {
-                const savedModel = isCustomUrl ? customModel : finalModel;
+                atatus.succeedOperation(`save_api_key_${provider.id}`);
+                atatus.aiLogger.info(`Saved API key for ${provider.name}`, { provider: provider.id, model: targetModel });
+
                 onUpdateApiKey(provider.id, {
                     apiKey,
                     baseUrl,
-                    model: savedModel
+                    model: targetModel
                 });
 
                 if (responseData.defaultModelUpdated && onDefaultModelUpdated) {
-                    onDefaultModelUpdated(savedModel);
+                    onDefaultModelUpdated(targetModel);
                 }
                 notifications.show(`${provider.name} settings saved successfully!`, {
                     severity: "success",
                 });
                 logEvent(analytics, "ai_api_key_save_success", { provider: provider.id });
             } else {
+                atatus.failOperation(`save_api_key_${provider.id}`, responseData.error || responseData.message || 'Failed to save');
+                if (responseData.error) {
+                    atatus.addError(new Error(responseData.error), { response: responseData, tags: ['ai_api_key_save_failed'] });
+                }
+                atatus.aiLogger.error(`Failed to save ${provider.name} settings`, { response: responseData });
                 throw new Error(responseData.error || responseData.message || 'Failed to save');
             }
         } catch (error) {
             console.error(`Failed to save ${provider.name} settings:`, error);
+            atatus.stopDurationVital(`save_api_key_${provider.id}`);
+            atatus.failOperation(`save_api_key_${provider.id}`, error.message);
             notifications.show(`Failed to save ${provider.name} settings.`, {
                 severity: "error",
             });
-            atatus.notify(error, {}, ['ai_api_key_save_error']);
+            atatus.addError(error, { tags: ['ai_api_key_save_error'] });
+            atatus.aiLogger.error(`Error saving ${provider.name} settings`, { error: error.message });
             logEvent(analytics, "ai_api_key_save_error", { provider: provider.id });
         } finally {
             setSaveLoading(false);
@@ -232,6 +252,9 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
     };
 
     const handleReset = () => {
+        atatus.addAction('reset-api-key-triggered', { provider: provider.id });
+        atatus.aiLogger.info(`Reset ${provider.name} settings to default`);
+
         setApiKey('');
         setBaseUrl(provider.defaultBaseUrl || '');
         setModel('');
@@ -260,6 +283,8 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
     const handleSetAsDefault = async () => {
         setSetDefaultLoading(true);
         const finalModel = isCustomUrl ? customModel : (model === 'other' ? customModel : model);
+        atatus.addAction('set-default-ai-provider-clicked', { provider: provider.id, model: finalModel });
+
         const success = await onSetDefault(provider.id, apiKey, finalModel, provider.hasBaseUrl ? baseUrl : null);
         setSetDefaultLoading(false);
 
@@ -452,6 +477,7 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
                             <Button
                                 startIcon={<RotateCcw size={16} />}
                                 variant="contained"
+                                data-atatus-action-name={`btn-reset-ai-key-${provider.id}`}
                                 onClick={handleReset}
                                 disabled={saveLoading || setDefaultLoading}
                                 sx={btnProps}
@@ -462,6 +488,7 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
 
                         <Button
                             variant="contained"
+                            data-atatus-action-name={`btn-save-ai-key-${provider.id}`}
                             startIcon={saveLoading ? <CircularProgress size={16} /> : <Save size={16} />}
                             onClick={handleSave}
                             disabled={saveLoading || setDefaultLoading}
@@ -476,6 +503,7 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
 
                         <Button
                             variant="contained"
+                            data-atatus-action-name={`btn-set-default-ai-${provider.id}`}
                             startIcon={setDefaultLoading ? <CircularProgress size={16} /> : <Pin size={16} />}
                             onClick={handleSetAsDefault}
                             disabled={!isConfigured || isDefault || saveLoading || setDefaultLoading}
@@ -505,6 +533,7 @@ const ApiKeysSettings = ({ apiKeysData, onUpdateApiKey, isLoading, defaultProvid
     const [expandedPanel, setExpandedPanel] = useState(null);
 
     const handleExpand = (panelId) => {
+        atatus.addAction('api-key-accordion-toggled', { panelId, expanded: expandedPanel !== panelId });
         setExpandedPanel(expandedPanel === panelId ? null : panelId);
     };
 

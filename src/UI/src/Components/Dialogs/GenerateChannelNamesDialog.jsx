@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Alert,
     Button,
@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { useNotifications } from "@toolpad/core/useNotifications";
 import { logEvent } from "firebase/analytics";
-import * as atatus from "atatus-spa";
+import * as atatus from "../../lib/atatus";
 
 import { useCustomMUIProps } from "../../context/CustomMUIPropsContext";
 import { useAppState } from "../../context/AppStateContext";
@@ -31,6 +31,13 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
 
     const isProviderConfigured = defaultAIProvider !== null && defaultAIProvider !== undefined;
 
+    useEffect(() => {
+        if (open) {
+            atatus.setViewName('/dialog/ai-generate-channel-names');
+            atatus.setViewContext({ provider: defaultAIProvider, model: defaultAIModel });
+        }
+    }, [open, defaultAIProvider, defaultAIModel]);
+
     const handleSubmit = async () => {
         if (!prompt.trim()) {
             setError(true);
@@ -42,6 +49,11 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
         setError(false);
         setHelperText("");
 
+        atatus.startFeatureOperation('ai-generate-channel-names', { provider: defaultAIProvider, model: defaultAIModel });
+        atatus.startDurationVital('ai-generate-channel-names');
+        atatus.addAction('ai-generate-channel-names-submitted', { prompt: prompt.trim(), provider: defaultAIProvider, model: defaultAIModel });
+        atatus.aiLogger.info('Generating channel names via AI', { prompt: prompt.trim(), provider: defaultAIProvider, model: defaultAIModel });
+
         try {
             const response = await fetch(`${hostAddress}/ai/generate/channel-names`, {
                 method: "POST",
@@ -52,37 +64,48 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
             });
 
             const data = await response.json();
+            atatus.stopDurationVital('ai-generate-channel-names');
 
             if (!data.success) {
+                atatus.failOperation('ai-generate-channel-names', data.error || data.message);
                 setError(true);
                 setHelperText(data.message || 'Failed to generate channel names.');
                 if (data.error) {
                     console.error('Failed to generate channel names:', data.error);
-                    atatus.notify(new Error(data.error), { response: data }, ['ai_generate_channel_names_failed']);
+                    atatus.addError(new Error(data.error), { response: data, tags: ['ai_generate_channel_names_failed'] });
+                    atatus.aiLogger.error('Failed to generate channel names', { response: data, prompt: prompt.trim() }, new Error(data.error));
                 }
                 logEvent(analytics, "ai_generate_channel_names_failed");
                 return;
             }
 
             if (!data.channelNames || data.channelNames.length === 0) {
+                atatus.failOperation('ai-generate-channel-names', 'Empty channel names response');
                 setError(true);
                 setHelperText("No channel names were generated. Try a different prompt.");
+                atatus.aiLogger.warn('No channel names returned by AI', { prompt: prompt.trim() });
                 logEvent(analytics, "ai_generate_channel_names_empty");
                 return;
             }
 
             // Return the generated channel names
+            atatus.succeedOperation('ai-generate-channel-names');
+            atatus.aiLogger.info('Channel names generated successfully', { count: data.channelNames.length, channelNames: data.channelNames });
+            atatus.addAction('ai-generate-channel-names-success', { count: data.channelNames.length, channelNames: data.channelNames });
             logEvent(analytics, "ai_generate_channel_names_success", { count: data.channelNames.length });
             onClose(data.channelNames);
             setPrompt("");
         } catch (err) {
+            atatus.stopDurationVital('ai-generate-channel-names');
+            atatus.failOperation('ai-generate-channel-names', err.message);
             setError(true);
             setHelperText("Failed to connect to server. Try again.");
             notifications.show("Failed to generate channel names", {
                 severity: "error",
                 autoHideDuration: 3000,
             });
-            atatus.notify(err, {}, ['ai_generate_channel_names_error']);
+            atatus.addError(err, { tags: ['ai_generate_channel_names_error'], prompt: prompt.trim() });
+            atatus.aiLogger.error('Network error during AI channel names generation', { prompt: prompt.trim() }, err);
             logEvent(analytics, "ai_generate_channel_names_error");
         } finally {
             setLoading(false);
@@ -93,6 +116,7 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
         setPrompt("");
         setError(false);
         setHelperText("");
+        atatus.addAction('ai-generate-channel-names-closed');
         onClose(null);
     };
 
@@ -176,6 +200,7 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
                     variant="outlined"
                     onClick={handleClose}
                     disabled={loading}
+                    data-atatus-action-name="Cancel AI Channel Names"
                     sx={{
                         ...btnProps,
                         width: "100px",
@@ -188,6 +213,7 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
                     variant="contained"
                     onClick={handleSubmit}
                     disabled={loading || !prompt.trim() || !isProviderConfigured}
+                    data-atatus-action-name="Generate AI Channel Names"
                     sx={{
                         ...btnProps,
                         width: "120px",
@@ -198,8 +224,8 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
                         "&:hover": {
                             backgroundColor:
                                 colorScheme === "light"
-                                    ? "var(--light-primary-hover)"
-                                    : "var(--input-active-red-dark-hover)",
+                                ? "var(--light-primary-hover)"
+                                : "var(--input-active-red-dark-hover)",
                         },
                     }}
                 >

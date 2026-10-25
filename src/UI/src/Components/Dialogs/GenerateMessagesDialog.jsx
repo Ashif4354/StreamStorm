@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Alert,
     Button,
@@ -10,10 +10,9 @@ import {
     TextField,
     useColorScheme
 } from "@mui/material";
-import { useLocalStorageState } from "@toolpad/core/useLocalStorageState";
 import { useNotifications } from "@toolpad/core/useNotifications";
 import { logEvent } from "firebase/analytics";
-import * as atatus from "atatus-spa";
+import * as atatus from "../../lib/atatus";
 
 import { useCustomMUIProps } from "../../context/CustomMUIPropsContext";
 import { useAppState } from "../../context/AppStateContext";
@@ -32,6 +31,13 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
 
     const isProviderConfigured = appState.defaultAIProvider !== null && appState.defaultAIProvider !== undefined;
 
+    useEffect(() => {
+        if (open) {
+            atatus.setViewName('/dialog/ai-generate-messages');
+            atatus.setViewContext({ provider: appState.defaultAIProvider, model: appState.defaultAIModel });
+        }
+    }, [open, appState.defaultAIProvider, appState.defaultAIModel]);
+
     const handleSubmit = async () => {
         if (!prompt.trim()) {
             setError(true);
@@ -43,6 +49,11 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
         setError(false);
         setHelperText("");
 
+        atatus.startFeatureOperation('ai-generate-messages', { provider: appState.defaultAIProvider, model: appState.defaultAIModel });
+        atatus.startDurationVital('ai-generate-messages');
+        atatus.addAction('ai-generate-messages-submitted', { prompt: prompt.trim(), provider: appState.defaultAIProvider, model: appState.defaultAIModel });
+        atatus.aiLogger.info('Generating messages via AI', { prompt: prompt.trim(), provider: appState.defaultAIProvider, model: appState.defaultAIModel });
+
         try {
             const response = await fetch(`${appState.hostAddress}/ai/generate/messages`, {
                 method: "POST",
@@ -53,37 +64,48 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
             });
 
             const data = await response.json();
+            atatus.stopDurationVital('ai-generate-messages');
 
             if (!data.success) {
+                atatus.failOperation('ai-generate-messages', data.error || data.message);
                 setError(true);
                 setHelperText(data.message || 'Failed to generate messages.');
                 if (data.error) {
                     console.error('Failed to generate messages:', data.error);
-                    atatus.notify(new Error(data.error), { response: data }, ['ai_generate_messages_failed']);
+                    atatus.addError(new Error(data.error), { response: data, tags: ['ai_generate_messages_failed'] });
+                    atatus.aiLogger.error('Failed to generate messages', { response: data, prompt: prompt.trim() }, new Error(data.error));
                 }
                 logEvent(analytics, "ai_generate_messages_failed");
                 return;
             }
 
             if (!data.messages || data.messages.length === 0) {
+                atatus.failOperation('ai-generate-messages', 'Empty messages response');
                 setError(true);
                 setHelperText("No messages were generated. Try a different prompt.");
+                atatus.aiLogger.warn('No messages returned by AI', { prompt: prompt.trim() });
                 logEvent(analytics, "ai_generate_messages_empty");
                 return;
             }
 
             // Return the generated messages
+            atatus.succeedOperation('ai-generate-messages');
+            atatus.aiLogger.info('Messages generated successfully', { count: data.messages.length, messages: data.messages });
+            atatus.addAction('ai-generate-messages-success', { count: data.messages.length, messages: data.messages });
             logEvent(analytics, "ai_generate_messages_success", { count: data.messages.length });
             onClose(data.messages);
             setPrompt("");
         } catch (err) {
+            atatus.stopDurationVital('ai-generate-messages');
+            atatus.failOperation('ai-generate-messages', err.message);
             setError(true);
             setHelperText("Failed to connect to server. Try again.");
             notifications.show("Failed to generate messages", {
                 severity: "error",
                 autoHideDuration: 3000,
             });
-            atatus.notify(err, {}, ['ai_generate_messages_error']);
+            atatus.addError(err, { tags: ['ai_generate_messages_error'], prompt: prompt.trim() });
+            atatus.aiLogger.error('Network error during AI messages generation', { prompt: prompt.trim() }, err);
             logEvent(analytics, "ai_generate_messages_error");
         } finally {
             setLoading(false);
@@ -94,6 +116,7 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
         setPrompt("");
         setError(false);
         setHelperText("");
+        atatus.addAction('ai-generate-messages-closed');
         onClose(null);
     };
 
@@ -177,6 +200,7 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
                     variant="outlined"
                     onClick={handleClose}
                     disabled={loading}
+                    data-atatus-action-name="Cancel AI Messages"
                     sx={{
                         ...btnProps,
                         width: "100px",
@@ -189,6 +213,7 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
                     variant="contained"
                     onClick={handleSubmit}
                     disabled={loading || !prompt.trim() || !isProviderConfigured}
+                    data-atatus-action-name="Generate AI Messages"
                     sx={{
                         ...btnProps,
                         width: "120px",
@@ -199,8 +224,8 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
                         "&:hover": {
                             backgroundColor:
                                 colorScheme === "light"
-                                    ? "var(--light-primary-hover)"
-                                    : "var(--input-active-red-dark-hover)",
+                                ? "var(--light-primary-hover)"
+                                : "var(--input-active-red-dark-hover)",
                         },
                     }}
                 >

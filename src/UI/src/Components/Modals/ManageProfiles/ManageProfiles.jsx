@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+import { useEffect } from 'react';
 import { useColorScheme } from '@mui/material/styles';
 import { Divider, Modal, Box } from '@mui/material';
 import { Users } from 'lucide-react';
@@ -10,17 +11,27 @@ import CloseButton from '../../Elements/CloseButton';
 import { useCustomMUIProps } from '../../../context/CustomMUIPropsContext';
 import CreateChannels from './Sections/CreateChannels';
 import { useAppState } from '../../../context/AppStateContext';
+import * as atatus from '../../../lib/atatus';
 
 const ManageProfiles = (props) => {
 
     const { open, setOpen } = props;
     const { modalProps } = useCustomMUIProps();
     const { colorScheme } = useColorScheme();
-    const { loginMethod } = useAppState();
+    const { loginMethod, isLoggedIn } = useAppState();
+
+    useEffect(() => {
+        if (open) {
+            atatus.setViewName('/modal/manage-environment');
+            atatus.setViewContext({ loginMethod, isLoggedIn });
+            atatus.addAction('manage-environment-modal-opened', { loginMethod, isLoggedIn });
+        }
+    }, [open, loginMethod, isLoggedIn]);
 
     const modalCloseHandler = () => {
+        atatus.addAction('manage-environment-modal-closed');
         setOpen(false);
-    }
+    };
 
     return (
         <Modal open={open} onClose={modalCloseHandler}>

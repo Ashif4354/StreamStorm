@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Avatar, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, LinearProgress, List, ListItem, useColorScheme } from "@mui/material";
 import { logEvent } from "firebase/analytics";
 
-import * as atatus from "atatus-spa";
+import * as atatus from "../../lib/atatus";
 
 import "./Dialogs.css";
 import ErrorText from "../Elements/ErrorText";
@@ -26,6 +26,9 @@ const AddChannels = ({ payload, open, onClose }) => {
 
     const getChannelData = () => {
         setChannelsDataLoading(true);
+        atatus.startOperation('fetch-channels-data', { mode });
+        atatus.startDurationVital('fetch-channels-data');
+
         fetch(`${hostAddress}/storm/get_channels_data`, {
             method: "POST",
             headers: {
@@ -35,20 +38,28 @@ const AddChannels = ({ payload, open, onClose }) => {
         })
             .then((response) => response.json())
             .then((data) => {
+                atatus.stopDurationVital('fetch-channels-data');
                 if (!data.success) {
+                    atatus.failOperation('fetch-channels-data', data.error || data.message);
                     setErrorText(data.message || 'Failed to fetch channels data.');
                     if (data.error) {
                         console.error('Failed to fetch channels data:', data.error);
-                        atatus.notify(new Error(data.error), { response: data }, ['channel_data_fetch_failed']);
+                        atatus.addError(new Error(data.error), { response: data, tags: ['channel_data_fetch_failed'] });
+                        atatus.stormLogger.error('Failed to fetch channels data', { response: data }, new Error(data.error));
                     }
                     return;
                 }
+                atatus.succeedOperation('fetch-channels-data');
+                atatus.stormLogger.info('Channels data loaded', { count: Object.keys(data.channels || {}).length, mode });
                 setChannelsData(data.channels);
                 setActiveChannels(data.activeChannels);
             })
             .catch((error) => {
+                atatus.stopDurationVital('fetch-channels-data');
+                atatus.failOperation('fetch-channels-data', error.message);
                 setErrorText("Failed to fetch channel data.");
-                atatus.notify(error, {}, ['channel_data_fetch_error']);
+                atatus.addError(error, { tags: ['channel_data_fetch_error'] });
+                atatus.stormLogger.error('Network error fetching channels data', {}, error);
                 logEvent(analytics, "channel_data_fetch_error");
             })
             .finally(() => {
@@ -59,29 +70,39 @@ const AddChannels = ({ payload, open, onClose }) => {
     const handleAddRemoveChannel = (event, channel) => {
         if (event.target.checked) {
             if (!selectedChannels.includes(channel)) {
-                setSelectedChannels([...selectedChannels, channel]);
+                const next = [...selectedChannels, channel];
+                setSelectedChannels(next);
+                atatus.addAction('channel-checked', { channel, totalSelected: next.length });
             }
         } else {
-            setSelectedChannels(selectedChannels.filter((name) => name !== channel));
+            const next = selectedChannels.filter((name) => name !== channel);
+            setSelectedChannels(next);
+            atatus.addAction('channel-unchecked', { channel, totalSelected: next.length });
         }
     };
 
     const handleSubmit = () => {
         if (selectedChannels.length > maxSelectableChannels) {
             setErrorText(`You dont have enough RAM to select ${selectedChannels.length} channels. You can only select up to ${maxSelectableChannels} channels.`);
+            atatus.addAction('channels-submit-rejected-ram', { selectedCount: selectedChannels.length, maxSelectableChannels });
             return;
         }
         if (selectedChannels.length === 0) {
             setErrorText("Select at least one channel.");
+            atatus.addAction('channels-submit-rejected-empty');
             return;
         }
 
+        atatus.addAction('channels-selection-confirmed', { mode, selectedChannels, count: selectedChannels.length });
+        atatus.stormLogger.info('Channels selection confirmed', { mode, count: selectedChannels.length, selectedChannels });
         onClose(selectedChannels.map((channel) => parseInt(channel)));
     };
 
 
     useEffect(() => {
         if (open) {
+            atatus.setViewName('/dialog/select-channels');
+            atatus.setViewContext({ mode, preselectedCount: selectedChannels.length });
             getChannelData();
         }
     }, [open, hostAddress]);
@@ -100,7 +121,10 @@ const AddChannels = ({ payload, open, onClose }) => {
             open={open}
             fullWidth={true}
             maxWidth="xs"
-            onClose={() => onClose(null)}
+            onClose={() => {
+                atatus.addAction('channels-selection-cancelled');
+                onClose(null);
+            }}
             sx={{
                 "& .MuiDialog-paper": {
                     backgroundColor: colorScheme === 'light' ? "var(--light-card-bg)" : "var(--light-gray)",
@@ -167,11 +191,6 @@ const AddChannels = ({ payload, open, onClose }) => {
                             </DialogContentText>
 
                             <div className={`selected-channels-container ${colorScheme}-bordered-container`}>
-                                {/* <span>
-                                    {
-                                        selectedChannels.map((channel) => `${channelsData[channel].name}, `)
-                                    }
-                                </span> */}
                                 {
                                     selectedChannels.sort((a, b) => a - b).map((channel) => (
                                         <span key={channel}>
@@ -199,8 +218,10 @@ const AddChannels = ({ payload, open, onClose }) => {
                 <Button
                     variant="outlined"
                     onClick={() => {
+                        atatus.addAction('channels-selection-cancelled');
                         onClose(null);
                     }}
+                    data-atatus-action-name="Cancel Add Channels"
                     sx={btnProps}
                 >
                     Cancel
@@ -209,6 +230,7 @@ const AddChannels = ({ payload, open, onClose }) => {
                     variant="contained"
                     onClick={handleSubmit}
                     disabled={channelsDataLoading || selectedChannels.length === 0}
+                    data-atatus-action-name="Confirm Add Channels"
                     sx={{
                         ...btnProps,
                         backgroundColor: colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)",
@@ -221,7 +243,7 @@ const AddChannels = ({ payload, open, onClose }) => {
                 </Button>
             </DialogActions>
         </Dialog>
-    )
-}
+    );
+};
 
 export default AddChannels;

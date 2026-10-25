@@ -9,12 +9,14 @@ import '../Modals.css';
 import CloseButton from '../../Elements/CloseButton';
 import { useCustomMUIProps } from '../../../context/CustomMUIPropsContext';
 import { useAppState } from '../../../context/AppStateContext';
-import * as atatus from 'atatus-spa';
+import * as atatus from '../../../lib/atatus';
 
 import GeneralSettings from './Sections/GeneralSettings/GeneralSettings';
 import HostSettings from './Sections/HostSettings';
 import AppearanceSettings from './Sections/AppearanceSettings';
 import ApiKeysSettings from './Sections/ApiKeysSettings';
+
+const TAB_NAMES = ['general', 'host', 'appearance', 'api-keys'];
 
 const Settings = (props) => {
 
@@ -26,8 +28,8 @@ const Settings = (props) => {
         defaultAIProvider, setDefaultAIProvider,
         setDefaultAIModel, setDefaultAIBaseUrl
     } = useAppState();
-    const verticalTab = useMediaQuery('(min-width: 900px)')
-    const isVerySmallScreen = useMediaQuery('(max-width: 650px)')
+    const verticalTab = useMediaQuery('(min-width: 900px)');
+    const isVerySmallScreen = useMediaQuery('(max-width: 650px)');
 
     const [tabValue, setTabValue] = useState(0);
 
@@ -35,12 +37,25 @@ const Settings = (props) => {
     const [apiKeysData, setApiKeysData] = useState({});
     const [apiKeysLoading, setApiKeysLoading] = useState(false);
 
+    // Track modal view & tabs
+    useEffect(() => {
+        if (open) {
+            const currentTabName = TAB_NAMES[tabValue] || 'general';
+            atatus.setViewName(`/modal/settings/${currentTabName}`);
+            atatus.setViewContext({ modal: 'settings', tab: currentTabName });
+            atatus.settingsLogger.debug(`Settings view set to /modal/settings/${currentTabName}`);
+        }
+    }, [open, tabValue]);
+
     // Fetch all API keys and default provider when modal opens
     useEffect(() => {
         const fetchAllApiKeys = async () => {
             if (!open) return;
 
             setApiKeysLoading(true);
+            atatus.startOperation('fetch_ai_keys');
+            atatus.startDurationVital('fetch_ai_keys');
+
             try {
                 const response = await fetch(`${hostAddress}/settings/ai/keys`, {
                     method: 'GET',
@@ -50,20 +65,32 @@ const Settings = (props) => {
                 });
 
                 const data = await response.json();
+                atatus.stopDurationVital('fetch_ai_keys');
+
                 if (data.success) {
+                    atatus.succeedOperation('fetch_ai_keys');
+                    atatus.settingsLogger.info('Fetched AI keys', { providers: Object.keys(data.providers ?? {}) });
                     setApiKeysData(data.providers ?? {});
                     setDefaultAIProvider(data.defaultProvider ?? null);
                     setDefaultAIModel(data.defaultModel ?? null);
                     setDefaultAIBaseUrl(data.defaultBaseUrl ?? null);
+                    if (data.defaultProvider) {
+                        atatus.addFeatureFlagEvaluation('ai_provider', data.defaultProvider);
+                    }
                 } else {
+                    atatus.failOperation('fetch_ai_keys', data.error || 'Failed to fetch AI keys');
                     if (data.error) {
                         console.error('Failed to fetch API keys:', data.error);
-                        atatus.notify(new Error(data.error), { response: data }, ['api_keys_fetch_failed']);
+                        atatus.addError(new Error(data.error), { response: data, tags: ['api_keys_fetch_failed'] });
+                        atatus.settingsLogger.error('Failed to fetch API keys', { response: data });
                     }
                 }
             } catch (error) {
                 console.error('Failed to fetch API keys:', error);
-                atatus.notify(error, {}, ['settings_api_keys_fetch_error']);
+                atatus.stopDurationVital('fetch_ai_keys');
+                atatus.failOperation('fetch_ai_keys', error.message);
+                atatus.addError(error, { tags: ['settings_api_keys_fetch_error'] });
+                atatus.settingsLogger.error('Error fetching API keys', { error: error.message });
             } finally {
                 setApiKeysLoading(false);
             }
@@ -80,6 +107,10 @@ const Settings = (props) => {
     };
 
     const handleSetDefaultProvider = async (providerId, apiKey, model, baseUrl) => {
+        atatus.addAction('set-default-provider-triggered', { provider: providerId, model });
+        atatus.startOperation('set_default_provider');
+        atatus.startDurationVital('set_default_provider');
+
         try {
             const response = await fetch(`${hostAddress}/settings/ai/default`, {
                 method: 'POST',
@@ -95,30 +126,43 @@ const Settings = (props) => {
             });
 
             const data = await response.json();
+            atatus.stopDurationVital('set_default_provider');
+
             if (data.success) {
+                atatus.succeedOperation('set_default_provider');
+                atatus.settingsLogger.info('Set default AI provider', { provider: data.defaultProvider, model: data.defaultModel });
+                atatus.addFeatureFlagEvaluation('ai_provider', data.defaultProvider);
                 setDefaultAIProvider(data.defaultProvider);
                 setDefaultAIModel(data.defaultModel);
                 setDefaultAIBaseUrl(data.defaultBaseUrl ?? null);
                 return true;
             } else {
+                atatus.failOperation('set_default_provider', data.error || 'Failed to set default provider');
                 if (data.error) {
                     console.error('Failed to set default provider:', data.error);
-                    atatus.notify(new Error(data.error), { response: data }, ['set_default_provider_failed']);
+                    atatus.addError(new Error(data.error), { response: data, tags: ['set_default_provider_failed'] });
+                    atatus.settingsLogger.error('Failed to set default AI provider', { response: data });
                 }
                 return false;
             }
         } catch (error) {
             console.error('Failed to set default provider:', error);
-            atatus.notify(error, {}, ['settings_set_default_provider_error']);
+            atatus.stopDurationVital('set_default_provider');
+            atatus.failOperation('set_default_provider', error.message);
+            atatus.addError(error, { tags: ['settings_set_default_provider_error'] });
+            atatus.settingsLogger.error('Error setting default AI provider', { error: error.message });
             return false;
         }
     };
 
     const modalCloseHandler = () => {
+        atatus.addAction('modal-closed', { modal: 'settings' });
         setOpen(false);
-    }
+    };
 
     const handleTabChange = (event, newValue) => {
+        const tabName = TAB_NAMES[newValue] || 'unknown';
+        atatus.addAction('settings-tab-changed', { tabIndex: newValue, tab: tabName });
         setTabValue(newValue);
     };
 
@@ -281,4 +325,3 @@ const Settings = (props) => {
 };
 
 export default Settings;
-

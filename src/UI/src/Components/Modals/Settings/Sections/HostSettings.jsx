@@ -6,6 +6,7 @@ import { Save, RotateCcw } from 'lucide-react';
 import { useNotifications } from "@toolpad/core/useNotifications";
 import { logEvent } from "firebase/analytics";
 
+import * as atatus from "../../../../lib/atatus";
 import { DEFAULT_HOST_ADDRESS } from "../../../../lib/Constants";
 import { analytics } from "../../../../config/firebase";
 import { useCustomMUIProps } from "../../../../context/CustomMUIPropsContext";
@@ -37,16 +38,21 @@ const HostSettings = () => {
         if (trimmed === "") {
             setHostAddressError(true);
             setHostAddressHelperText("Host address cannot be empty.");
+            atatus.addAction("host-address-save-validation-failed", { reason: "empty" });
             return;
         }
 
         if (!isValidURL(trimmed)) {
             setHostAddressError(true);
             setHostAddressHelperText("Invalid URL format, Enter a valid URL.");
+            atatus.addAction("host-address-save-validation-failed", { reason: "invalid_url", value: trimmed });
             return;
         }
 
         logEvent(analytics, "host_address_change");
+        atatus.addAction("host-address-saved", { hostAddress: trimmed });
+        atatus.setGlobalContextProperty("hostAddress", trimmed);
+        atatus.settingsLogger.info("Host address updated", { hostAddress: trimmed });
 
         setHostAddressError(false);
         setHostAddressHelperText("");
@@ -55,7 +61,7 @@ const HostSettings = () => {
         notifications.show("Host address saved successfully!", {
             severity: "success",
         });
-    }
+    };
 
     const handleReset = () => {
         setHostAddress(DEFAULT_HOST_ADDRESS);
@@ -65,11 +71,14 @@ const HostSettings = () => {
         setHostAddressHelperText("");
 
         logEvent(analytics, "host_address_reset");
+        atatus.addAction("host-address-reset", { hostAddress: DEFAULT_HOST_ADDRESS });
+        atatus.setGlobalContextProperty("hostAddress", DEFAULT_HOST_ADDRESS);
+        atatus.settingsLogger.info("Host address reset to default", { hostAddress: DEFAULT_HOST_ADDRESS });
 
         notifications.show("Host address reset to default!", {
             severity: "info",
         });
-    }
+    };
 
     useEffect(() => {
         if (!savedHostAddress || !isValidURL(savedHostAddress)) {
@@ -98,7 +107,7 @@ const HostSettings = () => {
                     error={hostAddressError}
                     helperText={hostAddressHelperText}
                     onChange={(e) => {
-                        setHostAddress(e.target.value)
+                        setHostAddress(e.target.value);
                         setHostAddressError(false);
                         setHostAddressHelperText("");
                     }}
@@ -108,6 +117,7 @@ const HostSettings = () => {
                     <Button
                         startIcon={<RotateCcw size={16} />}
                         variant="contained"
+                        data-atatus-action-name="btn-host-settings-reset"
                         onClick={handleReset}
                         sx={btnProps}
                     >
@@ -116,6 +126,7 @@ const HostSettings = () => {
 
                     <Button
                         variant="contained"
+                        data-atatus-action-name="btn-host-settings-save"
                         startIcon={<Save size={16} />}
                         onClick={handleSave}
                         sx={{

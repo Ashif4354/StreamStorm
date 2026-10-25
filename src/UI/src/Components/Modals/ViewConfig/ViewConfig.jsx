@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
+import { useEffect } from 'react';
 import { useColorScheme } from '@mui/material/styles';
-import { Divider, Modal, Box } from '@mui/material';
+import { Modal, Box } from '@mui/material';
 import { SlidersHorizontal } from 'lucide-react';
 
 import '../Modals.css';
@@ -8,6 +9,7 @@ import CloseButton from '../../Elements/CloseButton';
 import { useCustomMUIProps } from '../../../context/CustomMUIPropsContext';
 import ConfigData from './ConfigData';
 import { useStormData } from '../../../context/StormDataContext';
+import * as atatus from '../../../lib/atatus';
 
 const ViewConfig = (props) => {
 
@@ -16,9 +18,18 @@ const ViewConfig = (props) => {
     const { colorScheme } = useColorScheme();
     const formControls = useStormData();
 
+    useEffect(() => {
+        if (open) {
+            atatus.setViewName('/modal/view-config');
+            atatus.setViewContext({ modal: 'view-config' });
+            atatus.addAction('modal-opened', { modal: 'view-config' });
+        }
+    }, [open]);
+
     const modalCloseHandler = () => {
+        atatus.addAction('modal-closed', { modal: 'view-config' });
         setOpen(false);
-    }
+    };
 
     return (
         <Modal open={open} onClose={modalCloseHandler}>

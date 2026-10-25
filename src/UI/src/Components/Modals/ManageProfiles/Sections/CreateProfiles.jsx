@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { UserPlus } from 'lucide-react';
 import { Button, TextField, useColorScheme } from '@mui/material';
-import { useLocalStorageState } from '@toolpad/core/useLocalStorageState';
 import { useNotifications } from '@toolpad/core/useNotifications';
 import { RefreshCw } from 'lucide-react';
 import { logEvent } from 'firebase/analytics';
 
-import * as atatus from 'atatus-spa';
+import * as atatus from '../../../../lib/atatus';
 
 import "./Sections.css";
 import ErrorText from '../../../Elements/ErrorText';
@@ -21,7 +20,6 @@ const CreateProfiles = () => {
     const { hostAddress } = useAppState();
     const notifications = useNotifications();
 
-
     const [profiles, setProfiles] = useState(1);
     const [profilesError, setProfilesError] = useState(false);
     const [profilesHelperText, setProfilesHelperText] = useState("");
@@ -30,12 +28,13 @@ const CreateProfiles = () => {
     const [loading, setLoading] = useState(false);
 
     const handleCreateProfiles = () => {
-
         setErrorText("");
 
         if (isNaN(profiles) || profiles < 1) {
             setProfilesError(true);
             setProfilesHelperText("Enter a valid number of profiles");
+            atatus.addAction('create-profiles-validation-failed', { profiles });
+            atatus.envLogger.warn('Create profiles validation failed: invalid profile count', { profiles });
             return;
         } else {
             setProfilesError(false);
@@ -43,11 +42,14 @@ const CreateProfiles = () => {
         }
 
         setLoading(true);
+        atatus.addAction('create-profiles-triggered', { count: profiles });
+        atatus.startOperation('create_profiles');
+        atatus.startDurationVital('create_profiles');
 
         const data = {
             count: profiles,
             cookiesLogin: false
-        }
+        };
 
         logEvent(analytics, "create_profiles", { count: profiles });
 
@@ -60,36 +62,45 @@ const CreateProfiles = () => {
         })
             .then((response) => response.json())
             .then((data) => {
+                atatus.stopDurationVital('create_profiles');
                 if (data.success) {
+                    atatus.succeedOperation('create_profiles');
+                    atatus.envLogger.info('Profiles created successfully', { count: profiles });
+                    atatus.addAction('create-profiles-success', { count: profiles });
                     setProfiles(1);
                     notifications.show("Profiles created successfully!", {
                         severity: "success",
                     });
                     logEvent(analytics, "create_profiles_success", { count: profiles });
                 } else {
+                    atatus.failOperation('create_profiles', data.message || 'An error occurred while creating profiles.');
                     setErrorText(data.message || 'An error occurred while creating profiles.');
                     notifications.show("Failed to create profiles.", {
                         severity: "error",
                     });
                     if (data.error) {
                         console.error('Failed to create profiles:', data.error);
-                        atatus.notify(new Error(data.error), { response: data }, ['create_profiles_failed']);
+                        atatus.addError(new Error(data.error), { response: data, tags: ['create_profiles_failed'] });
+                        atatus.envLogger.error('Failed to create profiles', { response: data });
                     }
                     logEvent(analytics, "create_profiles_failed", { count: profiles });
                 }
             })
             .catch((error) => {
+                atatus.stopDurationVital('create_profiles');
+                atatus.failOperation('create_profiles', error.message);
                 setErrorText("An error occurred while creating profiles. Try again.");
                 notifications.show("Failed to create profiles.", {
                     severity: "error",
                 });
-                atatus.notify(error, {}, ['create_profiles_error']);
+                atatus.addError(error, { tags: ['create_profiles_error'] });
+                atatus.envLogger.error('Create profiles error', { error: error.message });
                 logEvent(analytics, "create_profiles_error", { count: profiles });
             })
             .finally(() => {
                 setLoading(false);
-            })
-    }
+            });
+    };
 
     return (
         <div className="create-profiles-container">
@@ -112,7 +123,8 @@ const CreateProfiles = () => {
                     }}
                     value={profiles}
                     onChange={(e) => {
-                        setProfiles(parseInt(e.target.value));
+                        const val = parseInt(e.target.value);
+                        setProfiles(val);
                         setProfilesError(false);
                         setProfilesHelperText("");
                         setErrorText("");
@@ -126,8 +138,9 @@ const CreateProfiles = () => {
                 <Button
                     variant="contained"
                     color="primary"
-                    className={`create-profiles-button`}
+                    className="create-profiles-button"
                     disabled={loading}
+                    data-atatus-action-name="btn-create-profiles-submit"
                     startIcon={loading ? <RefreshCw size={20} className="spin" /> : <UserPlus size={20} />}
                     sx={{
                         ...btnProps,

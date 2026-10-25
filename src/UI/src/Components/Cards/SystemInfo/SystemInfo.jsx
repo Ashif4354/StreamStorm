@@ -5,8 +5,10 @@ import { CardHeader, CardContent, Divider } from "@mui/material";
 import { HardDrive } from "lucide-react";
 
 import "./SystemInfo.css";
+import * as atatus from "../../../lib/atatus";
 import { useSystemInfo } from "../../../context/SystemInfoContext";
-import { useCustomMUIProps } from "../../../context/CustomMUIPropsContext";
+import { useCustomMUIProps } from "../../../context/SystemInfoContext";
+import { useCustomMUIProps as useMUIProps } from "../../../context/CustomMUIPropsContext";
 import SystemInfoChart from "./SystemInfoChart";
 import { useSocket } from "../../../context/SocketContext";
 import SystemStatsCard from "./SystemStatsCard";
@@ -17,12 +19,16 @@ const START_POINT =
     -(DATA_POINTS_LENGTH * TIME_INTERVAL_IN_SEC) + TIME_INTERVAL_IN_SEC;
 
 const SystemInfo = () => {
-    const { cardProps } = useCustomMUIProps();
+    const { cardProps } = useMUIProps();
     const systemInfoControls = useSystemInfo();
     const { colorScheme } = useColorScheme();
 
     const onIconClick = () => {
-        systemInfoControls.setDebugCounter((prev) => prev + 1);
+        systemInfoControls.setDebugCounter((prev) => {
+            const next = prev + 1;
+            atatus.addAction("debug-icon-click", { count: next });
+            return next;
+        });
     };
 
     const createInitialPoints = () => {
@@ -46,6 +52,12 @@ const SystemInfo = () => {
 
         socket.on("system_metrics", (data) => {
             systemInfoControls.setAvailableRAM(data.free_ram_mb);
+            atatus.setGlobalContextProperty("systemMetrics", {
+                cpuPercent: data.cpu_percent,
+                ramPercent: data.ram_percent,
+                freeRamMb: data.free_ram_mb,
+                usedRamGb: data.used_ram_gb,
+            });
             setChartSeries((prev) => {
                 const incoming = { ...data };
 
@@ -74,7 +86,7 @@ const SystemInfo = () => {
         >
             <div className="card-header-container">
                 <CardHeader
-                    avatar={<HardDrive onClick={onIconClick} />}
+                    avatar={<HardDrive data-atatus-action-name="icon-system-info-debug" onClick={onIconClick} />}
                     title="System Information"
                     className={`card-header card-header-${colorScheme}`}
                     sx={{

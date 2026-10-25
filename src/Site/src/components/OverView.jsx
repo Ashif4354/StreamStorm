@@ -2,13 +2,16 @@
 import LaunchIcon from '@mui/icons-material/Launch';
 import { analytics } from '@/config/firebase';
 import { logEvent } from 'firebase/analytics';
+import * as atatus from '@/config/atatus';
 
 const OverView = () => {
-    
+
     const handleGitHubClick = () => {
+        atatus.addAction('overview-github-clicked');
+        atatus.siteLogger.info('User opened GitHub repository from overview');
         logEvent(analytics, 'github_repo_visit');
         window.open('https://github.com/Ashif4354/StreamStorm', '_blank');
-    }
+    };
 
     return (
         <section id="overview" className="overview">
@@ -21,17 +24,25 @@ const OverView = () => {
                 </span>
                 <div className="overview-buttons-container">
                     <a href="/download">
-                        <button className="get-started-button">
+                        <button
+                            className="get-started-button"
+                            data-atatus-action-name="btn-overview-get-started"
+                            onClick={() => atatus.addAction('overview-get-started-clicked')}
+                        >
                             Get Started
                         </button>
                     </a>
 
-                    <button className="overview-github-button" onClick={handleGitHubClick}>
+                    <button
+                        className="overview-github-button"
+                        onClick={handleGitHubClick}
+                        data-atatus-action-name="btn-overview-github"
+                    >
                         View on GitHub &nbsp;&nbsp;<LaunchIcon />
                     </button>
                 </div>
                 <span className="download-note">
-                    Safe to install. No personal data collected. Fully open source.
+                    Safe to install. Fully open source. Privacy-focused telemetry and transparent disclosures.
                 </span>
                 <div className="overview-image-container">
                     <img src="/assets/ss-1.png" alt="StreamStorm UI" className="overview-media" />

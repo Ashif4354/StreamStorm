@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
+import * as atatus from '../../lib/atatus';
 import { useCustomMUIProps } from '../../context/CustomMUIPropsContext';
 
 const ChangeSlowMode = ({ payload, open, onClose }) => {
@@ -12,6 +13,13 @@ const ChangeSlowMode = ({ payload, open, onClose }) => {
     const [slowModeHelperText, setSlowModeHelperText] = useState("");
 
     useEffect(() => {
+        if (open) {
+            atatus.setViewName("/dialog/change-slow-mode");
+            atatus.setViewContext({ dialog: "change-slow-mode", currentSlowMode: formControls.slowMode });
+        }
+    }, [open, formControls.slowMode]);
+
+    useEffect(() => {
         setSlowMode(formControls.slowMode);
     }, [formControls.slowMode]);
 
@@ -21,9 +29,13 @@ const ChangeSlowMode = ({ payload, open, onClose }) => {
         if (isNaN(slowModeValue) || slowModeValue < 0) {
             setSlowModeError(true);
             setSlowModeHelperText("Enter a valid slow mode time in seconds");
+            atatus.addAction("change-slow-mode-validation-failed", { value: slowMode });
+            atatus.validationLogger.warn("Change slow mode validation failed", { value: slowMode });
             return;
         }
 
+        atatus.addAction("change-slow-mode-submitted", { slowMode: slowModeValue });
+        atatus.stormLogger.info("User submitted updated slow mode", { slowMode: slowModeValue });
         onClose(slowModeValue);
     };
 
@@ -65,6 +77,7 @@ const ChangeSlowMode = ({ payload, open, onClose }) => {
             <DialogActions>
                 <Button
                     variant="outlined"
+                    data-atatus-action-name="btn-change-slow-mode-cancel"
                     onClick={() => onClose(null)}
                     sx={{
                         ...btnProps,
@@ -76,6 +89,7 @@ const ChangeSlowMode = ({ payload, open, onClose }) => {
 
                 <Button
                     variant="outlined"
+                    data-atatus-action-name="btn-change-slow-mode-submit"
                     onClick={onSubmitHandler}
                     sx={{
                         ...btnProps,
@@ -90,7 +104,7 @@ const ChangeSlowMode = ({ payload, open, onClose }) => {
                 </Button>
             </DialogActions>
         </Dialog>
-    )
-}
+    );
+};
 
 export default ChangeSlowMode;

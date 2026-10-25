@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '@/config/firebase';
+import * as atatus from '@/config/atatus';
 
 const Instructions = () => {
 
@@ -12,12 +13,22 @@ const Instructions = () => {
       page_path: window.location.pathname,
       page_title: document.title
     });
+    atatus.siteLogger.info('Instructions page viewed');
   }, []);
+
+  const handleArticleClick = (event) => {
+    const anchor = event.target?.closest?.('a');
+    if (!anchor) return;
+    const href = anchor.getAttribute('href') || '';
+    const text = (anchor.textContent || '').trim();
+    atatus.addAction('instructions-link-clicked', { href, text });
+    atatus.navLogger.info('Instructions link clicked', { href, text });
+  };
 
   return (
     <div className="instructions-page">
       <div className="instructions-page-body">
-        <article className="instructions-container">
+        <article className="instructions-container" onClick={handleArticleClick}>
           <h1 className="instructions-main-heading">Instructions</h1>
 
           <nav className="instructions-index" aria-label="Table of Contents">

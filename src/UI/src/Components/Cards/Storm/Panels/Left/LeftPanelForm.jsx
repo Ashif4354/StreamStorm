@@ -7,6 +7,7 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useDialogs } from "@toolpad/core/useDialogs";
 
 import "./LeftPanel.css";
+import * as atatus from "../../../../../lib/atatus";
 import AddChannels from "../../../../Dialogs/AddChannels";
 import GenerateMessagesDialog from "../../../../Dialogs/GenerateMessagesDialog";
 import ErrorText from "../../../../Elements/ErrorText";
@@ -26,7 +27,6 @@ const LeftPanelForm = () => {
     const [aiDialogOpen, setAiDialogOpen] = useState(false);
 
     const messagesChangeHandler = (e) => {
-        // sourcery skip: use-object-destructuring
         const value = e.target.value;
         formControls.setMessagesString(value);
 
@@ -34,12 +34,13 @@ const LeftPanelForm = () => {
             return message !== '';
         });
 
-        allMessages = allMessages.map((message) => message.trim())
+        allMessages = allMessages.map((message) => message.trim());
 
         formControls.setMessages(allMessages);
         formControls.setMessagesError(false);
         formControls.setMessagesHelperText("");
-    }
+        atatus.setViewContextProperty('messageCount', allMessages.length);
+    };
 
     const handleURLChange = (e) => {
         let value = e.target.value.trim();
@@ -52,10 +53,12 @@ const LeftPanelForm = () => {
         formControls.setVideoURL(value);
         formControls.setVideoURLError(false);
         formControls.setVideoURLHelperText("");
-    }
+        atatus.setViewContextProperty('videoURL', value);
+        atatus.stormLogger.debug('Video URL updated', { videoURL: value });
+    };
 
     const handleAdvancedChannelSelection = async () => {
-
+        atatus.addAction('open-advanced-channel-selection');
         const selectedChannels = await dialogs.open(AddChannels, {
             mode: "new",
             formControls,
@@ -68,8 +71,9 @@ const LeftPanelForm = () => {
         }
 
         formControls.setAdvancedSelectedChannels(selectedChannels);
-
-    }
+        atatus.addAction('advanced-channels-selected', { count: selectedChannels.length, channels: selectedChannels });
+        atatus.stormLogger.info('Advanced channels selected', { count: selectedChannels.length, channels: selectedChannels });
+    };
 
     const handleAiDialogClose = (generatedMessages) => {
         setAiDialogOpen(false);
@@ -78,6 +82,8 @@ const LeftPanelForm = () => {
             formControls.setMessagesString(generatedMessages.join('\n'));
             formControls.setMessagesError(false);
             formControls.setMessagesHelperText("");
+            atatus.addAction('ai-generated-messages-applied', { count: generatedMessages.length, messages: generatedMessages });
+            atatus.aiLogger.info('Applied AI generated messages to storm form', { count: generatedMessages.length, messages: generatedMessages });
         }
     };
 
@@ -125,7 +131,11 @@ const LeftPanelForm = () => {
                             <Tooltip title="Generate messages with AI">
                                 <IconButton
                                     size="small"
-                                    onClick={() => setAiDialogOpen(true)}
+                                    data-atatus-action-name="btn-open-ai-generate-messages"
+                                    onClick={() => {
+                                        atatus.addAction('open-ai-messages-dialog');
+                                        setAiDialogOpen(true);
+                                    }}
                                     disabled={appState.stormInProgress || formControls.loading}
                                     sx={{
                                         backgroundColor: 'transparent',
@@ -158,11 +168,14 @@ const LeftPanelForm = () => {
                     <Switch
                         checked={formControls.subscribe}
                         disabled={appState.stormInProgress || formControls.loading}
+                        data-atatus-action-name="switch-subscribe"
                         onChange={(e) => {
                             if (!e.target.checked) {
                                 formControls.setSubscribeAndWait(false);
                             }
                             formControls.setSubscribe(e.target.checked);
+                            atatus.addAction('toggle-subscribe', { subscribe: e.target.checked });
+                            atatus.stormLogger.debug('Subscribe toggled', { subscribe: e.target.checked });
                         }}
                     />
                 </div>
@@ -171,11 +184,14 @@ const LeftPanelForm = () => {
                     <Switch
                         checked={formControls.subscribeAndWait}
                         disabled={appState.stormInProgress || formControls.loading}
+                        data-atatus-action-name="switch-subscribe-and-wait"
                         onChange={(e) => {
                             if (e.target.checked) {
                                 formControls.setSubscribe(true);
                             }
                             formControls.setSubscribeAndWait(e.target.checked);
+                            atatus.addAction('toggle-subscribe-and-wait', { subscribeAndWait: e.target.checked });
+                            atatus.stormLogger.debug('Subscribe & Wait toggled', { subscribeAndWait: e.target.checked });
                         }}
                     />
                 </div>
@@ -189,9 +205,11 @@ const LeftPanelForm = () => {
                     sx={inputProps}
                     value={formControls.slowMode}
                     onChange={(e) => {
-                        formControls.setSlowMode(parseInt(e.target.value));
+                        const val = parseInt(e.target.value);
+                        formControls.setSlowMode(val);
                         formControls.setSlowModeError(false);
                         formControls.setSlowModeHelperText("");
+                        atatus.setViewContextProperty('slowMode', val);
                     }}
                     error={formControls.slowModeError}
                     helperText={formControls.slowModeHelperText}
@@ -207,9 +225,11 @@ const LeftPanelForm = () => {
                             sx={inputProps}
                             value={formControls.subscribeWaitTime}
                             onChange={(e) => {
-                                formControls.setSubscribeWaitTime(parseInt(e.target.value));
+                                const val = parseInt(e.target.value);
+                                formControls.setSubscribeWaitTime(val);
                                 formControls.setSubscribeWaitTimeError(false);
                                 formControls.setSubscribeWaitTimeHelperText("");
+                                atatus.setViewContextProperty('subscribeWaitTime', val);
                             }}
                             error={formControls.subscribeWaitTimeError}
                             helperText={formControls.subscribeWaitTimeHelperText}
@@ -229,7 +249,11 @@ const LeftPanelForm = () => {
                         row
                         defaultValue="basic"
                         name="channel-index-radio-group"
-                        onChange={(e) => formControls.setChannelSelection(e.target.value)}
+                        onChange={(e) => {
+                            formControls.setChannelSelection(e.target.value);
+                            atatus.addAction('channel-selection-mode-changed', { mode: e.target.value });
+                            atatus.stormLogger.debug('Channel selection mode changed', { mode: e.target.value });
+                        }}
                         disabled={appState.stormInProgress || formControls.loading}
                     >
                         <div className="channel-index-radio-container">
@@ -237,6 +261,7 @@ const LeftPanelForm = () => {
                                 value="basic"
                                 checked={formControls.channelSelection === "basic"}
                                 disabled={appState.stormInProgress || formControls.loading}
+                                data-atatus-action-name="radio-channel-selection-basic"
                             />
                             <span className="channel-index-input-label">Basic</span>
                         </div>
@@ -245,6 +270,7 @@ const LeftPanelForm = () => {
                                 value="intermediate"
                                 checked={formControls.channelSelection === "intermediate"}
                                 disabled={appState.stormInProgress || formControls.loading}
+                                data-atatus-action-name="radio-channel-selection-intermediate"
                             />
                             <span className="channel-index-input-label">Intermediate</span>
                         </div>
@@ -253,6 +279,7 @@ const LeftPanelForm = () => {
                                 value="advanced"
                                 checked={formControls.channelSelection === "advanced"}
                                 disabled={appState.stormInProgress || formControls.loading}
+                                data-atatus-action-name="radio-channel-selection-advanced"
                             />
                             <span className="channel-index-input-label">Advanced</span>
                         </div>
@@ -263,7 +290,6 @@ const LeftPanelForm = () => {
                         <div className="channel-selection-basic-container">
                             <TextField
                                 type="number"
-                                // defaultValue={1}
                                 variant="outlined"
                                 label="No.of Channels"
                                 className="channel-index-input"
@@ -277,7 +303,6 @@ const LeftPanelForm = () => {
                                 error={formControls.noOfChannelsError}
                                 helperText={formControls.noOfChannelsHelperText}
                                 disabled={appState.stormInProgress || formControls.loading}
-
                             />
                         </div>
                     ) : (
@@ -304,7 +329,6 @@ const LeftPanelForm = () => {
                                         />
                                         <TextField
                                             type="number"
-                                            // defaultValue={5}
                                             variant="outlined"
                                             label="End Channel Index"
                                             className="channel-index-input"
@@ -326,6 +350,7 @@ const LeftPanelForm = () => {
                                             <Button
                                                 variant="contained"
                                                 className="channel-index-input"
+                                                data-atatus-action-name="btn-select-advanced-channels"
                                                 onClick={handleAdvancedChannelSelection}
                                                 disabled={appState.stormInProgress || formControls.loading}
                                                 sx={{
@@ -341,7 +366,6 @@ const LeftPanelForm = () => {
                                                 variant="outlined"
                                                 size="small"
                                                 placeholder="Click 'Select' to choose"
-
                                                 value={formControls.advancedSelectedChannels.join(', ')}
                                                 sx={{
                                                     ...inputProps,
@@ -352,9 +376,7 @@ const LeftPanelForm = () => {
                                             Total Channels Selected: {formControls.advancedSelectedChannels.length}
                                         </span>
 
-
                                         <ErrorText errorText={formControls.advancedChannelsErrorText} />
-
 
                                     </div>
                                 )
@@ -371,11 +393,9 @@ const LeftPanelForm = () => {
 
                 }
 
-
             </div>
         </div>
-
     );
-}
+};
 
 export default LeftPanelForm;

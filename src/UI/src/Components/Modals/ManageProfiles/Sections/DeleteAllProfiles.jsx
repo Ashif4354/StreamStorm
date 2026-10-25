@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Button, useColorScheme } from '@mui/material';
-import { useLocalStorageState } from '@toolpad/core/useLocalStorageState';
 import { useNotifications } from '@toolpad/core/useNotifications';
 import { RefreshCw } from 'lucide-react';
 import { useDialogs } from '@toolpad/core/useDialogs';
 import { logEvent } from 'firebase/analytics';
 
-import * as atatus from 'atatus-spa';
+import * as atatus from '../../../../lib/atatus';
 
 import "./Sections.css";
 import ErrorText from '../../../Elements/ErrorText';
@@ -29,14 +28,21 @@ const DeleteAllProfiles = () => {
     const [loading, setLoading] = useState(false);
 
     const handleDeleteAllProfiles = async () => {
+        atatus.addAction('delete-all-profiles-dialog-prompted');
 
         const confirmed = await dialogs.open(AreYouSure, {
             text: <span>Are you sure you want to <strong style={{ color: "var(--input-active-red-dark)" }}>DELETE</strong> all profiles</span>
         });
 
         if (!confirmed) {
-            return
+            atatus.addAction('delete-all-profiles-cancelled');
+            atatus.envLogger.info('User cancelled delete all profiles');
+            return;
         }
+
+        atatus.addAction('delete-all-profiles-confirmed');
+        atatus.startOperation('delete_all_profiles');
+        atatus.startDurationVital('delete_all_profiles');
 
         setErrorText("");
         setLoading(true);
@@ -52,29 +58,38 @@ const DeleteAllProfiles = () => {
         })
             .then((response) => response.json())
             .then((data) => {
+                atatus.stopDurationVital('delete_all_profiles');
                 if (data.success) {
+                    atatus.succeedOperation('delete_all_profiles');
+                    atatus.envLogger.info('All profiles deleted successfully');
+                    atatus.addAction('delete-all-profiles-success');
                     notifications.show("All profiles deleted successfully!", {
                         severity: "success",
                     });
                     logEvent(analytics, "delete_all_profiles_success");
                 } else {
+                    atatus.failOperation('delete_all_profiles', data.message || 'Failed to delete all profiles');
                     setErrorText(data.message || 'Failed to delete all profiles');
                     notifications.show("Failed to delete all profiles", {
                         severity: 'error',
                     });
                     if (data.error) {
                         console.error('Failed to delete all profiles:', data.error);
-                        atatus.notify(new Error(data.error), { response: data }, ['delete_all_profiles_failed']);
+                        atatus.addError(new Error(data.error), { response: data, tags: ['delete_all_profiles_failed'] });
+                        atatus.envLogger.error('Failed to delete all profiles', { response: data });
                     }
                     logEvent(analytics, "delete_all_profiles_failed");
                 }
             })
             .catch((error) => {
+                atatus.stopDurationVital('delete_all_profiles');
+                atatus.failOperation('delete_all_profiles', error.message);
                 setErrorText(error.message || "An error occurred while deleting all profiles");
                 notifications.show("An error occurred while deleting all profiles", {
                     severity: 'error',
                 });
-                atatus.notify(error, {}, ['delete_all_profiles_error']);
+                atatus.addError(error, { tags: ['delete_all_profiles_error'] });
+                atatus.envLogger.error('Delete all profiles error', { error: error.message });
                 logEvent(analytics, "delete_all_profiles_error");
             })
             .finally(() => {
@@ -98,6 +113,7 @@ const DeleteAllProfiles = () => {
                 <Button
                     variant="outlined"
                     color="primary"
+                    data-atatus-action-name="btn-delete-all-profiles-confirm"
                     sx={{
                         ...btnProps,
                         marginTop: "1rem",
@@ -107,7 +123,6 @@ const DeleteAllProfiles = () => {
                     onClick={handleDeleteAllProfiles}
                     disabled={loading}
                     startIcon={loading ? <RefreshCw size={20} className="spin" /> : <Trash2 size={20} />}
-
                 >
                     {
                         loading ? "Deleting Profiles..." : "Delete All Profiles"

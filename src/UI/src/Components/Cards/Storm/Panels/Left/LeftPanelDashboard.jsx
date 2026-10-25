@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { CirclePlay, ArrowUpToLine, Timer, HeartPulse, HeartCrack, TrendingUp, Terminal } from "lucide-react";
+import { CirclePlay, ArrowUpToLine, Timer, HeartPulse, HeartCrack, TrendingUp } from "lucide-react";
 import { useColorScheme } from "@mui/material/styles";
 
+import * as atatus from "../../../../../lib/atatus";
 import InfoCard from "../../../../Elements/InfoCard";
 import { useSocket } from "../../../../../context/SocketContext";
 import { useAppState } from "../../../../../context/AppStateContext";
-import { useStormData } from "../../../../../context/StormDataContext";
 import LogsBox from "../../../../Elements/LogsCard";
 import { useServerContext } from "../../../../../context/ServerContext";
 
@@ -14,7 +14,6 @@ const LeftPanelDashboard = () => {
     const { colorScheme: theme } = useColorScheme();
     const { socket, socketConnected } = useSocket();
     const appState = useAppState();
-    const formControls = useStormData();
     const serverContext = useServerContext();
 
     const [stormStatus, setStormStatus] = useState("Running");
@@ -24,7 +23,6 @@ const LeftPanelDashboard = () => {
     const [stormDuration, setStormDuration] = useState("00:00:00");
     const [deadInstances, setDeadInstances] = useState(0);
     const [messagesRate, setMessagesRate] = useState(0);
-    // const [startTime, setStartTime] = useState(Date.now());
     const [previousActiveInstances, setPreviousActiveInstances] = useState(0);
     const instanceCountChangedOnceRef = useRef(false);
 
@@ -32,10 +30,9 @@ const LeftPanelDashboard = () => {
         if (stormStatus === "Running") {
             setStatusColor(`var(--info-card-${theme}-green)`);
         }
-    }, [theme]);
+    }, [theme, stormStatus]);
 
     useEffect(() => {
-
         if (serverContext.serverContextFetched) {
             setStormStatus(serverContext.stormStatus);
             appState.setAllChannels(serverContext.channelsStatus);
@@ -66,65 +63,71 @@ const LeftPanelDashboard = () => {
             setStatusColor("var(--info-card-red)");
             appState.setStormInProgress(false);
             appState.setStormStatus("Stopped");
+            atatus.addAction("socket-storm-stopped");
+            atatus.setViewContextProperty("stormStatus", "Stopped");
+            atatus.stormLogger.info("Received storm_stopped event from engine");
         });
 
         socket.on("storm_paused", () => {
             setStormStatus("Paused");
             setStatusColor("var(--info-card-yellow)");
             appState.setStormStatus("Paused");
+            atatus.addAction("socket-storm-paused");
+            atatus.setViewContextProperty("stormStatus", "Paused");
+            atatus.stormLogger.info("Received storm_paused event from engine");
         });
 
         socket.on("storm_resumed", () => {
             setStormStatus("Running");
             setStatusColor(`var(--info-card-${theme}-green)`);
             appState.setStormStatus("in Progress");
+            atatus.addAction("socket-storm-resumed");
+            atatus.setViewContextProperty("stormStatus", "Running");
+            atatus.stormLogger.info("Received storm_resumed event from engine");
         });
 
         socket.on('messages_rate', (data) => {
-            setMessagesRate(parseFloat(data.message_rate).toFixed(2));
+            const rate = parseFloat(data.message_rate).toFixed(2);
+            setMessagesRate(rate);
+            atatus.setViewContextProperty("messagesRate", rate);
         });
 
         socket.on('total_messages', (data) => {
             setMessagesSent(data.total_messages);
+            atatus.setViewContextProperty("messagesSent", data.total_messages);
         });
 
         socket.on('instance_status', (data) => {
+            atatus.stormLogger.debug(`Instance ${data.instance} status updated to ${data.status}`, data);
             if (data.status === "-1") {
                 appState.setAllChannels(prev => {
                     const newChannels = { ...prev };
-                    newChannels[data.instance].status = -1;
+                    if (newChannels[data.instance]) newChannels[data.instance].status = -1;
                     return newChannels;
                 });
-                // setActiveInstances(prev => prev - 1);
-
             } else if (data.status === "0") {
                 appState.setAllChannels(prev => {
                     const newChannels = { ...prev };
-                    newChannels[data.instance].status = 0;
+                    if (newChannels[data.instance]) newChannels[data.instance].status = 0;
                     return newChannels;
                 });
-                // setActiveInstances(prev => prev - 1);
-                // setDeadInstances(prev => prev + 1);
-
+                atatus.addAction("channel-instance-dead", { instance: data.instance });
             } else if (data.status === "1") {
                 appState.setAllChannels(prev => {
                     const newChannels = { ...prev };
-                    newChannels[data.instance].status = 1;
+                    if (newChannels[data.instance]) newChannels[data.instance].status = 1;
                     return newChannels;
                 });
-                // setActiveInstances(prev => prev + 1);
-
             } else if (data.status === "2") {
                 appState.setAllChannels(prev => {
                     const newChannels = { ...prev };
-                    newChannels[data.instance].status = 2;
+                    if (newChannels[data.instance]) newChannels[data.instance].status = 2;
                     return newChannels;
                 });
-
             } else if (data.status === "3") {
                 appState.setAllChannels(prev => {
                     const newChannels = { ...prev };
-                    newChannels[data.instance].status = 3;
+                    if (newChannels[data.instance]) newChannels[data.instance].status = 3;
                     return newChannels;
                 });
             }
@@ -139,7 +142,7 @@ const LeftPanelDashboard = () => {
             socket.off("instance_status");
         };
 
-    }, [socket, socketConnected]);
+    }, [socket, socketConnected, theme]);
 
     useEffect(() => {
         if (!instanceCountChangedOnceRef.current) {
@@ -149,6 +152,15 @@ const LeftPanelDashboard = () => {
 
         if (activeInstances === 0 && previousActiveInstances !== 0) {
             console.log("All instances are dead or inactive. Stopping storm.");
+            atatus.stormLogger.warn("All instances are dead or inactive. Stopping storm.", {
+                previousActiveInstances,
+                deadInstances,
+                messagesSent,
+            });
+            atatus.addAction("storm-auto-stopped-all-dead", {
+                deadInstances,
+                messagesSent,
+            });
             setStormStatus("Stopped");
             setStatusColor("var(--info-card-red)");
             instanceCountChangedOnceRef.current = false;
@@ -159,12 +171,14 @@ const LeftPanelDashboard = () => {
     }, [activeInstances]);
 
 
-    useEffect(() => { // Runs once on mount to initialize instance counts
+    useEffect(() => {
         const channels = Object.values(appState.allChannels);
         const active = channels.filter(channel => channel.status > 0).length;
         const dead = channels.filter(channel => channel.status === 0).length;
         setActiveInstances(active);
         setDeadInstances(dead);
+        atatus.setViewContextProperty("activeInstances", active);
+        atatus.setViewContextProperty("deadInstances", dead);
     }, [appState.allChannels]);
 
     return (
@@ -181,10 +195,8 @@ const LeftPanelDashboard = () => {
                 <LogsBox />
             </div>
 
-        </div >
-
+        </div>
     );
-}
-
+};
 
 export default LeftPanelDashboard;

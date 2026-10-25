@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, InputAdornment, TextField, Tooltip, useColorScheme } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, InputAdornment, TextField, Tooltip, useColorScheme } from "@mui/material";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
+import * as atatus from "../../lib/atatus";
 import { useCustomMUIProps } from "../../context/CustomMUIPropsContext";
 import GenerateMessagesDialog from "./GenerateMessagesDialog";
 
@@ -13,6 +14,13 @@ const ChangeMessages = ({ payload, open, onClose }) => {
     const [messagesString, setMessagesString] = useState("");
 
     useEffect(() => {
+        if (open) {
+            atatus.setViewName("/dialog/change-messages");
+            atatus.setViewContext({ dialog: "change-messages" });
+        }
+    }, [open]);
+
+    useEffect(() => {
         setMessagesString(formControls.messagesString);
     }, [formControls.messagesString]);
 
@@ -22,7 +30,6 @@ const ChangeMessages = ({ payload, open, onClose }) => {
     const [aiDialogOpen, setAiDialogOpen] = useState(false);
 
     const messagesChangeHandler = (e) => {
-        // sourcery skip: use-object-destructuring
         const value = e.target.value;
         setMessagesString(value);
 
@@ -30,30 +37,33 @@ const ChangeMessages = ({ payload, open, onClose }) => {
             return message !== '';
         });
 
-        allMessages = allMessages.map((message) => message.trim())
-
-        // formControls.setMessages(allMessages);
+        allMessages = allMessages.map((message) => message.trim());
 
         setMessages(allMessages);
         setMessagesError(false);
         setMessagesHelperText("");
-    }
+    };
 
     const onSubmitHandler = () => {
         if (messages.length === 0) {
             setMessagesError(true);
             setMessagesHelperText("Enter at least one message.");
+            atatus.addAction("change-messages-validation-failed", { reason: "empty" });
+            atatus.validationLogger.warn("Change messages validation failed: empty messages");
             return;
         }
 
         if (JSON.stringify(messages) === JSON.stringify(formControls.messages)) {
             setMessagesError(true);
             setMessagesHelperText("No changes made to the messages.");
+            atatus.addAction("change-messages-validation-failed", { reason: "unchanged" });
             return;
         }
 
+        atatus.addAction("change-messages-submitted", { count: messages.length, messages });
+        atatus.stormLogger.info("User submitted updated messages", { count: messages.length, messages });
         onClose(messages);
-    }
+    };
 
     const handleAiDialogClose = (generatedMessages) => {
         setAiDialogOpen(false);
@@ -62,6 +72,7 @@ const ChangeMessages = ({ payload, open, onClose }) => {
             setMessagesString(generatedMessages.join('\n'));
             setMessagesError(false);
             setMessagesHelperText("");
+            atatus.addAction("ai-messages-applied-in-change-dialog", { count: generatedMessages.length, messages: generatedMessages });
         }
     };
 
@@ -115,6 +126,7 @@ const ChangeMessages = ({ payload, open, onClose }) => {
                                 <Tooltip title="Generate messages with AI">
                                     <IconButton
                                         size="small"
+                                        data-atatus-action-name="btn-change-messages-open-ai"
                                         onClick={() => setAiDialogOpen(true)}
                                         sx={{
                                             backgroundColor: 'transparent',
@@ -143,6 +155,7 @@ const ChangeMessages = ({ payload, open, onClose }) => {
             <DialogActions>
                 <Button
                     variant="outlined"
+                    data-atatus-action-name="btn-change-messages-cancel"
                     onClick={() => onClose(false)}
                     sx={{
                         ...btnProps,
@@ -154,6 +167,7 @@ const ChangeMessages = ({ payload, open, onClose }) => {
 
                 <Button
                     variant="outlined"
+                    data-atatus-action-name="btn-change-messages-submit"
                     onClick={onSubmitHandler}
                     sx={{
                         ...btnProps,
@@ -168,7 +182,7 @@ const ChangeMessages = ({ payload, open, onClose }) => {
                 </Button>
             </DialogActions>
         </Dialog>
-    )
-}
+    );
+};
 
 export default ChangeMessages;

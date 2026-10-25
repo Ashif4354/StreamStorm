@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
+import { useEffect } from 'react';
 import { useColorScheme } from '@mui/material/styles';
-import { Divider, Modal, Box } from '@mui/material';
+import { Modal, Box } from '@mui/material';
 import { Antenna } from 'lucide-react';
 
 import '../Modals.css';
@@ -8,6 +9,7 @@ import CloseButton from '../../Elements/CloseButton';
 import { useCustomMUIProps } from '../../../context/CustomMUIPropsContext';
 import ChannelCard from './ChannelCard';
 import { useAppState } from '../../../context/AppStateContext';
+import * as atatus from '../../../lib/atatus';
 
 const ChannelsStatus = (props) => {
 
@@ -16,13 +18,22 @@ const ChannelsStatus = (props) => {
     const { colorScheme } = useColorScheme();
     const appState = useAppState();
 
+    useEffect(() => {
+        if (open) {
+            atatus.setViewName('/modal/channels-status');
+            atatus.setViewContext({ totalChannels: Object.keys(appState.allChannels || {}).length });
+            atatus.addAction('channels-status-modal-opened', { totalChannels: Object.keys(appState.allChannels || {}).length });
+        }
+    }, [open, appState.allChannels]);
+
     const modalCloseHandler = () => {
+        atatus.addAction('channels-status-modal-closed');
         setOpen(false);
-    }
+    };
     
     const sortChannelByStatus = (a, b) => {
         return b.status - a.status;
-    }
+    };
 
     return (
         <Modal open={open} onClose={modalCloseHandler}>
@@ -34,7 +45,6 @@ const ChannelsStatus = (props) => {
                     "&.MuiBox-root": {
                         overflowX: "visible",
                         overflowY: "hidden",
-                        // paddingRight: "3rem",
                     }
                 }}
             >
@@ -50,12 +60,10 @@ const ChannelsStatus = (props) => {
                         </span>
                     </div>
 
-
                 </div>
                 <div style={{
                     maxHeight: '400px',
                     overflowY: 'scroll',
-                    // overflowX: 'visible',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '.4rem',
@@ -67,11 +75,9 @@ const ChannelsStatus = (props) => {
                             <div key={channelId} style={{ flexShrink: 0 }}>
                                 <ChannelCard id={channelId} channel={appState.allChannels[channelId]} />
                             </div>
-                        )
-                        )
+                        ))
                     }
                 </div>
-
 
             </Box>
         </Modal>

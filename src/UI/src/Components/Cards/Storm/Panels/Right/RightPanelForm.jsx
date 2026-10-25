@@ -8,6 +8,7 @@ import { logEvent } from "firebase/analytics";
 import { useDialogs } from "@toolpad/core/useDialogs";
 
 import "./RightPanel.css";
+import * as atatus from "../../../../../lib/atatus";
 import { analytics } from "../../../../../config/firebase";
 import ErrorText from '../../../../Elements/ErrorText';
 import StormControlsClass from "../../../../../lib/StormControlsClass";
@@ -36,25 +37,28 @@ const RightPanelForm = () => {
 
 
     const handleSubmit = () => {
-        // Check if user is logged in
         if (!appState.isLoggedIn) {
             formControls.setErrorText("Not logged in. Log in first in Manage Environments section.");
+            atatus.addAction("start-storm-blocked-not-logged-in");
+            atatus.stormLogger.warn("Start storm blocked: User is not logged in");
             return;
         }
 
         formControls.setErrorText("");
         formControls.SC.current.startStorm(formControls, systemInfoControls, appState);
-    }
+    };
 
     const onStopHandler = async () => {
+        atatus.addAction("auxiliary-stop-storm-clicked");
         formControls.SC.current.stopStorm2(setStopping);
-    }
+    };
 
     const askToJoinStartedStorm = async () => {
+        atatus.addAction("ask-join-started-storm-prompted");
         return await dialogs.open(AreYouSure, {
             text: <span>A Storm has just begun. Do you wanna hop in?</span>
         });
-    }
+    };
 
     useEffect(() => {
         formControls.SC.current = new StormControlsClass(appState.hostAddress);
@@ -64,10 +68,12 @@ const RightPanelForm = () => {
     useEffect(() => {
         if (manageProfilesOpen) {
             logEvent(analytics, "manage_profiles_open");
+            atatus.addAction("open-manage-environment-modal");
         }
 
         if (logsOpen) {
             logEvent(analytics, "logs_open");
+            atatus.addAction("open-logs-modal");
         }
     }, [manageProfilesOpen, logsOpen]);
 
@@ -75,14 +81,19 @@ const RightPanelForm = () => {
         if (!socket || !socket.connected || !socketConnected) return;
 
         socket.on("storm_started", async () => {
+            atatus.stormLogger.info("Received storm_started socket event");
             const confirmed = await askToJoinStartedStorm();
-            if (!confirmed) return;
+            if (!confirmed) {
+                atatus.addAction("join-started-storm-declined");
+                return;
+            }
+            atatus.addAction("join-started-storm-accepted");
             appState.setStormInProgress(true);
         });
 
         return () => {
             socket.off("storm_started");
-        }
+        };
 
     }, [socket, socketConnected]);
 
@@ -95,7 +106,12 @@ const RightPanelForm = () => {
                     <Switch
                         checked={formControls.loadInBackground}
                         disabled={appState.stormInProgress || formControls.loading}
-                        onChange={(e) => formControls.setLoadInBackground(e.target.checked)}
+                        data-atatus-action-name="switch-load-in-background"
+                        onChange={(e) => {
+                            formControls.setLoadInBackground(e.target.checked);
+                            atatus.addAction("toggle-load-in-background", { loadInBackground: e.target.checked });
+                            atatus.stormLogger.debug("Load in background toggled", { loadInBackground: e.target.checked });
+                        }}
                     />
                 </div>
             </div>
@@ -104,6 +120,7 @@ const RightPanelForm = () => {
                 variant="contained"
                 color="primary"
                 className={`start-storm-button ${colorScheme}-bordered-container`}
+                data-atatus-action-name="btn-start-storm"
                 startIcon={formControls.loading ? <RefreshCw size={20} className="spin" /> : <PlayArrowIcon />}
                 sx={{
                     ...btnProps,
@@ -127,6 +144,7 @@ const RightPanelForm = () => {
             <Tooltip title="Auxiliary stop button, in case you need it" placement="bottom">
                 <Button
                     variant="contained"
+                    data-atatus-action-name="btn-auxiliary-stop-storm"
                     startIcon={stopping ? <RefreshCw size={18} className="spin" /> : <StopCircle size={18} />}
                     onClick={onStopHandler}
                     sx={{
@@ -150,6 +168,7 @@ const RightPanelForm = () => {
             <Button
                 startIcon={<Users size="1rem" />}
                 sx={btnProps}
+                data-atatus-action-name="btn-open-manage-environment"
                 onClick={() => setManageProfilesOpen(true)}
             >
                 Manage Environment
@@ -158,6 +177,7 @@ const RightPanelForm = () => {
             <Button
                 startIcon={<Users size="1rem" />}
                 sx={btnProps}
+                data-atatus-action-name="btn-open-logs-modal"
                 onClick={() => setLogsOpen(true)}
             >
                 Logs
@@ -168,6 +188,6 @@ const RightPanelForm = () => {
 
         </div>
     );
-}
+};
 
 export default RightPanelForm;

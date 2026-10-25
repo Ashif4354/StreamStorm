@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+import { useEffect } from 'react';
 import { useColorScheme } from '@mui/material/styles';
 import { Divider, Modal, Box } from '@mui/material';
 import { Terminal } from 'lucide-react';
@@ -8,6 +9,7 @@ import CloseButton from '../../Elements/CloseButton';
 import { useCustomMUIProps } from '../../../context/CustomMUIPropsContext';
 import LogsContainer from '../../Elements/LogsContainer';
 import { useAppState } from '../../../context/AppStateContext';
+import * as atatus from '../../../lib/atatus';
 
 const Logs = (props) => {
 
@@ -16,9 +18,18 @@ const Logs = (props) => {
     const { colorScheme } = useColorScheme();
     const appState = useAppState();
 
+    useEffect(() => {
+        if (open) {
+            atatus.setViewName('/modal/logs');
+            atatus.setViewContext({ modal: 'logs' });
+            atatus.addAction('modal-opened', { modal: 'logs' });
+        }
+    }, [open]);
+
     const modalCloseHandler = () => {
+        atatus.addAction('modal-closed', { modal: 'logs' });
         setOpen(false);
-    }
+    };
 
     return (
         <Modal open={open} onClose={modalCloseHandler}>

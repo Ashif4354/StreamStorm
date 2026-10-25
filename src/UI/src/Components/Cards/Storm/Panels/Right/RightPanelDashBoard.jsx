@@ -4,6 +4,7 @@ import { Button, Divider } from "@mui/material";
 import { Users } from 'lucide-react';
 
 import "./RightPanel.css";
+import * as atatus from "../../../../../lib/atatus";
 import StormControls from './StormControls/StormControls';
 import { useCustomMUIProps } from '../../../../../context/CustomMUIPropsContext';
 import ChannelsStatus from '../../../../Modals/ChannelsStatus/ChannelsStatus'; 
@@ -30,7 +31,11 @@ const RightPanel = () => {
             <Button
                 startIcon={<Users size="1rem" />}
                 sx={btnProps}
-                onClick={() => setChannelsStatusOpen(true)}
+                data-atatus-action-name="btn-open-channels-status"
+                onClick={() => {
+                    atatus.addAction("open-channels-status-clicked");
+                    setChannelsStatusOpen(true);
+                }}
             >
                 Channels Status
             </Button>
@@ -38,7 +43,11 @@ const RightPanel = () => {
             <Button
                 startIcon={<Users size="1rem" />}
                 sx={btnProps}
-                onClick={() => setViewConfigurationsOpen(true)}
+                data-atatus-action-name="btn-open-view-configurations"
+                onClick={() => {
+                    atatus.addAction("open-view-configurations-clicked");
+                    setViewConfigurationsOpen(true);
+                }}
             >
                 View Configurations
             </Button>
@@ -47,6 +56,6 @@ const RightPanel = () => {
             <ViewConfig open={viewConfigurationsOpen} setOpen={setViewConfigurationsOpen} />
         </div>
     );
-}
+};
 
 export default RightPanel;

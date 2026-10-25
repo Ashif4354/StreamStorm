@@ -4,7 +4,7 @@ import Card from '@mui/material/Card';
 import { CardHeader, CardContent, Divider } from "@mui/material";
 import { Settings2 } from 'lucide-react';
 import { useDialogs } from '@toolpad/core/useDialogs';
-import * as atatus from "atatus-spa";
+import * as atatus from "../../../lib/atatus";
 
 import "./Storm.css";
 import LeftPanel from "./Panels/Left/LeftPanelForm";
@@ -23,38 +23,68 @@ const Storm = () => {
     const appState = useAppState();
     const dialogs = useDialogs();
 
+    // Track active view in Atatus RUM
+    useEffect(() => {
+        const view = appState.stormInProgress ? '/dashboard/active-storm' : '/dashboard/new-storm';
+        atatus.setViewName(view);
+        atatus.setViewContext({
+            stormInProgress: appState.stormInProgress,
+            stormStatus: appState.stormStatus,
+            hostAddress: appState.hostAddress,
+        });
+        atatus.stormLogger.debug(`Dashboard view changed to ${view}`);
+    }, [appState.stormInProgress, appState.stormStatus, appState.hostAddress]);
+
     const askToJoinExistingStorm = async () => {
-        return await dialogs.open(AreYouSure, {
+        atatus.addAction('ask-join-storm-prompted');
+        const confirmed = await dialogs.open(AreYouSure, {
             text: <span>A Storm is already in progress. Do you wanna hop in?</span>
         });
-    }
+        if (confirmed) {
+            atatus.addAction('join-existing-storm-accepted');
+            atatus.stormLogger.info('User accepted joining existing active storm');
+        } else {
+            atatus.addAction('join-existing-storm-declined');
+            atatus.stormLogger.info('User declined joining existing active storm');
+        }
+        return confirmed;
+    };
 
     useEffect(() => {
         const checkStorm = async () => {
+            atatus.startOperation('check-storm-status');
+            atatus.startDurationVital('check-storm-status');
+
             try {
                 const res = await fetch(appState.hostAddress + "/storm");
                 const data = await res.json();
+                atatus.stopDurationVital('check-storm-status');
 
                 if (data.success) {
+                    atatus.succeedOperation('check-storm-status');
+                    atatus.stormLogger.info('Storm status checked', { stormActive: data.storm });
                     if (data.storm) {
-
                         const confirmed = await askToJoinExistingStorm();
                         if (!confirmed) return;
 
                         appState.setStormInProgress(true);
-
                     } else {
                         appState.setStormInProgress(false);
                     }
                 } else {
+                    atatus.failOperation('check-storm-status', data.error || 'Check failed');
                     if (data.error) {
                         console.error("Failed to fetch storm status:", data.error);
-                        atatus.notify(new Error(data.error), { response: data }, ['storm_status_check_failed']);
+                        atatus.addError(new Error(data.error), { response: data, tags: ['storm_status_check_failed'] });
+                        atatus.stormLogger.error('Failed to check storm status', { response: data }, new Error(data.error));
                     }
                 }
             } catch (error) {
+                atatus.stopDurationVital('check-storm-status');
+                atatus.failOperation('check-storm-status', error.message);
                 console.error("Error fetching storm status:", error);
-                atatus.notify(error, {}, ['storm_status_check_error']);
+                atatus.addError(error, { tags: ['storm_status_check_error'] });
+                atatus.stormLogger.error('Network error checking storm status', {}, error);
             }
         };
 
@@ -105,6 +135,6 @@ const Storm = () => {
 
         </Card>
     );
-}
+};
 
 export default Storm;

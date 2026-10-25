@@ -1,9 +1,11 @@
+import { Suspense } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
-import { GoogleTagManager } from '@next/third-parties/google'
+import { GoogleTagManager } from '@next/third-parties/google';
 import { DownloadCountProvider } from "@/context/DownloadCountContext";
 import { VisitCountProvider } from "@/context/VisitCountContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import AtatusObserver from "@/components/AtatusObserver";
 import "./globals.css";
 import { theme } from "../config/theme";
 
@@ -40,7 +42,7 @@ export const metadata = {
     other: {
         'sitemap': '/sitemap.xml',
     }
-}
+};
 
 const jsonLd = {
     '@context': 'https://schema.org',
@@ -68,6 +70,9 @@ export default function RootLayout({ children }) {
                         height="0" width="0" style={{ display: 'none', visibility: 'hidden' }}></iframe>
                 </noscript>
                 <ThemeProvider theme={theme}>
+                    <Suspense fallback={null}>
+                        <AtatusObserver />
+                    </Suspense>
                     <DownloadCountProvider>
                         <VisitCountProvider>
                             <Header />

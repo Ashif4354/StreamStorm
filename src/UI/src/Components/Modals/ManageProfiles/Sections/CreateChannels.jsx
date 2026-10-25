@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useColorScheme } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import Switch from '@mui/material/Switch';
@@ -14,13 +13,12 @@ import { useNotifications } from '@toolpad/core/useNotifications';
 import { Tv, RefreshCw } from 'lucide-react';
 import { logEvent } from 'firebase/analytics';
 
-import * as atatus from 'atatus-spa';
+import * as atatus from '../../../../lib/atatus';
 
 import "./Sections.css";
 import ErrorText from '../../../Elements/ErrorText';
 import GenerateChannelNamesDialog from '../../../Dialogs/GenerateChannelNamesDialog';
 import { useCustomMUIProps } from '../../../../context/CustomMUIPropsContext';
-import { useStormData } from '../../../../context/StormDataContext';
 import { useAppState } from '../../../../context/AppStateContext';
 import { analytics } from '../../../../config/firebase';
 
@@ -55,8 +53,8 @@ const CreateChannels = () => {
         setChannelsHelperText('');
         setChannelsString(value);
 
-        const channels = value.split('\n').map(channel => channel.trim()).filter(channel => channel !== '');
-        setChannels(channels);
+        const parsed = value.split('\n').map(channel => channel.trim()).filter(channel => channel !== '');
+        setChannels(parsed);
     };
 
     const handleAiDialogClose = (generatedNames) => {
@@ -66,6 +64,7 @@ const CreateChannels = () => {
             setChannelsString(generatedNames.join('\n'));
             setChannelsError(false);
             setChannelsHelperText('');
+            atatus.addAction('ai-channel-names-applied', { count: generatedNames.length });
         }
     };
 
@@ -73,16 +72,20 @@ const CreateChannels = () => {
         setChannelsLogoPath(value);
         setChannelsLogoPathError(false);
         setChannelsLogoPathHelperText('');
-    }
+    };
 
     const onValidatePathHandler = () => {
         if (!channelsLogoPath) {
             setChannelsLogoPathError(true);
             setChannelsLogoPathHelperText('Enter a system path');
+            atatus.addAction('validate-path-empty');
             return;
         }
 
         setValidatingPath(true);
+        atatus.addAction('validate-path-triggered', { path: channelsLogoPath });
+        atatus.startOperation('verify_dir');
+        atatus.startDurationVital('verify_dir');
 
         fetch(`${appState.hostAddress}/environment/channels/verify_dir`, {
             method: "POST",
@@ -93,11 +96,16 @@ const CreateChannels = () => {
         })
             .then((response) => response.json())
             .then((data) => {
+                atatus.stopDurationVital('verify_dir');
                 if (data.success) {
                     setValidated(true);
                     setTotalChannels({ count: data.count, files: data.files });
                     setChannelsLogoPathError(false);
                     setChannelsLogoPathHelperText('');
+
+                    atatus.succeedOperation('verify_dir');
+                    atatus.envLogger.info('Channel logo directory verified', { count: data.count });
+                    atatus.addAction('validate-path-success', { count: data.count });
 
                     notifications.show('Directory validated', {
                         severity: 'success'
@@ -110,19 +118,23 @@ const CreateChannels = () => {
                     setChannelsLogoPathError(true);
                     setChannelsLogoPathHelperText(data.message);
 
+                    atatus.failOperation('verify_dir', data.message || 'Validation failed');
                     notifications.show(data.message, {
                         severity: 'error'
                     });
 
                     if (data.error) {
                         console.error('Failed to validate directory:', data.error);
-                        atatus.notify(new Error(data.error), { response: data }, ['validate_path_failed']);
+                        atatus.addError(new Error(data.error), { response: data, tags: ['validate_path_failed'] });
+                        atatus.envLogger.error('Failed to validate directory', { response: data });
                     }
                     logEvent(analytics, 'validate_path_failed');
                 }
             })
             .catch((error) => {
                 console.error(error);
+                atatus.stopDurationVital('verify_dir');
+                atatus.failOperation('verify_dir', error.message);
                 setValidated(false);
                 setTotalChannels({});
                 setErrorText("An error occurred while validating the directory. Try again.");
@@ -132,12 +144,13 @@ const CreateChannels = () => {
                 });
 
                 logEvent(analytics, 'validate_path_error');
-                atatus.notify(error)
+                atatus.addError(error, { tags: ['validate_path_error'] });
+                atatus.envLogger.error('Verify directory error', { error: error.message });
             })
             .finally(() => {
                 setValidatingPath(false);
             });
-    }
+    };
 
     const onStartHandler = () => {
         setErrorText('');
@@ -145,27 +158,31 @@ const CreateChannels = () => {
         // Check if user is logged in
         if (!appState.isLoggedIn) {
             setErrorText('Not logged in. Log in first.');
+            atatus.addAction('create-channels-blocked-not-logged-in');
+            atatus.envLogger.warn('Create channels blocked: user not logged in');
             return;
         }
 
         if (logoRequired && logoSelection === "custom" && !validated) {
             setChannelsLogoPathError(true);
             setChannelsLogoPathHelperText('Enter a system path and click Validate');
+            atatus.addAction('create-channels-blocked-unvalidated-path');
             return;
         }
 
         if ((!logoRequired || logoSelection !== "custom") && channels.length === 0) {
             setChannelsError(true);
             setChannelsHelperText('Enter at least one channel name');
+            atatus.addAction('create-channels-blocked-no-names');
             return;
         }
 
         let finalChannels;
 
         if (logoSelection === "custom") {
-            finalChannels = totalChannels.files
+            finalChannels = totalChannels.files;
         } else {
-            finalChannels = channels.map((channel) => ({ name: channel, uri: "" }))
+            finalChannels = channels.map((channel) => ({ name: channel, uri: "" }));
         }
 
         const data = {
@@ -175,6 +192,9 @@ const CreateChannels = () => {
         };
 
         setCreatingChannels(true);
+        atatus.addAction('create-channels-triggered', { count: finalChannels.length, logoRequired, logoSelection });
+        atatus.startOperation('create_channels');
+        atatus.startDurationVital('create_channels');
 
         fetch(`${appState.hostAddress}/environment/channels/create`, {
             method: "POST",
@@ -185,16 +205,22 @@ const CreateChannels = () => {
         })
             .then((response) => response.json())
             .then((data) => {
+                atatus.stopDurationVital('create_channels');
                 if (data.success) {
+                    atatus.succeedOperation('create_channels');
+                    atatus.envLogger.info('Channels created successfully', { count: finalChannels.length });
+                    atatus.addAction('create-channels-success', { count: finalChannels.length });
                     notifications.show("Channels created successfully", {
                         severity: 'success'
                     });
                 } else {
+                    atatus.failOperation('create_channels', data.message || 'Failed to create channels');
                     setErrorText(data.message || 'Failed to create channels');
 
                     if (data.error) {
                         console.error('Failed to create channels:', data.error);
-                        atatus.notify(new Error(data.error), { response: data }, ['create_channels_failed']);
+                        atatus.addError(new Error(data.error), { response: data, tags: ['create_channels_failed'] });
+                        atatus.envLogger.error('Failed to create channels', { response: data });
                     }
                     logEvent(analytics, 'create_channels_failed');
                     notifications.show(data.message || 'Failed to create channels', {
@@ -204,6 +230,8 @@ const CreateChannels = () => {
             })
             .catch((error) => {
                 console.error(error);
+                atatus.stopDurationVital('create_channels');
+                atatus.failOperation('create_channels', error.message);
                 setErrorText("An error occurred while creating channels. Try again.");
 
                 notifications.show('An error occurred while creating channels. Try again.', {
@@ -211,11 +239,12 @@ const CreateChannels = () => {
                 });
 
                 logEvent(analytics, 'create_channels_error');
-                atatus.notify(error)
+                atatus.addError(error, { tags: ['create_channels_error'] });
+                atatus.envLogger.error('Create channels error', { error: error.message });
             })
             .finally(() => {
                 setCreatingChannels(false);
-            })
+            });
     };
 
     return (
@@ -231,7 +260,10 @@ const CreateChannels = () => {
                         <Switch
                             checked={logoRequired}
                             disabled={creatingChannels}
-                            onChange={(e) => setLogoRequired(e.target.checked)}
+                            onChange={(e) => {
+                                setLogoRequired(e.target.checked);
+                                atatus.addAction('channel-logo-required-toggled', { checked: e.target.checked });
+                            }}
                         />
                     </div>
                     {
@@ -241,7 +273,10 @@ const CreateChannels = () => {
                                     row
                                     defaultValue="basic"
                                     name="channel-index-radio-group"
-                                    onChange={(e) => setLogoSelection(e.target.value)}
+                                    onChange={(e) => {
+                                        setLogoSelection(e.target.value);
+                                        atatus.addAction('channel-logo-selection-changed', { selection: e.target.value });
+                                    }}
                                     disabled={creatingChannels}
                                 >
                                     <div className="logo-radio-container">
@@ -298,10 +333,10 @@ const CreateChannels = () => {
                                                 <InputAdornment position="end">
                                                     <Button
                                                         variant="contained"
+                                                        data-atatus-action-name="btn-validate-channels-logo-dir"
                                                         sx={{
                                                             ...btnProps,
                                                             marginTop: "0",
-                                                            // height: "3.5rem",
                                                             backgroundColor: colorScheme === 'light' ? "var(--light-primary)" : "var(--input-active-red-dark)"
                                                         }}
                                                         disabled={creatingChannels || validatingPath}
@@ -357,6 +392,7 @@ const CreateChannels = () => {
                                                 <Tooltip title="Generate channel names with AI">
                                                     <IconButton
                                                         size="small"
+                                                        data-atatus-action-name="btn-open-ai-channel-names-dialog"
                                                         onClick={() => setAiDialogOpen(true)}
                                                         disabled={creatingChannels}
                                                         sx={{
@@ -387,6 +423,7 @@ const CreateChannels = () => {
 
             <Button
                 variant="contained"
+                data-atatus-action-name="btn-create-channels-submit"
                 sx={{
                     ...btnProps,
                     marginTop: "1rem",

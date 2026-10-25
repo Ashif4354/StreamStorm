@@ -1,5 +1,7 @@
+/* eslint-disable react/prop-types */
 import { useState } from 'react';
 import { Settings, BookOpen, ExternalLink } from 'lucide-react';
+import * as atatus from '../../../lib/atatus';
 import SettingsModal from '../../Modals/Settings/Settings';
 
 
@@ -14,12 +16,21 @@ const NavBar = ({ colorScheme }) => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className='navbar-item'
+                    data-atatus-action-name="link-navbar-instructions"
+                    onClick={() => {
+                        atatus.addAction("navbar-instructions-clicked");
+                        atatus.uiLogger.info("User opened external instructions page from navbar");
+                    }}
                     style={{ color: colorScheme === 'light' ? 'var(--slight-dark-text)' : 'var(--slight-light-text)' }}
                 >
                     <BookOpen size={20}/> Instructions <ExternalLink size={14} />
                 </a>
                 <a
-                    onClick={() => setSettingsOpen(true)}
+                    data-atatus-action-name="btn-navbar-settings"
+                    onClick={() => {
+                        atatus.addAction("navbar-settings-clicked");
+                        setSettingsOpen(true);
+                    }}
                     className='navbar-item'
                     style={{ color: colorScheme === 'light' ? 'var(--slight-dark-text)' : 'var(--slight-light-text)' }}
                 >
@@ -28,7 +39,7 @@ const NavBar = ({ colorScheme }) => {
             </nav>
             <SettingsModal open={settingsOpen} setOpen={setSettingsOpen} />
         </div>
-    )
-}
+    );
+};
 
 export default NavBar;

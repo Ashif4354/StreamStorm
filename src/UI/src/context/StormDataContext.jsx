@@ -1,7 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
 /* eslint-disable react/prop-types */
-import { createContext, useState, useRef, useContext } from 'react';
+import { createContext, useState, useRef, useContext, useEffect } from 'react';
 import { useNotifications } from "@toolpad/core/useNotifications";
+import * as atatus from '../lib/atatus';
 
 const StormDataContext = createContext();
 
@@ -58,6 +59,12 @@ const StormDataProvider = ({ children }) => {
     const [errorText, setErrorText] = useState("");  
     const [engineVersion, setEngineVersion] = useState('...');  
 
+    useEffect(() => {
+        atatus.addFeatureFlagEvaluation('load_in_background', loadInBackground);
+        atatus.addFeatureFlagEvaluation('subscribe_mode', subscribeAndWait ? 'subscribe_and_wait' : (subscribe ? 'subscribe' : 'none'));
+        atatus.addFeatureFlagEvaluation('channel_selection_mode', channelSelection);
+    }, [loadInBackground, subscribe, subscribeAndWait, channelSelection]);
+
     const getChannels = () => {
         let channels;
         const getRange = (start, end) => {
@@ -68,7 +75,7 @@ const StormDataProvider = ({ children }) => {
             }
 
             return range;
-        }
+        };
 
         if (channelSelection === 'basic') {
             channels = getRange(1, noOfChannels);
@@ -80,7 +87,7 @@ const StormDataProvider = ({ children }) => {
 
         setChannels(channels);
         return channels;
-    }
+    };
 
     const formControls = {
         loading, setLoading, notifications,
@@ -110,17 +117,17 @@ const StormDataProvider = ({ children }) => {
                 channels: getChannels(),
             };
         }
-    }
+    };
 
     return (
         <StormDataContext.Provider value={formControls}>
             {children}
         </StormDataContext.Provider>
-    )
-}
+    );
+};
 
 const useStormData = () => {
     return useContext(StormDataContext);
-}
+};
 
-export { StormDataProvider, useStormData }
+export { StormDataProvider, useStormData };

@@ -5,7 +5,7 @@ import { Ban, Pause, Play, Plus, RefreshCw, SquarePen, StopCircle, Zap } from 'l
 import { useDialogs } from '@toolpad/core/useDialogs';
 
 import "./StormControls.css";
-import StormControlsClass from "../../../../../../lib/StormControlsClass";
+import * as atatus from "../../../../../../lib/atatus";
 import AreYouSure from "../../../../../Dialogs/AreYouSure";
 import ChangeMessages from "../../../../../Dialogs/ChangeMessages";
 import ChangeSlowMode from "../../../../../Dialogs/ChangeSlowMode";
@@ -48,17 +48,18 @@ const StormControls = () => {
 
 
     const onStopHandler = async () => {
-
+        atatus.addAction("stop-storm-confirmation-prompted");
         const confirmed = await dialogs.open(AreYouSure, {
             text: <span>Are you sure you want to <strong style={{ color: "var(--input-active-red-dark)" }}>STOP</strong> the ongoing storm?</span>
         });
 
         if (confirmed) {
+            atatus.addAction("stop-storm-confirmed");
             formControls.SC.current.stopStorm(appState.setStormInProgress);
-            // appState.setStormInProgress(false);
+        } else {
+            atatus.addAction("stop-storm-cancelled");
         }
-
-    }
+    };
 
     const handlePause = async () => {
         formControls.SC.current.pauseStorm();
@@ -69,42 +70,49 @@ const StormControls = () => {
     };
 
     const handleChangeMessages = async () => {
+        atatus.addAction("change-messages-dialog-opened");
         const messages = await dialogs.open(ChangeMessages, {
             formControls: formControls,
         });
 
         if (!messages) {
+            atatus.addAction("change-messages-dialog-cancelled");
             return;
         }
 
         formControls.SC.current.changeMessages(messages, formControls.setMessages, formControls.setMessagesString);
-    }
+    };
 
     const handleDontWait = async () => {
-
+        atatus.addAction("dont-wait-confirmation-prompted");
         const confirmed = await dialogs.open(AreYouSure, {
             text: <span>Are you sure you want to <strong style={{ color: "var(--input-active-red-dark)" }}>NOT WAIT</strong> for all the channels to be ready?</span>
         });
 
         if (confirmed) {
+            atatus.addAction("dont-wait-confirmed");
             formControls.SC.current.dontWait();
+        } else {
+            atatus.addAction("dont-wait-cancelled");
         }
     };
 
     const handleChangeSlowMode = async () => {
+        atatus.addAction("change-slow-mode-dialog-opened");
         const slowModeValue = await dialogs.open(ChangeSlowMode, {
             formControls: formControls
         });
 
         if (!slowModeValue) {
+            atatus.addAction("change-slow-mode-dialog-cancelled");
             return;
         }
 
         formControls.SC.current.changeSlowMode(slowModeValue, formControls.setSlowMode);
-    }
+    };
 
     const handleAddMoreChannels = async () => {
-
+        atatus.addAction("add-more-channels-dialog-opened");
         const channels = await dialogs.open(AddChannels, {
             mode: "add",
             formControls: formControls,
@@ -112,11 +120,12 @@ const StormControls = () => {
         });
 
         if (!channels || channels.length === 0) {
+            atatus.addAction("add-more-channels-dialog-cancelled");
             return;
         }
 
         formControls.SC.current.startMoreChannels(channels);
-    }
+    };
 
     return (
         <div className="storm-controls-container">
@@ -129,6 +138,7 @@ const StormControls = () => {
                 <div className="row">
                     <Button
                         variant="contained"
+                        data-atatus-action-name="btn-storm-pause"
                         startIcon={pausing ? <RefreshCw size={18} className="spin" /> : <Pause size={18} />}
                         sx={btnProps}
                         onClick={handlePause}
@@ -142,6 +152,7 @@ const StormControls = () => {
                     <Button
                         variant="contained"
                         color="primary"
+                        data-atatus-action-name="btn-storm-resume"
                         startIcon={resuming ? <RefreshCw size={18} className="spin" /> : <Play size={18} />}
                         sx={btnProps}
                         onClick={handleResume}
@@ -156,6 +167,7 @@ const StormControls = () => {
 
                     <Button
                         variant="contained"
+                        data-atatus-action-name="btn-storm-change-messages"
                         startIcon={changeMessagesLoading ? <RefreshCw size={18} className="spin" /> : <SquarePen size={18} />}
                         sx={{
                             ...btnProps,
@@ -173,10 +185,10 @@ const StormControls = () => {
                         <Fragment>
                             <Button
                                 variant="contained"
+                                data-atatus-action-name="btn-storm-change-slow-mode"
                                 startIcon={changeSlowModeLoading ? <RefreshCw size={18} className="spin" /> : <SquarePen size={18} />}
                                 sx={{
                                     ...btnProps,
-                                    // padding: "0 .5rem 0 .5rem",
                                     height: "40px",
                                 }}
                                 onClick={handleChangeSlowMode}
@@ -193,10 +205,11 @@ const StormControls = () => {
 
                 <div className="row">
 
-                    <Tooltip title="Change existing Messages" placement="right">
+                    <Tooltip title="Do not wait for remaining channels" placement="right">
                         <Fragment>
                             <Button
                                 variant="contained"
+                                data-atatus-action-name="btn-storm-dont-wait"
                                 startIcon={dontWaitLoading ? <RefreshCw size={18} className="spin" /> : <Ban size={18} />}
                                 sx={{
                                     ...btnProps,
@@ -216,6 +229,7 @@ const StormControls = () => {
                         <Fragment>
                             <Button
                                 variant="contained"
+                                data-atatus-action-name="btn-storm-add-channels"
                                 startIcon={moreChannelsLoading ? <RefreshCw size={18} className="spin" /> : <Plus size={18} />}
                                 sx={{
                                     ...btnProps,
@@ -234,6 +248,7 @@ const StormControls = () => {
                     <Fragment>
                         <Button
                             variant="contained"
+                            data-atatus-action-name="btn-storm-stop"
                             startIcon={stopping ? <RefreshCw size={18} className="spin" /> : <StopCircle size={18} />}
                             onClick={onStopHandler}
                             sx={{
@@ -252,5 +267,5 @@ const StormControls = () => {
             </div>
         </div>
     );
-}
+};
 export default StormControls;

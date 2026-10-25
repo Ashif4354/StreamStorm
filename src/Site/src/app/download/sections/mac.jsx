@@ -1,5 +1,11 @@
+import * as atatus from '@/config/atatus';
 
 const Mac = () => {
+    const handleUvDocsClick = () => {
+        atatus.addAction('mac-uv-docs-clicked', { os: 'mac' });
+        atatus.downloadLogger.info('Mac UV installation docs link clicked');
+    };
+
     return (
         <section className='download-section'>
             <div className='download-section-title-container'>
@@ -21,7 +27,13 @@ const Mac = () => {
                     <ol className='steps-list'>
                         <li>
                             <strong>Install UV</strong> (Python dependency manager)<br />
-                            <a href="https://docs.astral.sh/uv/getting-started/installation/" target="_blank" rel="noopener noreferrer">
+                            <a
+                                href="https://docs.astral.sh/uv/getting-started/installation/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={handleUvDocsClick}
+                                data-atatus-action-name="link-mac-get-uv"
+                            >
                                 📦 Get UV here
                             </a>
                         </li>
@@ -49,4 +61,4 @@ const Mac = () => {
     )
 };
 
-export default Mac
+export default Mac;
