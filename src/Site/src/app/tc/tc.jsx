@@ -52,6 +52,7 @@ const TermsAndConditions = () => {
             <li><strong>Atatus Browser RUM:</strong> Collects session replay, performance metrics, error diagnostics, and application action events. Form inputs and user-typed text are masked in session replay via native configuration (<code>mask-user-input</code>).</li>
             <li><strong>Firebase Analytics:</strong> Receives selected product events and aggregated usage statistics to understand feature adoption.</li>
             <li><strong>Microsoft Clarity:</strong> Captures behavioral analytics, heatmaps, and session recordings on configured pages, with sensitive input controls masked.</li>
+            <li><strong>Sentry:</strong> Receives backend diagnostic crash reports, error stack traces, and runtime event metadata to ensure software stability.</li>
             <li><strong>Local Credential Isolation:</strong> YouTube session cookies, browser automation profiles, and custom AI provider API keys remain stored locally on your computer and are never collected by application telemetry. Do not paste private credentials into public chat or support prompts.</li>
           </ul>
         </section>

@@ -7,6 +7,12 @@ from lib.api.validation import StormData
 from lib.core.StormContext import StormContext
 
 
+@pytest.fixture(autouse=True)
+def _isolate_os_processes_and_ports(monkeypatch):
+    monkeypatch.setattr("psutil.Process", MagicMock(side_effect=Exception("isolated mock process")))
+    monkeypatch.setattr(Obscura, "is_port_in_use", staticmethod(lambda port: False))
+    monkeypatch.setattr(Obscura, "kill_process_on_port", staticmethod(lambda port: None))
+
 def test_obscura_processes_dict_initialized():
     with patch("lib.core.Obscura.which", return_value="C:\\dummy\\obscura.exe"):
         obs = Obscura()

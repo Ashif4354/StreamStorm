@@ -121,7 +121,7 @@ export const startView = (name) => withRum((rum) => rum.startView?.(name));
 export const setViewName = (name) => withRum((rum) => rum.setViewName?.(name));
 export const setViewContext = (context) => withRum((rum) => rum.setViewContext?.(context));
 export const setViewContextProperty = (key, value) => withRum((rum) => rum.setViewContextProperty?.(key, value));
-export const setViewLoadingTime = () => withRum((rum) => rum.setViewLoadingTime?.());
+export const setViewLoadingTime = (...args) => withRum((rum) => rum.setViewLoadingTime?.(...args));
 
 // ==========================================
 // ACTIONS & RESOURCES API

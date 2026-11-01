@@ -21,11 +21,12 @@ class PydanticAI(AIBase):
         """
         Initializes the AI service with a specific provider.
         """
-        if provider_name is None:
+        use_defaults = provider_name is None
+        if use_defaults:
             provider_name = settings.ai.defaultProvider
         if model_name is None:
             model_name = settings.ai.defaultModel
-        if base_url is None:
+        if base_url is None and use_defaults:
             base_url = settings.ai.defaultBaseUrl
 
         if not provider_name or not model_name:

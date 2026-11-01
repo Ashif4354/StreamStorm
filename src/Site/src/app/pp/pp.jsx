@@ -99,7 +99,7 @@ const PrivacyPolicy = () => {
         <section>
           <h2>7. Data Retention &amp; Security</h2>
           <p>
-            Telemetry, logs, and session recordings are processed and retained by Atatus, Google Firebase, and Microsoft Clarity under their current service terms and retention controls. StreamStorm does not promise a fixed retention period. Telemetry is transmitted over HTTPS/TLS where supported by the provider.
+            Telemetry, logs, crash reports, and session recordings are processed and retained by Atatus, Sentry, Google Firebase, and Microsoft Clarity under their current service terms and retention controls. StreamStorm does not promise a fixed retention period. Telemetry is transmitted over HTTPS/TLS where supported by the provider.
           </p>
         </section>
 

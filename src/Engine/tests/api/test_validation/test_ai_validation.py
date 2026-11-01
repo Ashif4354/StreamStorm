@@ -72,8 +72,9 @@ def test_generate_channel_names_validation(mocker: MockerFixture, client: TestCl
     assert response.status_code == result
 
 
-def test_pydantic_ai_raises_system_error_when_unconfigured(mocker: MockerFixture, client: TestClient) -> None:
+def test_pydantic_ai_raises_system_error_when_unconfigured(mocker: MockerFixture, client: TestClient, tmp_path) -> None:
     """When defaultProvider/defaultModel are None, PydanticAI() raises SystemError (400 response)."""
+    mocker.patch("lib.settings.Settings.SETTINGS_FILE_PATH", tmp_path / "settings.json")
     mocker.patch.object(settings, "ai", AISettings())
 
     with raises(SystemError, match="Default AI provider and model are not configured"):
@@ -84,8 +85,9 @@ def test_pydantic_ai_raises_system_error_when_unconfigured(mocker: MockerFixture
     assert response.json()["success"] is False
 
 
-def test_pydantic_ai_reads_runtime_updated_settings(mocker: MockerFixture) -> None:
+def test_pydantic_ai_reads_runtime_updated_settings(mocker: MockerFixture, tmp_path) -> None:
     """PydanticAI() resolves settings.ai dynamically at call time rather than import time."""
+    mocker.patch("lib.settings.Settings.SETTINGS_FILE_PATH", tmp_path / "settings.json")
     ai_settings = AISettings(defaultProvider="google", defaultModel="gemini-2.5-flash")
     ai_settings.providers.google.apiKey = "test-google-key"
     mocker.patch.object(settings, "ai", ai_settings)
@@ -102,8 +104,9 @@ def test_pydantic_ai_reads_runtime_updated_settings(mocker: MockerFixture) -> No
     )
 
 
-def test_pydantic_ai_raises_system_error_when_api_key_missing(mocker: MockerFixture) -> None:
+def test_pydantic_ai_raises_system_error_when_api_key_missing(mocker: MockerFixture, tmp_path) -> None:
     """When provider API key is empty, PydanticAI() raises SystemError."""
+    mocker.patch("lib.settings.Settings.SETTINGS_FILE_PATH", tmp_path / "settings.json")
     ai_settings = AISettings(defaultProvider="openai", defaultModel="gpt-4o-mini")
     ai_settings.providers.openai.apiKey = ""
     mocker.patch.object(settings, "ai", ai_settings)

@@ -101,6 +101,11 @@ def dgupdater_commit_and_publish(new_version: str) -> None:
     cmd = f"{get_dgupdater_command()} commit -v {new_version}"
     log_info(f"Running command: {cmd}")
     run(cmd, shell=True, check=True)
+
+    publish_cmd = f"{get_dgupdater_command()} publish"
+    log_info(f"Running command: {publish_cmd}")
+    run(publish_cmd, shell=True, check=True)
+
     log_info("dgupdater commit and publish completed successfully.")
 
 
