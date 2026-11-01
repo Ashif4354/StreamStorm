@@ -72,12 +72,12 @@ class SeparateInstance(Playwright):
             logger.debug(f"[{self.index}] [{self.channel_name}] Opening browser...")
             await self.open_browser(obscura_port=self.obscura_port)
             
-            await asyncio_sleep(5)  # Wait for the browser to fully initialize
+            # await asyncio_sleep(5)  # Wait for the browser to fully initialize
             # await self.capture_screenshot("browser_opened")  # Capture screenshot after opening the browser
             
             await self.go_to_page("https://www.youtube.com/account") # We are going to account page because it loads faster than the main page
             
-            await asyncio_sleep(5)  # Wait for the page to load completely
+            # await asyncio_sleep(5)  # Wait for the page to load completely
             # await self.capture_screenshot("login_page_loaded")  # Capture screenshot after loading the login page
             
             english: bool = await self.check_language_english()            
