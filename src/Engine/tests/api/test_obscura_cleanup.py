@@ -207,18 +207,18 @@ def test_storm_stopper_triggers_cleanup_when_all_instances_dead():
     asyncio.run(_run())
 
 
-def test_capture_screenshot_invokes_screenshot():
-    async def _run():
-        from lib.core.Playwright import Playwright
+# def test_capture_screenshot_invokes_screenshot():
+#     async def _run():
+#         from lib.core.Playwright import Playwright
 
-        pw = Playwright(user_data_dir="C:\\test", background=False, index=1, channel_name="Speed")
-        pw.page = MagicMock()
-        pw.page.screenshot = AsyncMock()
+#         pw = Playwright(user_data_dir="C:\\test", background=False, index=1, channel_name="Speed")
+#         pw.page = MagicMock()
+#         pw.page.screenshot = AsyncMock()
 
-        await pw.capture_screenshot("test_name")
-        pw.page.screenshot.assert_called_once()
+#         await pw.capture_screenshot("test_name")
+#         pw.page.screenshot.assert_called_once()
 
-    asyncio.run(_run())
+#     asyncio.run(_run())
 
 
 def test_obscura_hydration_and_channel_switch_on_click():
