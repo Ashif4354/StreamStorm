@@ -84,6 +84,7 @@ def test_streamstorm_cleanup_calls_obscura_cleanup():
         )
 
         with patch.object(StreamStorm, "load_cookies", return_value={}), \
+             patch.object(StreamStorm, "get_channel_url", return_value=("", False)), \
              patch("lib.core.StreamStorm.Profiles.__init__", return_value=None), \
              patch("lib.core.StreamStorm.settings") as mock_settings:
 
@@ -95,12 +96,13 @@ def test_streamstorm_cleanup_calls_obscura_cleanup():
                 mock_obscura_inst.cleanup = AsyncMock()
                 MockObscuraCls.return_value = mock_obscura_inst
 
-                storm = StreamStorm(storm_data)
-                assert storm.obscura is mock_obscura_inst
-
-                await storm.cleanup()
-
-                mock_obscura_inst.cleanup.assert_called_once()
+                try:
+                    storm = StreamStorm(storm_data)
+                    assert storm.obscura is mock_obscura_inst
+                    await storm.cleanup()
+                    mock_obscura_inst.cleanup.assert_called_once()
+                finally:
+                    StreamStorm.ss_instance = None
 
     asyncio.run(_run())
 
@@ -178,6 +180,7 @@ def test_storm_stopper_triggers_cleanup_when_all_instances_dead():
         )
 
         with patch.object(StreamStorm, "load_cookies", return_value={}), \
+             patch.object(StreamStorm, "get_channel_url", return_value=("", False)), \
              patch("lib.core.StreamStorm.Profiles.__init__", return_value=None), \
              patch("lib.core.StreamStorm.settings") as mock_settings, \
              patch("lib.utils.StormStopper.sio.emit", new=AsyncMock()) as mock_sio_emit, \
