@@ -57,14 +57,14 @@ const TermsAndConditions = () => {
         </section>
 
         <section>
-          <h2>4. AI Assistance &amp; Prompt Disclosure (Kelu Ask AI)</h2>
+          <h2>4. AI Assistance &amp; Prompt Disclosure (Kelu Ask AI &amp; In-App Generators)</h2>
           <p>
-            When utilizing the integrated AI assistant powered by <strong>Kelu Ask AI</strong> (<a href="https://kelu.dev" target="_blank" rel="noopener noreferrer">kelu.dev</a>):
+            When utilizing the integrated AI assistant powered by <strong>Kelu Ask AI</strong> (<a href="https://kelu.dev" target="_blank" rel="noopener noreferrer">kelu.dev</a>) or the in-app AI generation tools (e.g. channel name and message generators):
           </p>
           <ul>
-            <li>You acknowledge and agree that all prompts, questions, conversation history, and inputs submitted to the AI assistant are stored and visible to the maintainer/administrator of StreamStorm.</li>
-            <li>Prompt data is inspected for customer support, system diagnostics, and conversational AI model fine-tuning.</li>
-            <li>You agree not to transmit sensitive credentials, passwords, or confidential personal data into the AI prompt box.</li>
+            <li>You acknowledge and agree that prompts, questions, conversation history, and inputs submitted to AI assistants and generators may be stored and visible to the maintainer/administrator of StreamStorm.</li>
+            <li>Prompt data is inspected for customer support, system diagnostics, and AI feature improvements.</li>
+            <li>You agree not to transmit sensitive credentials, passwords, or confidential personal data into any AI prompt box.</li>
           </ul>
         </section>
 

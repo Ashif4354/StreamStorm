@@ -58,16 +58,16 @@ const PrivacyPolicy = () => {
         </section>
 
         <section>
-          <h2>4. AI Assistance &amp; Prompt Visibility (Kelu Ask AI)</h2>
+          <h2>4. AI Features &amp; Prompt Disclosure (Kelu Ask AI &amp; In-App Generators)</h2>
           <p>
-            StreamStorm incorporates <strong>Kelu Ask AI</strong> (<a href="https://kelu.dev" target="_blank" rel="noopener noreferrer">kelu.dev</a>) to provide interactive artificial intelligence assistance, troubleshooting, setup guidance, and user support directly within the application and website.
+            StreamStorm incorporates artificial intelligence features, including <strong>Kelu Ask AI</strong> (<a href="https://kelu.dev" target="_blank" rel="noopener noreferrer">kelu.dev</a>) for interactive guidance and troubleshooting, as well as in-app AI prompt assistants for generating messages and channel names.
           </p>
           <div>
             <strong>Prompt &amp; Interaction Disclosure:</strong>
             <ul>
-              <li><strong>Prompt Visibility:</strong> All prompts, queries, text inputs, conversation histories, and messages submitted through the Kelu Ask AI assistant are recorded and visible to the maintainer/administrator of StreamStorm.</li>
-              <li><strong>Purpose of Collection:</strong> Prompts are reviewed to analyze user questions, provide timely technical support, debug application errors reported via chat, refine AI response quality, and improve software documentation.</li>
-              <li><strong>Sensitive Information Warning:</strong> Please do not submit confidential credentials, sensitive passwords, private keys, or personal identifiers into the Kelu Ask AI prompt interface.</li>
+              <li><strong>Prompt Visibility:</strong> All prompts, queries, text inputs, conversation histories, and messages submitted through the Kelu Ask AI assistant and in-app AI generation dialogs (such as AI message and channel name generation) may be recorded and processed via application telemetry and logs visible to the maintainer/administrator of StreamStorm.</li>
+              <li><strong>Purpose of Collection:</strong> Prompts are reviewed to analyze user questions, provide technical support, debug application errors, monitor feature reliability, refine AI response quality, and improve software documentation.</li>
+              <li><strong>Sensitive Information Warning:</strong> Please do not submit confidential credentials, sensitive passwords, private keys, or personal identifiers into any AI prompt interface within StreamStorm.</li>
             </ul>
           </div>
         </section>

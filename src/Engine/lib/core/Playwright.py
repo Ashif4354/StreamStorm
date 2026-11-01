@@ -435,63 +435,72 @@ class Playwright(BrowserAutomator):
             Playwright._shared_playwright_refcount += 1
             self.playwright = Playwright._shared_playwright
 
-        self._is_obscura = bool(obscura_port and settings.engine == "obscura")
+        self._is_obscura = bool(
+            obscura_port
+            and settings.engine == "obscura"
+            and settings.login_method == "cookies"
+        )
 
-        browser_options: dict[str, str | bool | list[str]] = await self.__get_chromium_options()
-        logger.debug(f"[{self.index}] [{self.channel_name}] Browser options configured with {len(browser_options['args'])} arguments")
-        logger.debug(f"[{self.index}] [{self.channel_name}] Browser arguments: {'\n'.join(browser_options['args'])}")
-        
-        if settings.login_method == "profiles":        
-            self.browser_context: BrowserContext = (
-                await self.playwright.chromium.launch_persistent_context(
-                    **browser_options
+        try:
+            browser_options: dict[str, str | bool | list[str]] = await self.__get_chromium_options()
+            logger.debug(f"[{self.index}] [{self.channel_name}] Browser options configured with {len(browser_options['args'])} arguments")
+            logger.debug(f"[{self.index}] [{self.channel_name}] Browser arguments: {'\n'.join(browser_options['args'])}")
+            
+            if settings.login_method == "profiles":        
+                self.browser_context: BrowserContext = (
+                    await self.playwright.chromium.launch_persistent_context(
+                        **browser_options
+                    )
                 )
-            )
 
-        elif settings.login_method == "cookies":
-            view_port: dict = browser_options.pop("viewport")
+            elif settings.login_method == "cookies":
+                view_port: dict = browser_options.pop("viewport")
 
-            if self._is_obscura:
-                self.browser: Browser = await self.playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{obscura_port}")
-            else: 
-                self.browser: Browser = await self.playwright.chromium.launch(**browser_options)
+                if self._is_obscura:
+                    self.browser: Browser = await self.playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{obscura_port}")
+                else: 
+                    self.browser: Browser = await self.playwright.chromium.launch(**browser_options)
 
-            self.browser_context: BrowserContext = await self.browser.new_context(
-                viewport=view_port
-            )            
-            
-            if self._is_obscura:
-                cookies_to_add: list[dict] = [
-                        {**c, "domain": c["domain"].lstrip(".")} if c.get("domain", "").startswith(".") else c
-                        for c in self.cookies
-                    ]
+                self.browser_context: BrowserContext = await self.browser.new_context(
+                    viewport=view_port
+                )            
                 
-                await self.browser_context.add_cookies(cookies_to_add)
-            
+                if self._is_obscura:
+                    cookies_to_add: list[dict] = [
+                            {**c, "domain": c["domain"].lstrip(".")} if c.get("domain", "").startswith(".") else c
+                            for c in self.cookies
+                        ]
+                    
+                    await self.browser_context.add_cookies(cookies_to_add)
+                
+                else:
+                    await self.browser_context.add_cookies(self.cookies)
+
             else:
-                await self.browser_context.add_cookies(self.cookies)
+                raise SystemError("Invalid login method")
 
-        else:
-            raise SystemError("Invalid login method")
+            self.page: Page = await self.browser_context.new_page()
+            
+            if settings.login_method == "profiles":
+                create_task(self.__close_about_blank_page())
 
-        self.page: Page = await self.browser_context.new_page()
-        
-        if settings.login_method == "profiles":
-            create_task(self.__close_about_blank_page())
+            self.page.set_default_navigation_timeout(45000)
+            self.page.set_default_timeout(45000)
+            
+            browser_version: str = await self.__get_browser_version(self.playwright, is_obscura=self._is_obscura)
+            logger.debug(f"[{self.index}] [{self.channel_name}] Browser version: {browser_version}")
+            
+            await self.page.set_extra_http_headers({
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                              f"(KHTML, like Gecko) Chrome/{browser_version} Safari/537.36"
+            })
 
-        self.page.set_default_navigation_timeout(45000)
-        self.page.set_default_timeout(45000)
-        
-        browser_version: str = await self.__get_browser_version(self.playwright, is_obscura=self._is_obscura)
-        logger.debug(f"[{self.index}] [{self.channel_name}] Browser version: {browser_version}")
-        
-        await self.page.set_extra_http_headers({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                          f"(KHTML, like Gecko) Chrome/{browser_version} Safari/537.36"
-        })
-
-        self._attach_error_listeners()
-        logger.debug(f"[{self.index}] [{self.channel_name}] Browser setup completed")
+            self._attach_error_listeners()
+            logger.debug(f"[{self.index}] [{self.channel_name}] Browser setup completed")
+        except Exception as e:
+            logger.error(f"[{self.index}] [{self.channel_name}] Failed to initialize browser: {e}")
+            await self.close_browser(reason="Browser initialization failed")
+            raise
         
     async def capture_screenshot(self, name: str) -> None:
         try:

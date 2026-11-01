@@ -81,6 +81,15 @@ const ValidateStormData = (formControls, systemInfoControls) => {
         }
     }
 
+    if (formControls.channelSelection === 'basic' || formControls.channelSelection === 'intermediate') {
+        if (systemInfoControls.availableRAM == null) {
+            isValid = false;
+            formControls.setErrorText("System RAM information is not available yet. Try again.");
+            atatus.addAction('validation-failed', { field: 'availableRAM', reason: 'System RAM information unavailable' });
+            atatus.validationLogger.warn("Validation failed: availableRAM unavailable");
+        }
+    }
+
     if (formControls.channelSelection === 'basic') {
         if (isNaN(formControls.noOfChannels)) {
             isValid = false;
