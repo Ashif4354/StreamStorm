@@ -340,7 +340,7 @@ class SeparateInstance(Playwright):
             # Stop obscura instance for this port if assigned
             if self.obscura_port and self.context and getattr(self.context, 'obscura', None):
                 try:
-                    self.context.obscura.stop_instance(self.obscura_port, self.context)
+                    await self.context.obscura.stop_instance(self.obscura_port, self.context)
                     logger.debug(f"[{self.index}] [{self.channel_name}] Obscura instance on port {self.obscura_port} stopped")
                 except Exception as e:
                     logger.error(f"[{self.index}] [{self.channel_name}] Error stopping Obscura port {self.obscura_port}: {e}")

@@ -39,6 +39,9 @@ function isLogsReady() {
     );
 }
 
+const MAX_QUEUE = 500;
+let agentWaitExpired = false;
+
 if (isBrowser) {
     window.__ATATUS_RUM_QUEUE__ = window.__ATATUS_RUM_QUEUE__ || [];
     window.__ATATUS_LOGS_QUEUE__ = window.__ATATUS_LOGS_QUEUE__ || [];
@@ -81,6 +84,9 @@ if (isBrowser) {
             checkCount > 60 ||
             (isRumReady() && isLogsReady() && !window.__ATATUS_RUM_QUEUE__?.length && !window.__ATATUS_LOGS_QUEUE__?.length)
         ) {
+            if (!isRumReady()) window.__ATATUS_RUM_QUEUE__.length = 0;
+            if (!isLogsReady()) window.__ATATUS_LOGS_QUEUE__.length = 0;
+            agentWaitExpired = true;
             clearInterval(flushInterval);
         }
     }, 250);
@@ -94,7 +100,7 @@ function withRum(callback) {
         } catch (err) {
             console.error('[Atatus Site RUM Error]', err);
         }
-    } else {
+    } else if (!agentWaitExpired && window.__ATATUS_RUM_QUEUE__.length < MAX_QUEUE) {
         window.__ATATUS_RUM_QUEUE__.push(callback);
     }
 }
@@ -107,11 +113,10 @@ function withLogs(callback) {
         } catch (err) {
             console.error('[Atatus Site Logs Error]', err);
         }
-    } else {
+    } else if (!agentWaitExpired && window.__ATATUS_LOGS_QUEUE__.length < MAX_QUEUE) {
         window.__ATATUS_LOGS_QUEUE__.push(callback);
     }
 }
-
 // ==========================================
 // VIEWS API
 // ==========================================

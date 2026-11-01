@@ -36,6 +36,9 @@ function isLogsReady() {
     );
 }
 
+const MAX_QUEUE = 500;
+let agentWaitExpired = false;
+
 if (isBrowser) {
     window.__ATATUS_RUM_QUEUE__ = window.__ATATUS_RUM_QUEUE__ || [];
     window.__ATATUS_LOGS_QUEUE__ = window.__ATATUS_LOGS_QUEUE__ || [];
@@ -78,6 +81,9 @@ if (isBrowser) {
             checkCount > 60 ||
             (isRumReady() && isLogsReady() && !window.__ATATUS_RUM_QUEUE__?.length && !window.__ATATUS_LOGS_QUEUE__?.length)
         ) {
+            if (!isRumReady()) window.__ATATUS_RUM_QUEUE__.length = 0;
+            if (!isLogsReady()) window.__ATATUS_LOGS_QUEUE__.length = 0;
+            agentWaitExpired = true;
             clearInterval(flushInterval);
         }
     }, 250);
@@ -91,7 +97,7 @@ function withRum(callback) {
         } catch (err) {
             console.error('[Atatus RUM Error]', err);
         }
-    } else {
+    } else if (!agentWaitExpired && window.__ATATUS_RUM_QUEUE__.length < MAX_QUEUE) {
         window.__ATATUS_RUM_QUEUE__.push(callback);
     }
 }
@@ -104,11 +110,10 @@ function withLogs(callback) {
         } catch (err) {
             console.error('[Atatus Logs Error]', err);
         }
-    } else {
+    } else if (!agentWaitExpired && window.__ATATUS_LOGS_QUEUE__.length < MAX_QUEUE) {
         window.__ATATUS_LOGS_QUEUE__.push(callback);
     }
 }
-
 // ==========================================
 // VIEWS API
 // ==========================================
@@ -300,42 +305,23 @@ export const installGlobalObservers = () => {
     if (!isBrowser || observersInstalled) return;
     observersInstalled = true;
 
-    // 1. Transparent Fetch Observer: Logs full API request/response payloads to apiLogger
+    // 1. Transparent Fetch Observer: Logs API request metadata without sensitive body payloads
     const originalFetch = window.fetch;
     window.fetch = async function (...args) {
         const startTime = Date.now();
         const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || 'unknown-url');
         const options = args[1] || {};
         const method = options.method || (args[0]?.method) || 'GET';
-        let reqBody = options.body;
-        if (typeof reqBody === 'string') {
-            try { reqBody = JSON.parse(reqBody); } catch (_) {}
-        }
 
         try {
             const response = await originalFetch.apply(this, args);
             const duration = Date.now() - startTime;
-            const clone = response.clone();
-
-            // Clone JSON response for observability logging without consuming stream
-            clone.json().then((json) => {
-                apiLogger.debug(`${method} ${url} -> ${response.status} (${duration}ms)`, {
-                    method,
-                    url,
-                    status: response.status,
-                    duration,
-                    request: reqBody,
-                    response: json,
-                });
-            }).catch(() => {
-                apiLogger.debug(`${method} ${url} -> ${response.status} (${duration}ms)`, {
-                    method,
-                    url,
-                    status: response.status,
-                    duration,
-                });
+            apiLogger.debug(`${method} ${url} -> ${response.status} (${duration}ms)`, {
+                method,
+                url,
+                status: response.status,
+                duration,
             });
-
             return response;
         } catch (error) {
             const duration = Date.now() - startTime;
@@ -343,13 +329,12 @@ export const installGlobalObservers = () => {
                 method,
                 url,
                 duration,
-                request: reqBody,
             }, error);
             throw error;
         }
     };
 
-    // 2. Global Unmasked Input Change Observer: Logs all user inputs across textfields, checkboxes, switches, selects
+    // 2. Global Input Change Observer: Logs input interaction metadata without sensitive values
     document.addEventListener('change', (e) => {
         try {
             const target = e.target;
@@ -358,9 +343,8 @@ export const installGlobalObservers = () => {
             if (tag === 'input' || tag === 'textarea' || tag === 'select') {
                 const name = target.name || target.id || target.getAttribute('aria-label') || target.placeholder || 'unnamed-input';
                 const type = target.type || tag;
-                const value = type === 'checkbox' ? target.checked : target.value;
-                addAction('input-changed', { field: name, type, value });
-                uiLogger.debug(`Input changed: ${name}`, { field: name, type, value });
+                addAction('input-changed', { field: name, type });
+                uiLogger.debug(`Input changed: ${name}`, { field: name, type });
             }
         } catch (_) {}
     }, true);

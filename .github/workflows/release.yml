@@ -184,4 +184,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.validate-release.outputs.tag }}
-        run: gh release upload "$TAG" ./release-assets/* --clobber
+        run: |
+          set -euo pipefail
+          find ./release-assets -type f -print0 | xargs -0 gh release upload "$TAG" --clobber --repo "$GITHUB_REPOSITORY" 

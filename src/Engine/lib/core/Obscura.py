@@ -1,3 +1,4 @@
+import asyncio
 from os import name as os_name
 from pathlib import Path
 import subprocess
@@ -108,7 +109,7 @@ class Obscura:
         except Exception as e:
             logger.debug(f"Error checking lingering connections on port {port}: {e}")
 
-    def spawn_instance(self, context: StormContext) -> int:
+    async def spawn_instance(self, context: StormContext) -> int:
         retries: int = 0
         while retries < 20:
             if hasattr(context, "freed_obscura_ports") and context.freed_obscura_ports:
@@ -117,7 +118,7 @@ class Obscura:
                 port = context.obscura_current_port
                 context.obscura_current_port += 1
 
-            if self.is_port_in_use(port):
+            if await asyncio.to_thread(self.is_port_in_use, port):
                 logger.warning(f"Port {port} is in use. Trying next port.")
                 retries += 1
                 continue
@@ -147,15 +148,15 @@ class Obscura:
                 **kwargs
             )
 
-            # Wait for Obscura to start listening on the port
+            # Wait for Obscura to start listening on the port asynchronously without blocking the loop
             is_ready: bool = False
             for _ in range(50):
                 if process.poll() is not None:
                     break
-                if self.is_port_in_use(port):
+                if await asyncio.to_thread(self.is_port_in_use, port):
                     is_ready = True
                     break
-                sleep(0.1)
+                await asyncio.sleep(0.1)
 
             if is_ready:
                 logger.info(f"Obscura instance started on port {port} (PID: {process.pid}).")
@@ -167,14 +168,14 @@ class Obscura:
             if exit_code is None:
                 try:
                     process.kill()
-                    process.wait(timeout=1)
+                    await asyncio.to_thread(process.wait, 1)
                 except Exception:
                     pass
             retries += 1
 
         raise RuntimeError("Failed to spawn Obscura instance after 20 retries.")
 
-    def stop_instance(self, port: int, context: StormContext | None = None) -> None:
+    def _stop_instance_sync(self, port: int, context: StormContext | None = None) -> None:
         process = self.processes.pop(port, None)
         if process and process.poll() is None:
             logger.debug(f"Terminating Obscura process on port {port} (PID: {process.pid})")
@@ -217,24 +218,36 @@ class Obscura:
             if port not in context.freed_obscura_ports:
                 context.freed_obscura_ports.append(port)
 
+    async def stop_instance(self, port: int, context: StormContext | None = None) -> None:
+        await asyncio.to_thread(self._stop_instance_sync, port, context)
+
     @classmethod
     def kill_all(cls) -> None:
         """Terminate every Obscura process spawned by this app (used on app exit; sync, safe to call anywhere)."""
         for obscura in list(cls._instances):
             with suppress(Exception):
-                obscura.cleanup()
+                obscura.cleanup_sync()
 
-    def cleanup(self) -> None:
+    def cleanup_sync(self) -> None:
         if not self.processes:
             return
-        logger.info(f"Cleaning up {len(self.processes)} Obscura process(es)...")
+        logger.info(f"Cleaning up {len(self.processes)} Obscura process(es)...Sync")
         for port in list(self.processes.keys()):
-            self.stop_instance(port)
+            self._stop_instance_sync(port)
         self.processes.clear()
-        logger.info("Obscura cleanup completed")
+        logger.info("Obscura sync cleanup completed")
+
+    async def cleanup(self) -> None:
+        if not self.processes:
+            return
+        logger.info(f"Cleaning up {len(self.processes)} Obscura process(es)...Async")
+        for port in list(self.processes.keys()):
+            await self.stop_instance(port)
+        self.processes.clear()
+        logger.info("Obscura async cleanup completed")
 
     def __del__(self):
         with suppress(Exception):
-            self.cleanup()
+            self.cleanup_sync()
 
 __all__: list[str] = ['Obscura']

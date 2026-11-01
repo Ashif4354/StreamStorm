@@ -112,7 +112,17 @@ async def start(data: StormData) -> JSONResponse:
         )
 
 
-    StreamStormObj: StreamStorm = StreamStorm(data)
+    try:
+        StreamStormObj: StreamStorm = StreamStorm(data)
+    except RuntimeError as e:
+        logger.error(f"Failed to initialize storm: {e}")
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "message": str(e),
+            }
+        )
 
     StreamStormObj.context.ready_event.clear()  # Clear the ready event to ensure it will be only set when all instances are ready
     StreamStormObj.context.pause_event.set()  # Set the pause event to allow storming to start immediately
@@ -488,7 +498,8 @@ async def kill_instance(data: KillInstanceData) -> JSONResponse:
                 await instance.close_browser(reason=f"Instance {data.index}. {data.name} killed by user")
 
                 if instance.obscura_port and StreamStorm.ss_instance.obscura:
-                    StreamStorm.ss_instance.obscura.stop_instance(instance.obscura_port, StreamStorm.ss_instance.context)
+                    await StreamStorm.ss_instance.obscura.stop_instance(instance.obscura_port, StreamStorm.ss_instance.context)
+                    instance.obscura_port = 0
                 
                 StreamStorm.ss_instance.context.each_channel_instances.remove(instance)
                 StreamStorm.ss_instance.context.total_instances -= 1

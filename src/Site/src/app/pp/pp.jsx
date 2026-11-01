@@ -30,9 +30,9 @@ const PrivacyPolicy = () => {
         </section>
 
         <section>
-          <h2>2. Telemetry, Monitoring &amp; Session Replays (Atatus RUM)</h2>
+          <h2>2. Telemetry, Monitoring &amp; Diagnostics (Atatus, Firebase, Clarity &amp; Sentry)</h2>
           <p>
-            StreamStorm sends product, performance, and diagnostic telemetry automatically while the website or desktop UI is in use. Atatus Browser Real User Monitoring (RUM) is loaded via Google Tag Manager for session, performance, error, action, and diagnostic monitoring. Firebase Analytics records selected product events, and Microsoft Clarity provides interaction analytics and heatmaps. There is no telemetry opt-in prompt.
+            StreamStorm sends product, performance, and diagnostic telemetry automatically while the website or desktop UI and backend engine are in use. Atatus Browser Real User Monitoring (RUM) is loaded via Google Tag Manager for session, performance, error, action, and diagnostic monitoring. Firebase Analytics records selected product events, Microsoft Clarity provides interaction analytics and heatmaps, and Sentry is utilized for backend application crash reporting and diagnostic error tracking (which may include exception stack traces, request metadata, and debugging contextual variables). There is no telemetry opt-in prompt.
           </p>
           <div>
             <strong>Telemetry categories:</strong>

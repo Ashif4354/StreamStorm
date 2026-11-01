@@ -2,11 +2,13 @@ import { useEffect, useState, createContext, useContext } from 'react';
 import { useNotifications } from '@toolpad/core/useNotifications';
 
 import { RAM_PER_PROFILE } from "../lib/Constants";
+import { useAppState } from "./AppStateContext";
 import * as atatus from '../lib/atatus';
 
 const SystemInfoContext = createContext();
 
 const SystemInfoProvider = ({ children }) => {
+    const { engine, loginMethod } = useAppState();
 
     const [availableRAM, setAvailableRAM] = useState(null);
     const [debugMode, setDebugMode] = useState(false);
@@ -14,14 +16,23 @@ const SystemInfoProvider = ({ children }) => {
 
     const notifications = useNotifications();
 
-    const systemInfoControls = { availableRAM, setAvailableRAM, RAM_PER_PROFILE, debugMode, setDebugCounter };
+    // Obscura with cookie login uses lightweight ~150 MB, Chromium / Browser Profiles uses ~350 MB
+    const dynamicRamPerProfile = (engine === 'obscura' && loginMethod === 'cookies') ? 150 : 350;
+
+    const systemInfoControls = {
+        availableRAM,
+        setAvailableRAM,
+        RAM_PER_PROFILE: dynamicRamPerProfile,
+        debugMode,
+        setDebugCounter
+    };
 
     useEffect(() => {
         if (availableRAM !== null) {
             atatus.setGlobalContextProperty('availableRAM_MB', availableRAM);
-            atatus.setGlobalContextProperty('maxSupportedChannels', Math.floor(availableRAM / RAM_PER_PROFILE));
+            atatus.setGlobalContextProperty('maxSupportedChannels', Math.floor(availableRAM / dynamicRamPerProfile));
         }
-    }, [availableRAM]);
+    }, [availableRAM, dynamicRamPerProfile]);
 
     useEffect(() => {
         atatus.addFeatureFlagEvaluation('debug_mode', debugMode);

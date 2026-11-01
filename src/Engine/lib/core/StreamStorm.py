@@ -222,7 +222,7 @@ class StreamStorm(Profiles):
         self.context.each_channel_instances.clear()
 
         if self.obscura:
-            self.obscura.cleanup()
+            await self.obscura.cleanup()
         
         logger.info("StreamStorm cleanup completed")
 
@@ -311,7 +311,7 @@ class StreamStorm(Profiles):
                     
                     assigned_port: int = 0
                     if settings.engine == "obscura" and settings.login_method == "cookies" and self.obscura:
-                        assigned_port = self.obscura.spawn_instance(self.context)
+                        assigned_port = await self.obscura.spawn_instance(self.context)
 
                     logger.info(f"[{index}] [{channel_name}] Using profile: {profile_dir}, Wait time: {wait_time}s, Assigned port: {assigned_port if assigned_port else 'N/A'}")
 
@@ -370,7 +370,7 @@ class StreamStorm(Profiles):
                     
                     assigned_port: int = 0
                     if settings.engine == "obscura" and settings.login_method == "cookies" and self.obscura:
-                        assigned_port = self.obscura.spawn_instance(self.context)
+                        assigned_port = await self.obscura.spawn_instance(self.context)
 
                     logger.debug(f"[{index}] [{channel_name}] Wait time: {wait_time}, Assigned port: {assigned_port if assigned_port else 'N/A'}")
 

@@ -25,38 +25,42 @@ def test_obscura_binary_resolution_fallback_cross_platform():
 
 
 def test_obscura_cleanup_terminates_all_processes():
-    with patch("lib.core.Obscura.which", return_value="C:\\dummy\\obscura.exe"):
-        obs = Obscura()
-        mock_proc1 = MagicMock()
-        mock_proc1.poll.return_value = None
-        mock_proc1.pid = 1001
+    async def _run():
+        with patch("lib.core.Obscura.which", return_value="C:\\dummy\\obscura.exe"):
+            obs = Obscura()
+            mock_proc1 = MagicMock()
+            mock_proc1.poll.return_value = None
+            mock_proc1.pid = 1001
 
-        mock_proc2 = MagicMock()
-        mock_proc2.poll.return_value = None
-        mock_proc2.pid = 1002
+            mock_proc2 = MagicMock()
+            mock_proc2.poll.return_value = None
+            mock_proc2.pid = 1002
 
-        obs.processes[9222] = mock_proc1
-        obs.processes[9223] = mock_proc2
+            obs.processes[9222] = mock_proc1
+            obs.processes[9223] = mock_proc2
 
-        obs.cleanup()
+            await obs.cleanup()
 
-        mock_proc1.terminate.assert_called_once()
-        mock_proc2.terminate.assert_called_once()
-        assert len(obs.processes) == 0
+            mock_proc1.terminate.assert_called_once()
+            mock_proc2.terminate.assert_called_once()
+            assert len(obs.processes) == 0
+    asyncio.run(_run())
 
 
 def test_obscura_stop_single_instance():
-    with patch("lib.core.Obscura.which", return_value="C:\\dummy\\obscura.exe"):
-        obs = Obscura()
-        mock_proc = MagicMock()
-        mock_proc.poll.return_value = None
-        mock_proc.pid = 1003
+    async def _run():
+        with patch("lib.core.Obscura.which", return_value="C:\\dummy\\obscura.exe"):
+            obs = Obscura()
+            mock_proc = MagicMock()
+            mock_proc.poll.return_value = None
+            mock_proc.pid = 1003
 
-        obs.processes[9224] = mock_proc
-        obs.stop_instance(9224)
+            obs.processes[9224] = mock_proc
+            await obs.stop_instance(9224)
 
-        mock_proc.terminate.assert_called_once()
-        assert 9224 not in obs.processes
+            mock_proc.terminate.assert_called_once()
+            assert 9224 not in obs.processes
+    asyncio.run(_run())
 
 
 def test_streamstorm_cleanup_calls_obscura_cleanup():
@@ -82,6 +86,7 @@ def test_streamstorm_cleanup_calls_obscura_cleanup():
 
             with patch("lib.core.StreamStorm.Obscura") as MockObscuraCls:
                 mock_obscura_inst = MagicMock()
+                mock_obscura_inst.cleanup = AsyncMock()
                 MockObscuraCls.return_value = mock_obscura_inst
 
                 storm = StreamStorm(storm_data)
@@ -101,6 +106,7 @@ def test_separate_instance_cleanup_on_error_stops_obscura_and_sets_stopper():
 
         context = StormContext()
         mock_obscura = MagicMock()
+        mock_obscura.stop_instance = AsyncMock()
         context.obscura = mock_obscura
 
         instance = SeparateInstance(
@@ -176,6 +182,7 @@ def test_storm_stopper_triggers_cleanup_when_all_instances_dead():
 
             with patch("lib.core.StreamStorm.Obscura") as MockObscuraCls:
                 mock_obscura = MagicMock()
+                mock_obscura.cleanup = AsyncMock()
                 MockObscuraCls.return_value = mock_obscura
 
                 storm = StreamStorm(storm_data)
@@ -329,14 +336,16 @@ def test_obscura_spawn_instance_command_flags():
         mock_proc.pid = 9999
         return mock_proc
 
-    with patch("lib.core.Obscura.Popen", side_effect=mock_popen), \
-         patch.object(obs, "is_port_in_use", side_effect=[False, True]):
-        port = obs.spawn_instance(ctx)
-        assert port == 9222
-        assert captured_cmd[0] == "/usr/bin/obscura"
-        assert "--v8-flags=--max-old-space-size=32" in captured_cmd
-        assert "serve" in captured_cmd
-        assert "--port" in captured_cmd
-        assert "9222" in captured_cmd
-        assert "--quiet" in captured_cmd
+    async def _run():
+        with patch("lib.core.Obscura.Popen", side_effect=mock_popen), \
+             patch.object(obs, "is_port_in_use", side_effect=[False, True]):
+            port = await obs.spawn_instance(ctx)
+            assert port == 9222
+            assert captured_cmd[0] == "/usr/bin/obscura"
+            assert "--v8-flags=--max-old-space-size=32" in captured_cmd
+            assert "serve" in captured_cmd
+            assert "--port" in captured_cmd
+            assert "9222" in captured_cmd
+            assert "--quiet" in captured_cmd
+    asyncio.run(_run())
 
