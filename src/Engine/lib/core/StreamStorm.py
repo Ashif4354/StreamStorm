@@ -311,7 +311,13 @@ class StreamStorm(Profiles):
                     
                     assigned_port: int = 0
                     if settings.engine == "obscura" and settings.login_method == "cookies" and self.obscura:
-                        assigned_port = await self.obscura.spawn_instance(self.context)
+                        try:
+                            assigned_port = await self.obscura.spawn_instance(self.context)
+                        except RuntimeError as e:
+                            logger.error(f"[{index}] [{channel_name}] Obscura spawn failed: {e}")
+                            self.context.total_instances -= 1
+                            await sio.emit("instance_status", {"instance": str(self.context.channels[index]), "status": "0"}, room="streamstorm")
+                            continue
 
                     logger.info(f"[{index}] [{channel_name}] Using profile: {profile_dir}, Wait time: {wait_time}s, Assigned port: {assigned_port if assigned_port else 'N/A'}")
 
@@ -370,7 +376,13 @@ class StreamStorm(Profiles):
                     
                     assigned_port: int = 0
                     if settings.engine == "obscura" and settings.login_method == "cookies" and self.obscura:
-                        assigned_port = await self.obscura.spawn_instance(self.context)
+                        try:
+                            assigned_port = await self.obscura.spawn_instance(self.context)
+                        except RuntimeError as e:
+                            logger.error(f"[{index}] [{channel_name}] Obscura spawn failed: {e}")
+                            self.context.total_instances -= 1
+                            await sio.emit("instance_status", {"instance": str(channels[index]), "status": "0"}, room="streamstorm")
+                            continue
 
                     logger.debug(f"[{index}] [{channel_name}] Wait time: {wait_time}, Assigned port: {assigned_port if assigned_port else 'N/A'}")
 

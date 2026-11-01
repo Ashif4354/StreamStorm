@@ -90,7 +90,7 @@ jobs:
         run: |
           set -eux
           test -d export/linux/opt/StreamStorm
-          tar -czf export/installers/StreamStorm.tar.gz -C export/linux/opt StreamStorm
+          tar -czf export/installers/streamstorm.tar.gz -C export/linux/opt StreamStorm
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
@@ -98,7 +98,7 @@ jobs:
           name: linux-artifacts
           path: |
             export/installers/streamstorm.deb
-            export/installers/StreamStorm.tar.gz
+            export/installers/streamstorm.tar.gz
           if-no-files-found: error
 
   windows-build:
