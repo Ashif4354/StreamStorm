@@ -1,7 +1,7 @@
 import asyncio
 from http.client import HTTPConnection
 from json import loads
-from os import name as os_name
+from os import getpid, name as os_name
 from pathlib import Path
 import subprocess
 from subprocess import Popen, DEVNULL, TimeoutExpired
@@ -25,9 +25,9 @@ class Obscura:
         self.obscura_present: bool = True
         self.processes: dict[int, Popen] = {}
         self.obscura_path: str | None = self._resolve_obscura_binary()
-        
-        if not self.obscura_path:  
-            self.obscura_present: bool = False
+
+        if not self.obscura_path:
+            self.obscura_present = False
             logger.error("Obscura not found in PATH. Please ensure Obscura is installed and added to your system's PATH.")
             raise RuntimeError("Obscura not installed. Install from https://docs.obscura.sh/quickstart/installation and then start storm again.")
 
@@ -60,12 +60,12 @@ class Obscura:
                 if candidate.is_file():
                     return str(candidate)
         return None
-        
+
     @staticmethod
     def is_port_in_use(port: int) -> bool:
         with socket(AF_INET, SOCK_STREAM) as s:
             return s.connect_ex(("127.0.0.1", port)) == 0
-        
+
     @staticmethod
     def _cdp_ready(port: int) -> bool:
         conn: HTTPConnection | None = None
@@ -86,6 +86,11 @@ class Obscura:
 
     @staticmethod
     def _terminate_process_tree(process: Popen, timeout: float = 2) -> None:
+        pid = process.pid
+        if isinstance(pid, int) and (pid <= 1 or pid == getpid()):
+            logger.error(f"Refusing to terminate process tree for unsafe PID {pid}")
+            return
+
         children: list[psutil.Process] = []
         with suppress(Exception):
             children = psutil.Process(process.pid).children(recursive=True)
@@ -94,19 +99,20 @@ class Obscura:
             with suppress(psutil.NoSuchProcess, psutil.AccessDenied):
                 child.terminate()
 
-        process.terminate()
         try:
-            process.wait(timeout=timeout)
-        except TimeoutExpired:
-            logger.warning(f"Obscura process (PID: {process.pid}) timed out; killing...")
-            process.kill()
-            process.wait(timeout=1)
-
-        with suppress(Exception):
-            _, alive = psutil.wait_procs(children, timeout=1)
-            for child in alive:
-                with suppress(psutil.NoSuchProcess, psutil.AccessDenied):
-                    child.kill()
+            process.terminate()
+            try:
+                process.wait(timeout=timeout)
+            except TimeoutExpired:
+                logger.warning(f"Obscura process (PID: {process.pid}) timed out; killing...")
+                process.kill()
+                process.wait(timeout=1)
+        finally:
+            with suppress(Exception):
+                _, alive = psutil.wait_procs(children, timeout=1)
+                for child in alive:
+                    with suppress(psutil.NoSuchProcess, psutil.AccessDenied):
+                        child.kill()
 
     async def spawn_instance(self, context: StormContext) -> int:
         retries: int = 0
@@ -130,18 +136,19 @@ class Obscura:
                 f"{port}",
                 "--quiet",
             ]
-        
-            kwargs: dict = {}    
-            
+
+            kwargs: dict = {}
+
             if os_name == "nt":
                 detached = getattr(subprocess, "DETACHED_PROCESS", 0x00000008)
                 new_group = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200)
                 kwargs["creationflags"] = detached | new_group
             else:
                 kwargs["start_new_session"] = True
-                
+
             try:
-                process: Popen = Popen(
+                process: Popen = await asyncio.to_thread(
+                    Popen,
                     cmd,
                     stdout=DEVNULL,
                     stderr=DEVNULL,

@@ -1,6 +1,7 @@
 import asyncio
 import itertools
 import json
+import os
 import socket
 import subprocess
 import sys
@@ -19,6 +20,8 @@ from lib.api.validation import StormData
 from lib.core.StormContext import StormContext
 
 SLEEPER = [sys.executable, "-c", "import time; time.sleep(120)"]
+
+UNUSED_PID = 99999999
 
 
 def _free_port() -> int:
@@ -264,7 +267,7 @@ def test_obscura_spawn_instance_command_flags():
         captured_cmd.extend(cmd)
         mock_proc = MagicMock()
         mock_proc.poll.return_value = None
-        mock_proc.pid = 9999
+        mock_proc.pid = UNUSED_PID
         return mock_proc
 
     async def _run():
@@ -273,13 +276,14 @@ def test_obscura_spawn_instance_command_flags():
              patch.object(obs, "is_port_in_use", side_effect=[False, True]):
             port = await obs.spawn_instance(ctx)
             assert port == 9222
-            assert obs.processes[9222].pid == 9999
+            assert obs.processes[9222].pid == UNUSED_PID
             assert captured_cmd[0] == "/usr/bin/obscura"
             assert "--v8-flags=--max-old-space-size=32" in captured_cmd
             assert "serve" in captured_cmd
             assert "--port" in captured_cmd
             assert "9222" in captured_cmd
             assert "--quiet" in captured_cmd
+            obs.processes.clear()
     asyncio.run(_run())
 
 
@@ -296,6 +300,62 @@ def test_obscura_spawn_popen_oserror_becomes_runtime_error():
     asyncio.run(_run())
 
 
+def test_obscura_spawn_launches_process_off_the_event_loop_thread():
+    obs = _make_obscura()
+    obs.obscura_path = "/usr/bin/obscura"
+    ctx = StormContext()
+    ctx.obscura_current_port = 9222
+    popen_threads: list[threading.Thread] = []
+
+    def mock_popen(cmd, *args, **kwargs):
+        popen_threads.append(threading.current_thread())
+        mock_proc = MagicMock()
+        mock_proc.poll.return_value = None
+        mock_proc.pid = UNUSED_PID
+        return mock_proc
+
+    async def _run():
+        loop_thread = threading.current_thread()
+        with patch("lib.core.Obscura.Popen", side_effect=mock_popen), \
+             patch.object(obs, "_cdp_ready", return_value=True), \
+             patch.object(obs, "is_port_in_use", side_effect=[False, True]):
+            await obs.spawn_instance(ctx)
+        assert popen_threads and popen_threads[0] is not loop_thread
+        obs.processes.clear()
+    asyncio.run(_run())
+
+
+@pytest.mark.parametrize("unsafe_pid", [0, 1, os.getpid()])
+def test_terminate_process_tree_refuses_unsafe_pids(unsafe_pid):
+    proc = MagicMock()
+    proc.pid = unsafe_pid
+
+    with patch("lib.core.Obscura.psutil.Process") as process_cls:
+        Obscura._terminate_process_tree(proc)
+
+    process_cls.assert_not_called()
+    proc.terminate.assert_not_called()
+    proc.kill.assert_not_called()
+
+
+def test_terminate_process_tree_still_kills_children_when_parent_wait_times_out():
+    child = MagicMock()
+    parent = MagicMock()
+    parent.pid = 4242
+    parent.wait.side_effect = subprocess.TimeoutExpired("obscura", 1)
+
+    with patch("lib.core.Obscura.psutil.Process") as process_cls, \
+         patch("lib.core.Obscura.psutil.wait_procs", return_value=([], [child])):
+        process_cls.return_value.children.return_value = [child]
+
+        with pytest.raises(subprocess.TimeoutExpired):
+            Obscura._terminate_process_tree(parent, timeout=0)
+
+    child.terminate.assert_called_once()
+    child.kill.assert_called_once()
+    parent.kill.assert_called_once()
+
+
 def test_obscura_spawn_does_not_register_when_process_died_and_foreign_listener_holds_port():
     obs = _make_obscura()
     ctx = StormContext()
@@ -304,7 +364,7 @@ def test_obscura_spawn_does_not_register_when_process_died_and_foreign_listener_
     def mock_popen(cmd, *args, **kwargs):
         proc = MagicMock()
         proc.poll.side_effect = itertools.chain([None], itertools.repeat(1))
-        proc.pid = 4242
+        proc.pid = UNUSED_PID
         return proc
 
     async def _run():
@@ -327,7 +387,7 @@ def test_obscura_spawn_requires_cdp_endpoint_not_just_open_port():
     def mock_popen(cmd, *args, **kwargs):
         proc = MagicMock()
         proc.poll.return_value = None
-        proc.pid = 5151
+        proc.pid = UNUSED_PID
         return proc
 
     async def _run():
