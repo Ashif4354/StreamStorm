@@ -23,9 +23,6 @@ importers:
       '@toolpad/core':
         specifier: ^0.16.0
         version: 0.16.0(d37a97c20b420c243ede4ccc06fa94d4)
-      atatus-spa:
-        specifier: ^4.7.0
-        version: 4.7.0
       firebase:
         specifier: ^12.6.0
         version: 12.8.0
@@ -1165,9 +1162,6 @@ packages:
   async-function@1.0.0:
     resolution: {integrity: sha512-hsU18Ae8CDTR6Kgu9DYf0EbCr/a5iGL0rytQDobUcdpYOKokk8LEjVphnXkDkgpi0wYVsqrXuP0bZxJaTqdgoA==}
     engines: {node: '>= 0.4'}
-
-  atatus-spa@4.7.0:
-    resolution: {integrity: sha512-48o3ZY78UIilpa9pspdG3K2ucXa5DMrDDewrl0FiGH1sx24U/+xqrtfvfx2PsGC9/BLekEjitB+L6R6fqItXjA==}
 
   available-typed-arrays@1.0.7:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
@@ -3590,8 +3584,6 @@ snapshots:
       is-array-buffer: 3.0.5
 
   async-function@1.0.0: {}
-
-  atatus-spa@4.7.0: {}
 
   available-typed-arrays@1.0.7:
     dependencies:
