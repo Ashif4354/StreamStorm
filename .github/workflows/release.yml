@@ -134,7 +134,7 @@ jobs:
   windows-build:
     name: Build Windows (.exe, dgupdater & setup)
     runs-on: windows-latest
-    needs: [validate-release, linux-build]
+    needs: validate-release
     env:
       PYTHONUTF8: "1"
     steps:

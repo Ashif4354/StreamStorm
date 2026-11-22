@@ -28,7 +28,7 @@ The **Release Workflow** runs only for a published release. It validates that th
 - **Windows (`windows-latest`)**: `StreamStorm.exe` and both setup installer filenames.
 - Uploads all build artifacts to the same GitHub Release that triggered the workflow.
 - **Windows job order**: build `StreamStorm.exe`, then publish the updater (`make dgupdater-commit-publish`), then generate the setup installer. The publish must come before the installer because it rewrites `dgupdaterconf.json` and `dgupdaterupdate/`, which the installer bundles; the installer would otherwise ship with a stale version.
-- The Windows job waits for the Linux build, so a Linux failure stops the release before anything is published to the updater.
+- The Linux and Windows jobs run in parallel. A Linux failure therefore does not stop the Windows job, so the updater can already be published when the Linux build fails; fix the problem and publish the release again at the same version (republishing the same version is allowed).
 
 If the Windows job fails after the updater step (for example during Inno Setup), re-run the workflow. Republishing the same version is allowed.
 
