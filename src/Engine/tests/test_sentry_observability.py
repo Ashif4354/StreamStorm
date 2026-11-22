@@ -157,6 +157,41 @@ def test_before_send_masks_cookie_contents_on_non_sensitive_paths():
         assert result["total_instances"] == "5"
 
 
+def test_hyphenated_secret_headers_are_masked_but_content_headers_survive():
+    scrubbed = sentry_module._scrub(
+        {
+            "headers": {
+                "x-api-key": "live-abcdef123456",
+                "Authorization": "Bearer abcdefgh12345",
+                "Content-Type": "application/json",
+                "Content-Length": "42",
+            }
+        }
+    )["headers"]
+
+    assert scrubbed["x-api-key"] == sentry_module.REDACTED
+    assert scrubbed["Authorization"] == sentry_module.REDACTED
+    assert scrubbed["Content-Type"] == "application/json"
+    assert scrubbed["Content-Length"] == "42"
+
+
+def test_token_usage_counters_are_kept_but_token_secrets_are_masked():
+    scrubbed = sentry_module._scrub({"max_tokens": "1024", "total_tokens": "300", "access_token": "abc123"})
+
+    assert scrubbed["max_tokens"] == "1024"
+    assert scrubbed["total_tokens"] == "300"
+    assert scrubbed["access_token"] == sentry_module.REDACTED
+
+
+def test_scrub_depth_cap_fails_closed():
+    nested: object = "sk-deepsecret123456"
+
+    for _ in range(sentry_module._MAX_SCRUB_DEPTH + 5):
+        nested = {"level": nested}
+
+    assert "deepsecret" not in str(sentry_module._scrub(nested))
+
+
 def test_before_send_masks_api_keys_in_provider_reprs_and_authorization():
     frame_vars = {
         "provider": "Provider(apiKey='sk-ant-SECRETKEY123', model='claude', baseUrl=None)",

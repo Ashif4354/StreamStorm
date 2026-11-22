@@ -56,6 +56,22 @@ _SENSITIVE_KEY_EXACT: frozenset[str] = frozenset({"provider", "providers", "ai_s
 
 _SENSITIVE_KEY_PREFIXES: tuple[str, ...] = ("content", "parsed")
 
+_NON_SECRET_KEYS: frozenset[str] = frozenset(
+    {
+        "content_type",
+        "content_length",
+        "content_encoding",
+        "content_disposition",
+        "content_language",
+        "max_tokens",
+        "input_tokens",
+        "output_tokens",
+        "total_tokens",
+        "num_tokens",
+        "token_count",
+    }
+)
+
 _VALUE_PATTERNS: tuple[tuple[Pattern[str], str], ...] = (
     (re_compile(r"\bsk-[A-Za-z0-9_\-]{8,}"), REDACTED),
     (re_compile(r"\bAIza[0-9A-Za-z_\-]{20,}"), REDACTED),
@@ -126,7 +142,10 @@ def _strip_frame_variables(event: dict[str, Any]) -> None:
 
 
 def _is_sensitive_key(key: str) -> bool:
-    lowered: str = key.lower()
+    lowered: str = key.lower().replace("-", "_")
+
+    if lowered in _NON_SECRET_KEYS:
+        return False
 
     return (
         lowered in _SENSITIVE_KEY_EXACT
@@ -146,8 +165,11 @@ def _scrub_string(value: str) -> str:
 
 
 def _scrub(value: Any, key: str | None = None, depth: int = 0) -> Any:
-    if depth > _MAX_SCRUB_DEPTH or key in _SOURCE_CONTEXT_KEYS:
+    if key in _SOURCE_CONTEXT_KEYS:
         return value
+
+    if depth > _MAX_SCRUB_DEPTH:
+        return REDACTED if isinstance(value, (str, bytes, dict, list, tuple)) else value
 
     if key is not None and isinstance(value, (str, bytes, dict, list, tuple)) and value and _is_sensitive_key(key):
         return REDACTED
