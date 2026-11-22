@@ -127,3 +127,75 @@ def test_explicit_provider_without_any_model_raises(monkeypatch):
 
     with raises(SystemError, match="Model for google is not configured"):
         PydanticAI(provider_name="google")
+
+
+def test_binary_garbage_settings_file_is_backed_up_and_recreated(monkeypatch, tmp_path):
+    path = _use_settings_file(monkeypatch, tmp_path)
+    path.write_bytes(b"\xff\xfe\x00garbage")
+
+    assert settings_module.read_settings_json().engine == "chromium"
+    assert (tmp_path / "settings.json.bak").read_bytes() == b"\xff\xfe\x00garbage"
+    assert loads(path.read_text())["engine"] == "chromium"
+
+
+def test_corrupt_json_keeps_backup_of_original(monkeypatch, tmp_path):
+    _use_settings_file(monkeypatch, tmp_path, "{not json")
+
+    settings_module.read_settings_json()
+
+    assert (tmp_path / "settings.json.bak").read_text() == "{not json"
+
+
+def test_non_dict_settings_file_keeps_backup_of_original(monkeypatch, tmp_path):
+    _use_settings_file(monkeypatch, tmp_path, "[1, 2, 3]")
+
+    settings_module.read_settings_json()
+
+    assert (tmp_path / "settings.json.bak").read_text() == "[1, 2, 3]"
+
+
+def test_failed_write_keeps_original_and_removes_temp_file(monkeypatch, tmp_path):
+    path = _use_settings_file(monkeypatch, tmp_path, dumps({"engine": "obscura"}))
+    monkeypatch.setattr(settings_module, "replace", MagicMock(side_effect=OSError("disk full")))
+
+    with raises(OSError):
+        settings_module.write_settings_json({"engine": "chromium"})
+
+    assert loads(path.read_text()) == {"engine": "obscura"}
+    assert not (tmp_path / "settings.json.tmp").exists()
+
+
+def test_transient_permission_error_on_replace_is_retried(monkeypatch, tmp_path):
+    path = _use_settings_file(monkeypatch, tmp_path, dumps({}))
+    real_replace = settings_module.replace
+    calls: list[int] = []
+
+    def flaky_replace(source, destination):
+        calls.append(1)
+
+        if len(calls) < 3:
+            raise PermissionError("busy")
+
+        real_replace(source, destination)
+
+    monkeypatch.setattr(settings_module, "replace", flaky_replace)
+    monkeypatch.setattr(settings_module, "sleep", lambda _: None)
+
+    settings_module.write_settings_json({"engine": "obscura"})
+
+    assert len(calls) == 3
+    assert loads(path.read_text()) == {"engine": "obscura"}
+    assert not (tmp_path / "settings.json.tmp").exists()
+
+
+def test_persistent_permission_error_on_replace_raises_and_cleans_temp_file(monkeypatch, tmp_path):
+    _use_settings_file(monkeypatch, tmp_path, dumps({"engine": "obscura"}))
+    failing_replace = MagicMock(side_effect=PermissionError("busy"))
+    monkeypatch.setattr(settings_module, "replace", failing_replace)
+    monkeypatch.setattr(settings_module, "sleep", lambda _: None)
+
+    with raises(PermissionError):
+        settings_module.write_settings_json({"engine": "chromium"})
+
+    assert failing_replace.call_count == 5
+    assert not (tmp_path / "settings.json.tmp").exists()

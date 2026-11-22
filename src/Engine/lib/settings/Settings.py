@@ -1,13 +1,14 @@
 import sys
 from contextlib import suppress
 from pathlib import Path
-from os import makedirs, replace
+from os import fsync, makedirs, replace
 from os.path import exists
 from platform import system
 from json import JSONDecodeError, dumps, loads
 from logging import Logger, getLogger
 from shutil import copyfile
 from threading import RLock
+from time import sleep
 from typing import Any, Literal
 
 from platformdirs import user_data_dir
@@ -25,13 +26,42 @@ logger: Logger = getLogger(f"fastapi.{__name__}")
 
 _settings_file_lock: RLock = RLock()
 
+
+def _replace_with_retry(source: Path, destination: Path, attempts: int = 5) -> None:
+    for attempt in range(attempts):
+        try:
+            replace(source, destination)
+            return
+
+        except PermissionError:
+            # Windows rejects the rename while an antivirus or indexer briefly holds the target open.
+            if attempt == attempts - 1:
+                raise
+
+            sleep(0.05 * (attempt + 1))
+
+
 def _write_file_atomically(path: Path, content: str) -> None:
     temp_path: Path = path.with_name(f"{path.name}.tmp")
 
-    with open(temp_path, "w", encoding="utf-8") as file:
-        file.write(content)
+    try:
+        with open(temp_path, "w", encoding="utf-8") as file:
+            file.write(content)
+            file.flush()
+            fsync(file.fileno())
 
-    replace(temp_path, path)
+        _replace_with_retry(temp_path, path)
+
+    except Exception:
+        with suppress(OSError):
+            temp_path.unlink()
+
+        raise
+
+
+def _backup_settings_file() -> None:
+    with suppress(OSError):
+        copyfile(SETTINGS_FILE_PATH, SETTINGS_FILE_PATH.with_name(f"{SETTINGS_FILE_PATH.name}.bak"))
 
 
 def ensure_settings_json_file() -> None:
@@ -66,8 +96,7 @@ def _recover_invalid_settings(loaded: dict, error: ValidationError) -> SavedSett
     invalid_fields: set[Any] = {err["loc"][0] for err in error.errors() if err["loc"]}
     logger.error(f"Invalid saved settings fields, falling back to defaults for: {sorted(map(str, invalid_fields))}")
 
-    with suppress(OSError):
-        copyfile(SETTINGS_FILE_PATH, SETTINGS_FILE_PATH.with_name(f"{SETTINGS_FILE_PATH.name}.bak"))
+    _backup_settings_file()
 
     try:
         return SavedSettings(**{k: v for k, v in loaded.items() if k not in invalid_fields})
@@ -84,14 +113,16 @@ def read_settings_json() -> SavedSettings:
             with open(SETTINGS_FILE_PATH, "r", encoding="utf-8") as file:
                 loaded = loads(file.read())
 
-        except (JSONDecodeError, FileNotFoundError) as e:
+        except (JSONDecodeError, UnicodeDecodeError, FileNotFoundError) as e:
             logger.error(f"Error reading settings file, recreating: {e}")
 
+            _backup_settings_file()
             _write_file_atomically(SETTINGS_FILE_PATH, dumps(DEFAULT_SAVED_SETTINGS, indent=4))
 
             return SavedSettings(**DEFAULT_SAVED_SETTINGS)
 
         if not isinstance(loaded, dict):
+            _backup_settings_file()
             loaded = {}
 
         loaded = _migrate_loaded_settings(loaded)
@@ -215,11 +246,12 @@ class Settings(BaseSettings):
 
     def save(self) -> None:
         """Write current persistent settings to settings.json"""
-        settings_json_content: dict = self.saved_settings.model_dump()
-        settings_json_content["ai"] = self.ai.model_dump()
-        settings_json_content["login_method"] = self.login_method
-        settings_json_content["engine"] = self.engine
-        write_settings_json(settings_json_content)
+        with _settings_file_lock:
+            settings_json_content: dict = self.saved_settings.model_dump()
+            settings_json_content["ai"] = self.ai.model_dump()
+            settings_json_content["login_method"] = self.login_method
+            settings_json_content["engine"] = self.engine
+            write_settings_json(settings_json_content)
 
     @model_validator(mode="before")
     @classmethod
