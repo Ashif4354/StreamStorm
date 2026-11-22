@@ -31,6 +31,9 @@ async def background_storm_stopper() -> NoReturn:
             if StreamStorm.ss_instance is not current_instance:
                 continue
 
+            if current_instance.context.spawn_in_progress > 0:
+                continue
+
             statuses: list[bool] = [await instance.is_instance_alive() for instance in current_instance.context.each_channel_instances.copy()]
             
             if not len(statuses):

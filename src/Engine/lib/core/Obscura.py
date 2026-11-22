@@ -1,13 +1,16 @@
 import asyncio
+from http.client import HTTPConnection
+from json import loads
 from os import name as os_name
 from pathlib import Path
 import subprocess
 from subprocess import Popen, DEVNULL, TimeoutExpired
 from shutil import which
 from socket import socket, AF_INET, SOCK_STREAM
-from time import sleep
 from weakref import WeakSet
 from contextlib import suppress
+
+import psutil
 
 from .StormContext import StormContext
 from logging import getLogger, Logger
@@ -64,50 +67,46 @@ class Obscura:
             return s.connect_ex(("127.0.0.1", port)) == 0
         
     @staticmethod
-    def kill_process_on_port(port: int) -> None:
-        """Kill any lingering process or child process listening on the given port across Windows, macOS, and Linux."""
+    def _cdp_ready(port: int) -> bool:
+        conn: HTTPConnection | None = None
         try:
-            import psutil
-            killed_pids: set[int] = set()
+            conn = HTTPConnection("127.0.0.1", port, timeout=1)
+            conn.request("GET", "/json/version")
+            response = conn.getresponse()
+            if response.status != 200:
+                return False
+            payload = loads(response.read())
+            return isinstance(payload, dict) and bool(payload.get("webSocketDebuggerUrl"))
+        except Exception:
+            return False
+        finally:
+            if conn is not None:
+                with suppress(Exception):
+                    conn.close()
 
-            # 1. Try system-wide net_connections (works on Windows/Linux; may raise AccessDenied on macOS without root)
-            with suppress(psutil.AccessDenied, Exception):
-                for conn in psutil.net_connections(kind="inet"):
-                    if conn.laddr and conn.laddr.port == port and conn.pid:
-                        try:
-                            proc = psutil.Process(conn.pid)
-                            logger.warning(f"Killing lingering process {proc.name()} (PID: {conn.pid}) on port {port}")
-                            for child in proc.children(recursive=True):
-                                with suppress(psutil.NoSuchProcess, psutil.AccessDenied):
-                                    child.kill()
-                            proc.kill()
-                            killed_pids.add(conn.pid)
-                        except (psutil.NoSuchProcess, psutil.AccessDenied):
-                            pass
+    @staticmethod
+    def _terminate_process_tree(process: Popen, timeout: float = 2) -> None:
+        children: list[psutil.Process] = []
+        with suppress(Exception):
+            children = psutil.Process(process.pid).children(recursive=True)
 
-            # 2. Fallback for macOS / non-root POSIX: inspect user processes matching obscura --port <port> or per-process connections
-            if not killed_pids:
-                port_str = str(port)
-                for proc in psutil.process_iter(["pid", "name", "cmdline"]):
-                    with suppress(psutil.NoSuchProcess, psutil.AccessDenied):
-                        cmdline = proc.info.get("cmdline") or []
-                        name = (proc.info.get("name") or "").lower()
-                        is_matching_obscura = "obscura" in name and port_str in cmdline
-                        has_port_conn = False
-                        if not is_matching_obscura:
-                            with suppress(psutil.AccessDenied, psutil.NoSuchProcess, Exception):
-                                for conn in proc.net_connections(kind="inet"):
-                                    if conn.laddr and conn.laddr.port == port:
-                                        has_port_conn = True
-                                        break
-                        if is_matching_obscura or has_port_conn:
-                            logger.warning(f"Killing lingering process {proc.info.get('name')} (PID: {proc.pid}) on port {port}")
-                            for child in proc.children(recursive=True):
-                                with suppress(psutil.NoSuchProcess, psutil.AccessDenied):
-                                    child.kill()
-                            proc.kill()
-        except Exception as e:
-            logger.debug(f"Error checking lingering connections on port {port}: {e}")
+        for child in children:
+            with suppress(psutil.NoSuchProcess, psutil.AccessDenied):
+                child.terminate()
+
+        process.terminate()
+        try:
+            process.wait(timeout=timeout)
+        except TimeoutExpired:
+            logger.warning(f"Obscura process (PID: {process.pid}) timed out; killing...")
+            process.kill()
+            process.wait(timeout=1)
+
+        with suppress(Exception):
+            _, alive = psutil.wait_procs(children, timeout=1)
+            for child in alive:
+                with suppress(psutil.NoSuchProcess, psutil.AccessDenied):
+                    child.kill()
 
     async def spawn_instance(self, context: StormContext) -> int:
         retries: int = 0
@@ -141,21 +140,26 @@ class Obscura:
             else:
                 kwargs["start_new_session"] = True
                 
-            process: Popen = Popen(
-                cmd,
-                stdout=DEVNULL,
-                stderr=DEVNULL,
-                **kwargs
-            )
+            try:
+                process: Popen = Popen(
+                    cmd,
+                    stdout=DEVNULL,
+                    stderr=DEVNULL,
+                    **kwargs
+                )
+            except OSError as e:
+                raise RuntimeError(f"Failed to launch Obscura on port {port}: {e}") from e
 
-            # Wait for Obscura to start listening on the port asynchronously without blocking the loop
             is_ready: bool = False
             for _ in range(50):
                 if process.poll() is not None:
                     break
                 if await asyncio.to_thread(self.is_port_in_use, port):
-                    is_ready = True
-                    break
+                    if process.poll() is not None:
+                        break
+                    if await asyncio.to_thread(self._cdp_ready, port) and process.poll() is None:
+                        is_ready = True
+                        break
                 await asyncio.sleep(0.1)
 
             if is_ready:
@@ -166,53 +170,23 @@ class Obscura:
             exit_code: int | None = process.poll()
             logger.error(f"Failed to start Obscura instance on port {port} (Exit code: {exit_code}). Retrying with next port.")
             if exit_code is None:
-                try:
-                    process.kill()
-                    await asyncio.to_thread(process.wait, 1)
-                except Exception:
-                    pass
+                with suppress(Exception):
+                    await asyncio.to_thread(self._terminate_process_tree, process, 1)
             retries += 1
 
         raise RuntimeError("Failed to spawn Obscura instance after 20 retries.")
 
     def _stop_instance_sync(self, port: int, context: StormContext | None = None) -> None:
         process = self.processes.pop(port, None)
-        if process and process.poll() is None:
+        if process is None:
+            return
+
+        if process.poll() is None:
             logger.debug(f"Terminating Obscura process on port {port} (PID: {process.pid})")
             try:
-                # Terminate child processes first (e.g. Chrome instances)
-                try:
-                    import psutil
-                    parent = psutil.Process(process.pid)
-                    children = parent.children(recursive=True)
-                    for child in children:
-                        with suppress(psutil.NoSuchProcess, psutil.AccessDenied):
-                            child.terminate()
-                except Exception:
-                    pass
-
-                process.terminate()
-                process.wait(timeout=2)
-            except TimeoutExpired:
-                logger.warning(f"Obscura process on port {port} timed out; killing...")
-                try:
-                    import psutil
-                    parent = psutil.Process(process.pid)
-                    for child in parent.children(recursive=True):
-                        with suppress(psutil.NoSuchProcess, psutil.AccessDenied):
-                            child.kill()
-                except Exception:
-                    pass
-                process.kill()
-                process.wait(timeout=1)
+                self._terminate_process_tree(process)
             except Exception as e:
                 logger.error(f"Error terminating Obscura process on port {port}: {e}")
-
-        # Ensure any process holding the port is freed
-        if self.is_port_in_use(port):
-            sleep(0.2)
-            if self.is_port_in_use(port):
-                self.kill_process_on_port(port)
 
         if context and hasattr(context, "freed_obscura_ports"):
             if port not in context.freed_obscura_ports:

@@ -312,7 +312,7 @@ class Playwright(BrowserAutomator):
     __slots__: tuple[str, ...] = (
         'user_data_dir', 'background', '_is_alive', 'cookies',
         'playwright', 'browser_context', 'browser', 'page', 'index', 'channel_name',
-        '_is_obscura'
+        '_is_obscura', '_login_method', '_engine'
     )
     
     _chrome_version: str = None
@@ -322,7 +322,18 @@ class Playwright(BrowserAutomator):
     _shared_playwright_refcount: int = 0
     _playwright_lock: Lock = Lock()
 
-    def __init__(self, user_data_dir: str, background: bool, cookies: list[dict] | None = None, index: int = 0, channel_name: str = "") -> None:
+    def __init__(
+        self,
+        user_data_dir: str,
+        background: bool,
+        cookies: list[dict] | None = None,
+        index: int = 0,
+        channel_name: str = "",
+        login_method: str | None = None,
+        engine: str | None = None
+    ) -> None:
+        self._login_method: str = login_method or settings.login_method
+        self._engine: str = engine or settings.engine
         self.user_data_dir: str = user_data_dir
         self.background: bool = background
         self.cookies: list[dict] | None = cookies or []
@@ -354,7 +365,7 @@ class Playwright(BrowserAutomator):
             "channel": "chrome"
         }
 
-        if settings.login_method == "profiles":
+        if self._login_method == "profiles":
             options["user_data_dir"] = self.user_data_dir
         
         if self.background:
@@ -437,8 +448,8 @@ class Playwright(BrowserAutomator):
 
         self._is_obscura = bool(
             obscura_port
-            and settings.engine == "obscura"
-            and settings.login_method == "cookies"
+            and self._engine == "obscura"
+            and self._login_method == "cookies"
         )
 
         try:
@@ -446,14 +457,14 @@ class Playwright(BrowserAutomator):
             logger.debug(f"[{self.index}] [{self.channel_name}] Browser options configured with {len(browser_options['args'])} arguments")
             logger.debug(f"[{self.index}] [{self.channel_name}] Browser arguments: {'\n'.join(browser_options['args'])}")
             
-            if settings.login_method == "profiles":        
+            if self._login_method == "profiles":
                 self.browser_context: BrowserContext = (
                     await self.playwright.chromium.launch_persistent_context(
                         **browser_options
                     )
                 )
 
-            elif settings.login_method == "cookies":
+            elif self._login_method == "cookies":
                 view_port: dict = browser_options.pop("viewport")
 
                 if self._is_obscura:
@@ -481,7 +492,7 @@ class Playwright(BrowserAutomator):
 
             self.page: Page = await self.browser_context.new_page()
             
-            if settings.login_method == "profiles":
+            if self._login_method == "profiles":
                 create_task(self.__close_about_blank_page())
 
             self.page.set_default_navigation_timeout(45000)

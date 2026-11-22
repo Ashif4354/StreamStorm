@@ -31,7 +31,7 @@ class SeparateInstance(Playwright):
         'channel_name', 'index', 'wait_time', 
         'should_wait', 'profile_dir_name', 'context',
         '_SeparateInstance__logged_in', '_SeparateInstance__sleep_tasks',
-        'obscura_port'
+        'obscura_port', 'ready_counted'
     )
 
     def __init__(
@@ -44,8 +44,11 @@ class SeparateInstance(Playwright):
         storm_context: StormContext | None = None,
         obscura_port: int = 0
     ) -> None:
-        super().__init__(user_data_dir, storm_context.background, cookies, index, channel_name)
-        
+        super().__init__(
+            user_data_dir, storm_context.background, cookies, index, channel_name,
+            login_method=storm_context.login_method, engine=storm_context.engine
+        )
+
         self.index: int = index
         self.profile_dir_name: str = user_data_dir.replace("\\", "/").rstrip("/").split("/")[-1]  # Profile dir name : Used in StormRouter.py for killing instance
         self.__logged_in: Optional[bool] = None
@@ -55,7 +58,8 @@ class SeparateInstance(Playwright):
         self.should_wait: bool = True
         self.context: StormContext | None = storm_context
         self.obscura_port: int = obscura_port
-        
+        self.ready_counted: bool = False
+
 
     def __repr__(self) -> str:
         return f"Instance(index={self.index}, channel_name={self.channel_name}, wait_time={self.wait_time})"
@@ -219,9 +223,7 @@ class SeparateInstance(Playwright):
             
             if not logged_in:
                 logger.debug(f"[{self.index}] [{self.channel_name}] Login failed - removing from instances")
-                
-                self.context.total_instances -= 1
-                
+
                 logger.error(f"[{self.index}] [{self.channel_name}] : Login failed")
                 exit_reason = "Login failed"
                 return
@@ -241,6 +243,7 @@ class SeparateInstance(Playwright):
             await self.go_to_page(self.context.chat_url)
             
             self.context.ready_to_storm_instances += 1
+            self.ready_counted = True
             logger.info(f"[{self.index}] [{self.channel_name}] : Ready To Storm")
             await self.emit_instance_status(self.index, 2)  # 2 = Ready
 
@@ -328,24 +331,34 @@ class SeparateInstance(Playwright):
 
             if self.context:
                 self.context.assigned_profiles[self.profile_dir_name] = None
-            
+
+                if not self.ready_counted:
+                    self.ready_counted = True
+                    self.context.total_instances -= 1
+
             if instance_started and self.context:
                 with suppress(ValueError):
                     self.context.each_channel_instances.remove(self)
                     logger.debug(f"[{self.index}] [{self.channel_name}] : Removed from instances")
-            
-            await self.emit_instance_status(self.index, 0)  # 0 = Dead
-            await self.close_browser(reason=exit_reason)
 
-            # Stop obscura instance for this port if assigned
-            if self.obscura_port and self.context and getattr(self.context, 'obscura', None):
+            try:
+                await self.emit_instance_status(self.index, 0)  # 0 = Dead
+            except Exception as e:
+                logger.error(f"[{self.index}] [{self.channel_name}] Error emitting dead status: {e}")
+
+            try:
+                await self.close_browser(reason=exit_reason)
+            except Exception as e:
+                logger.error(f"[{self.index}] [{self.channel_name}] Error closing browser: {e}")
+
+            obscura_port, self.obscura_port = self.obscura_port, 0
+            if obscura_port and self.context and getattr(self.context, 'obscura', None):
                 try:
-                    await self.context.obscura.stop_instance(self.obscura_port, self.context)
-                    logger.debug(f"[{self.index}] [{self.channel_name}] Obscura instance on port {self.obscura_port} stopped")
+                    await self.context.obscura.stop_instance(obscura_port, self.context)
+                    logger.debug(f"[{self.index}] [{self.channel_name}] Obscura instance on port {obscura_port} stopped")
                 except Exception as e:
-                    logger.error(f"[{self.index}] [{self.channel_name}] Error stopping Obscura port {self.obscura_port}: {e}")
+                    logger.error(f"[{self.index}] [{self.channel_name}] Error stopping Obscura port {obscura_port}: {e}")
 
-            # Ensure run_stopper_event is set so StormStopper checks instance statuses
             if self.context:
                 self.context.run_stopper_event.set()
 

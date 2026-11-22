@@ -1,4 +1,5 @@
 from asyncio import Task, sleep, Event, create_task, gather, Lock
+from contextlib import suppress
 from os.path import join
 from typing import Optional, Literal
 from logging import getLogger, Logger
@@ -33,7 +34,7 @@ class StreamStorm(Profiles):
         self.load_cookies()
         
         self.obscura: Optional[Obscura] = None
-        if settings.engine == "obscura" and settings.login_method == "cookies":
+        if self.context.engine == "obscura" and self.context.login_method == "cookies":
             self.obscura = Obscura()
         self.context.obscura = self.obscura
 
@@ -192,11 +193,25 @@ class StreamStorm(Profiles):
         return active_channels  
                
         
-    def get_start_storm_wait_time(self, index) -> float:
-        if self.context.total_instances == 0:
+    def get_start_storm_wait_time(self, index, total_instances: int | None = None) -> float:
+        total: int = self.context.total_instances if total_instances is None else total_instances
+        if total <= 0:
             return 0.0
-        return index * (self.context.slow_mode / self.context.total_instances)
-    
+        return index * (self.context.slow_mode / total)
+
+    async def _assign_obscura_port(self, index: int, channel: int, channel_name: str) -> int | None:
+        if not self.obscura:
+            return 0
+
+        try:
+            return await self.obscura.spawn_instance(self.context)
+        except Exception as e:
+            logger.error(f"[{index}] [{channel_name}] Obscura spawn failed: {e}")
+            self.context.total_instances -= 1
+            with suppress(Exception):
+                await sio.emit("instance_status", {"instance": str(channel), "status": "0"}, room="streamstorm")
+            return None
+
     def _track_task(self, task: Task) -> Task:
         """Track a background task for later cleanup."""
         self._background_tasks.append(task)
@@ -288,6 +303,8 @@ class StreamStorm(Profiles):
             raise SystemError("Not enough temp profiles available. Create Enough profiles first.")     
 
         async def start_each_worker() -> None:
+            self.context.spawn_in_progress += 1
+            spawn_finished: bool = False
             try:
                 await sleep(3)  # Small delay to ensure everything is set up in UI before starting workers
 
@@ -303,21 +320,16 @@ class StreamStorm(Profiles):
                 self._track_task(create_task(self.messages_handler()))
                 
                 tasks: list[Task] = []
+                initial_total: int = self.context.total_instances
 
                 for index in range(len(self.context.channels)):
                     profile_dir: str = join(self.environment_dir, temp_profiles[index])
                     channel_name: str = self.context.all_channels[str(self.context.channels[index])]['name']
-                    wait_time: float = self.get_start_storm_wait_time(index)
-                    
-                    assigned_port: int = 0
-                    if settings.engine == "obscura" and settings.login_method == "cookies" and self.obscura:
-                        try:
-                            assigned_port = await self.obscura.spawn_instance(self.context)
-                        except RuntimeError as e:
-                            logger.error(f"[{index}] [{channel_name}] Obscura spawn failed: {e}")
-                            self.context.total_instances -= 1
-                            await sio.emit("instance_status", {"instance": str(self.context.channels[index]), "status": "0"}, room="streamstorm")
-                            continue
+                    wait_time: float = self.get_start_storm_wait_time(index, initial_total)
+
+                    assigned_port: int | None = await self._assign_obscura_port(index, self.context.channels[index], channel_name)
+                    if assigned_port is None:
+                        continue
 
                     logger.info(f"[{index}] [{channel_name}] Using profile: {profile_dir}, Wait time: {wait_time}s, Assigned port: {assigned_port if assigned_port else 'N/A'}")
 
@@ -327,6 +339,8 @@ class StreamStorm(Profiles):
                     tasks.append(task)
                     await sleep(0.2)  # Small delay to avoid instant spike of the cpu load
 
+                spawn_finished = True
+                self.context.spawn_in_progress -= 1
                 self.context.run_stopper_event.set()
 
                 await gather(*tasks)  # Wait for all tasks to complete
@@ -335,6 +349,8 @@ class StreamStorm(Profiles):
             except Exception as e:
                 logger.error(f"Error in start_each_worker: {e}")
             finally:
+                if not spawn_finished:
+                    self.context.spawn_in_progress -= 1
                 self.context.run_stopper_event.set()
 
         self._track_task(create_task(start_each_worker()))
@@ -365,24 +381,21 @@ class StreamStorm(Profiles):
 
         self.context.total_instances += len(channels)
         
-        async def start_each_worker() -> None:  
+        async def start_each_worker() -> None:
+            self.context.spawn_in_progress += 1
+            spawn_finished: bool = False
             try:
-                tasks: list[Task] = [] 
-                  
+                tasks: list[Task] = []
+                initial_total: int = self.context.total_instances
+
                 for index in range(len(channels)):
                     profile_dir: str = join(self.environment_dir, available_profiles[index])
                     channel_name: str = self.context.all_channels[str(channels[index])]['name']
-                    wait_time: float = self.get_start_storm_wait_time(index)
-                    
-                    assigned_port: int = 0
-                    if settings.engine == "obscura" and settings.login_method == "cookies" and self.obscura:
-                        try:
-                            assigned_port = await self.obscura.spawn_instance(self.context)
-                        except RuntimeError as e:
-                            logger.error(f"[{index}] [{channel_name}] Obscura spawn failed: {e}")
-                            self.context.total_instances -= 1
-                            await sio.emit("instance_status", {"instance": str(channels[index]), "status": "0"}, room="streamstorm")
-                            continue
+                    wait_time: float = self.get_start_storm_wait_time(index, initial_total)
+
+                    assigned_port: int | None = await self._assign_obscura_port(index, channels[index], channel_name)
+                    if assigned_port is None:
+                        continue
 
                     logger.debug(f"[{index}] [{channel_name}] Wait time: {wait_time}, Assigned port: {assigned_port if assigned_port else 'N/A'}")
 
@@ -392,6 +405,8 @@ class StreamStorm(Profiles):
                     tasks.append(task)
                     await sleep(0.2)
 
+                spawn_finished = True
+                self.context.spawn_in_progress -= 1
                 self.context.run_stopper_event.set()
 
                 await gather(*tasks)
@@ -399,6 +414,8 @@ class StreamStorm(Profiles):
             except Exception as e:
                 logger.error(f"Error in start_more_channels worker: {e}")
             finally:
+                if not spawn_finished:
+                    self.context.spawn_in_progress -= 1
                 self.context.run_stopper_event.set()
 
         self._track_task(create_task(start_each_worker()))       

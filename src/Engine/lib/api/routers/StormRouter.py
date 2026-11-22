@@ -2,6 +2,7 @@ from logging import getLogger, Logger
 from os.path import exists
 from json import JSONDecodeError, loads
 from asyncio import gather
+from contextlib import suppress
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
@@ -497,12 +498,14 @@ async def kill_instance(data: KillInstanceData) -> JSONResponse:
             if instance.index == data.index:
                 await instance.close_browser(reason=f"Instance {data.index}. {data.name} killed by user")
 
-                if instance.obscura_port and StreamStorm.ss_instance.obscura:
-                    await StreamStorm.ss_instance.obscura.stop_instance(instance.obscura_port, StreamStorm.ss_instance.context)
-                    instance.obscura_port = 0
-                
-                StreamStorm.ss_instance.context.each_channel_instances.remove(instance)
-                StreamStorm.ss_instance.context.total_instances -= 1
+                obscura_port, instance.obscura_port = instance.obscura_port, 0
+                if obscura_port and StreamStorm.ss_instance.obscura:
+                    await StreamStorm.ss_instance.obscura.stop_instance(obscura_port, StreamStorm.ss_instance.context)
+
+                with suppress(ValueError):
+                    StreamStorm.ss_instance.context.each_channel_instances.remove(instance)
+                if instance.ready_counted:
+                    StreamStorm.ss_instance.context.total_instances -= 1
                 StreamStorm.ss_instance.context.assigned_profiles[instance.profile_dir_name] = None
                 
                 await sio.emit('instance_status', {'instance': str(data.index), 'status': '-1'}, room="streamstorm")  # -1 = Idle
