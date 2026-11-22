@@ -580,7 +580,7 @@ const Instructions = () => {
             <li className="instructions-list-item">Restart StreamStorm after installing so it picks up the updated <code className="instructions-inline-code">PATH</code>.</li>
             <li className="instructions-list-item">Open <strong>Settings → General → Engine</strong>, select <code className="instructions-inline-code">Obscura (Experimental)</code> and click <strong>Save</strong>.</li>
             <li className="instructions-list-item">Obscura works with the <strong>Cookies</strong> login method only. If you select Browser Profiles, StreamStorm uses Chromium instead.</li>
-            <li className="instructions-list-item">If Obscura is not found, starting a storm fails with an <code className="instructions-inline-code">Obscura not installed</code> error. Install it, or switch the engine back to Chromium in Settings → General.</li>
+            <li className="instructions-list-item">If Obscura is not found, starting a storm fails with an <code className="instructions-inline-code">Obscura not installed or not on your PATH</code> error. Install it and make sure the binary is on your PATH (the directory must be on PATH, not the file itself), or switch the engine back to Chromium in Settings → General.</li>
           </ul>
 
           <h3 id="settings-host" className="instructions-step-heading">Host Configuration</h3>

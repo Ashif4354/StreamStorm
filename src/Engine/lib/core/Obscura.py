@@ -29,7 +29,7 @@ class Obscura:
         if not self.obscura_path:
             self.obscura_present = False
             logger.error("Obscura not found in PATH. Please ensure Obscura is installed and added to your system's PATH.")
-            raise RuntimeError("Obscura not installed. Install from https://docs.obscura.sh/quickstart/installation and then start storm again.")
+            raise RuntimeError("Obscura not installed or not on your PATH. Install from https://docs.obscura.sh/quickstart/installation, make sure the 'obscura' binary is on your PATH (see the Instructions page for other supported locations), and then start storm again.")
 
     @staticmethod
     def _resolve_obscura_binary() -> str | None:
