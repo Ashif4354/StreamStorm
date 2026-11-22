@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: version-bump
+  cancel-in-progress: false
+
 jobs:
   update-version:
     name: Update Versions and Commit to Master
@@ -62,4 +66,16 @@ jobs:
             exit 1
           fi
           git commit -m "Release v$VERSION [skip ci]"
-          git push origin HEAD:master
+          for attempt in 1 2 3; do
+            if git push origin HEAD:master; then
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt). Rebasing onto latest master."
+            if ! git pull --rebase origin master; then
+              git rebase --abort || true
+              echo "::error::master moved and the version bump no longer rebases cleanly. Re-run the workflow."
+              exit 1
+            fi
+          done
+          echo "::error::Could not push the version bump to master after 3 attempts."
+          exit 1

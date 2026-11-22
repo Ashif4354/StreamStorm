@@ -62,6 +62,69 @@ def get_dgupdater_command() -> str:
     return "uv run --directory src/Engine dgupdater"
 
 
+def parse_semver(version: str) -> list[int]:
+    """Parse X.Y.Z into ints, raising ValueError on anything else."""
+    parts = [int(x) for x in version.strip().split(".")]
+    if len(parts) != 3:
+        raise ValueError(f"'{version}' is not a valid X.Y.Z version.")
+    return parts
+
+
+def parse_published_version(version: object) -> list[int]:
+    """Parse a version stored by dgupdater, treating the unpublished placeholder as 0.0.0."""
+    if not isinstance(version, str) or not version.strip() or " " in version.strip():
+        return [0, 0, 0]
+    return parse_semver(version)
+
+
+def get_local_dgupdater_version() -> list[int]:
+    """Read the version recorded in the local dgupdaterconf.json (cwd must be export/windows)."""
+    return parse_published_version(json.loads(Path("dgupdaterconf.json").read_text(encoding="utf-8")).get("version"))
+
+
+def get_database_version(app_name: str) -> list[int] | None:
+    """Read the currently published version from the updater database, or None if nothing is published yet."""
+    from pymongo import MongoClient
+
+    config_file = Path(user_data_dir("dgupdater", "DarkGlance")) / "dgupdaterconf.json"
+    connection_string = json.loads(config_file.read_text(encoding="utf-8"))["mongodbstrds"][app_name]
+
+    with MongoClient(connection_string, serverSelectionTimeoutMS=30000) as client:
+        config = client["DGUPDATER"][app_name].find_one({"_id": f"{app_name}_config"}, {"version": 1})
+
+    if config is None:
+        return None
+    return parse_published_version(config.get("version"))
+
+
+def ensure_version_is_newer(new_version: str) -> None:
+    """Refuse to publish a version older than what is already published."""
+    new = parse_semver(new_version)
+    conf = json.loads(Path("dgupdaterconf.json").read_text(encoding="utf-8"))
+
+    local = get_local_dgupdater_version()
+    if new < local:
+        raise SystemExit(
+            f"Refusing to publish {new_version}: it is lower than the version in dgupdaterconf.json "
+            f"({'.'.join(map(str, local))})."
+        )
+
+    try:
+        published = get_database_version(conf["app_name"])
+    except Exception as e:
+        raise SystemExit(f"Refusing to publish: could not verify the currently published version ({e!r}).") from e
+
+    if published is not None and new < published:
+        raise SystemExit(
+            f"Refusing to publish {new_version}: the updater database already has "
+            f"{'.'.join(map(str, published))}. Publishing would downgrade it."
+        )
+    if published is not None and new == published:
+        log_warning(f"Version {new_version} is already published; republishing the same version.")
+
+    log_info(f"Version check passed: {new_version} > local {local} and published {published}.")
+
+
 def dgupdater_commit_and_publish(new_version: str) -> None:
     """Commit and publish using dgupdater without relying on fragile prompt stdin piping."""
     if new_version.lower().startswith("v"):
@@ -70,8 +133,10 @@ def dgupdater_commit_and_publish(new_version: str) -> None:
     ensure_dgupdater_credentials()
 
     log_info(f"Committing and publishing with dgupdater for version {new_version}")
-    
+
     chdir(ROOT / "export" / "windows")
+
+    ensure_version_is_newer(new_version)
 
     try:
         from dgupdater.cli_commands.commit.func.check_configuration_files_exists import (

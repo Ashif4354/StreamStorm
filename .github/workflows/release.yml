@@ -7,6 +7,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-workflow
+  cancel-in-progress: false
+
 jobs:
   validate-release:
     name: Validate Release Tag and Version
@@ -16,6 +20,23 @@ jobs:
       version: ${{ steps.release.outputs.version }}
       commit_sha: ${{ steps.release.outputs.commit_sha }}
     steps:
+      - name: Verify required secrets
+        env:
+          SENTRY_DSN: ${{ secrets.STREAMSTORM_SENTRY_DSN }}
+          DGUPDATER_CONFIG: ${{ secrets.DGUPDATER_CONFIG }}
+          DGUPDATER_MONGODB_URI: ${{ secrets.DGUPDATER_MONGODB_URI }}
+          IS_PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          if [[ -z "$SENTRY_DSN" ]]; then
+            echo "::error::STREAMSTORM_SENTRY_DSN secret is empty. Releases must ship with Sentry error tracking."
+            exit 1
+          fi
+          if [[ "$IS_PRERELEASE" != "true" && -z "$DGUPDATER_CONFIG" && -z "$DGUPDATER_MONGODB_URI" ]]; then
+            echo "::error::Neither DGUPDATER_CONFIG nor DGUPDATER_MONGODB_URI secret is set. The updater cannot be published."
+            exit 1
+          fi
+
+
       - name: Checkout release tag
         uses: actions/checkout@v4
         with:
@@ -104,7 +125,7 @@ jobs:
   windows-build:
     name: Build Windows (.exe, dgupdater & setup)
     runs-on: windows-latest
-    needs: validate-release
+    needs: [validate-release, linux-build]
     steps:
       - name: Checkout release commit
         uses: actions/checkout@v4
@@ -142,6 +163,7 @@ jobs:
         run: make executable
 
       - name: Publish with dgupdater
+        if: github.event.release.prerelease == false
         shell: cmd
         env:
           VERSION: ${{ needs.validate-release.outputs.version }}
@@ -186,4 +208,4 @@ jobs:
           TAG: ${{ needs.validate-release.outputs.tag }}
         run: |
           set -euo pipefail
-          find ./release-assets -type f -print0 | xargs -0 gh release upload "$TAG" --clobber --repo "$GITHUB_REPOSITORY" 
+          find ./release-assets -type f -print0 | xargs -0 gh release upload "$TAG" --clobber --repo "$GITHUB_REPOSITORY"

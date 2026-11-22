@@ -9,7 +9,7 @@ path.insert(0, str(ROOT))
 import os  # noqa: E402
 from tomlkit import TOMLDocument, parse, dumps  # noqa: E402
 from json import dump, load  # noqa: E402
-from re import sub  # noqa: E402
+from re import sub, subn  # noqa: E402
 from logging import basicConfig, INFO, info as log_info  # noqa: E402
 
 basicConfig(level=INFO)
@@ -70,6 +70,44 @@ def update_versions(new_version: str, allow_same_version: bool = False) -> None:
 
     update_package_json(ROOT / "src" / "UI" / "package.json", new_version)
     update_package_json(ROOT / "src" / "Site" / "package.json", new_version)
+
+    def update_package_lock(file_path: Path, new_version: str) -> None:
+        if not file_path.exists():
+            return
+        log_info(f"Updating {file_path}")
+        text: str = file_path.read_text(encoding="utf-8")
+        text, top_count = subn(
+            r'\A(\s*\{\s*"name":\s*"[^"]+",\s*"version":\s*")[^"]*(")',
+            rf'\g<1>{new_version}\g<2>',
+            text,
+            count=1,
+        )
+        text, root_count = subn(
+            r'("packages":\s*\{\s*"":\s*\{\s*"name":\s*"[^"]+",\s*"version":\s*")[^"]*(")',
+            rf'\g<1>{new_version}\g<2>',
+            text,
+            count=1,
+        )
+        if top_count != 1 or root_count != 1:
+            raise ValueError(f"Could not locate the root version fields in {file_path}.")
+        file_path.write_text(text, encoding="utf-8")
+
+    update_package_lock(ROOT / "src" / "UI" / "package-lock.json", new_version)
+    update_package_lock(ROOT / "src" / "Site" / "package-lock.json", new_version)
+
+    uv_lock: Path = ROOT / "src" / "Engine" / "uv.lock"
+    if uv_lock.exists():
+        log_info(f"Updating {uv_lock}")
+        text = uv_lock.read_text(encoding="utf-8")
+        text, uv_count = subn(
+            r'(\[\[package\]\]\r?\nname = "streamstorm"\r?\nversion = ")[^"]*(")',
+            rf'\g<1>{new_version}\g<2>',
+            text,
+            count=1,
+        )
+        if uv_count != 1:
+            raise ValueError(f"Could not locate the streamstorm package version in {uv_lock}.")
+        uv_lock.write_text(text, encoding="utf-8")
 
 
     # INNO Setup / create_setup.iss
