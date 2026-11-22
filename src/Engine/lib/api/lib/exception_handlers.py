@@ -31,7 +31,6 @@ async def business_exception_handler(request: Request, exc: Exception) -> JSONRe
     Returns 400 Bad Request and exposes the message to the client.
     """
     logger.error(f"Business logic error: {str(exc)}")
-    capture_handled_exception(exc, "business")
     
     return JSONResponse(
         status_code=400,
@@ -44,7 +43,10 @@ async def business_exception_handler(request: Request, exc: Exception) -> JSONRe
     
     
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    errors = exc.errors()
+    errors = [
+        {key: value for key, value in error.items() if key not in {"ctx", "input"}}
+        for error in exc.errors()
+    ]
     
     logger.debug(f"Validation errors: {errors}")
     
@@ -77,10 +79,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         message: str = errors[0]["msg"].replace("Value error, ", "")
     
     logger.error(f"Validation error: {message}")
-    capture_handled_exception(exc, "validation")
-    
-    if "ctx" in errors[0]:
-        del errors[0]["ctx"]
 
     return JSONResponse(
         status_code=422,

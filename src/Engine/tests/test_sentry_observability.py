@@ -24,6 +24,7 @@ def _fake_settings(**overrides):
         "sensitive_endpoints": {"/settings/ai/keys/openai"},
         "login_method": "cookies",
         "is_logged_in": False,
+        "sentry_traces_sample_rate": 0.1,
     }
     values.update(overrides)
 
@@ -72,7 +73,8 @@ def test_init_configures_full_error_tracking():
             assert kwargs["dsn"] == "https://public@example.ingest.sentry.io/1"
             assert kwargs["environment"] == env
             assert kwargs["release"] == "streamstorm-engine@9.9.9"
-            assert kwargs["traces_sample_rate"] == 1.0
+            assert kwargs["traces_sample_rate"] == 0.1
+            assert kwargs["server_name"] == ""
             assert "profile_session_sample_rate" not in kwargs
             assert "profiles_sample_rate" not in kwargs
             assert kwargs["attach_stacktrace"] is True
@@ -102,7 +104,13 @@ def test_before_send_strips_secrets_for_sensitive_endpoints():
             "cookies": {"a": "b"},
         },
         "exception": {
-            "values": [{"stacktrace": {"frames": [{"vars": {"data": "AIProviderKeyData(api_key='sk-secret')"}}]}}]
+            "values": [
+                {
+                    "type": "RequestValidationError",
+                    "value": "[{'loc': ('body', 'model'), 'msg': 'Field required', 'input': {'api_key': 'sk-secret'}}]",
+                    "stacktrace": {"frames": [{"vars": {"data": "AIProviderKeyData(api_key='sk-secret')"}}]},
+                }
+            ]
         },
     }
 
@@ -113,6 +121,125 @@ def test_before_send_strips_secrets_for_sensitive_endpoints():
     assert "cookies" not in result["request"]
     assert "vars" not in result["exception"]["values"][0]["stacktrace"]["frames"][0]
     assert "sk-secret" not in str(result)
+
+
+def _event_with_frame_vars(frame_vars: dict, section: str = "exception", url: str = "http://127.0.0.1:1919/environment/profiles/save_cookies") -> dict:
+    return {
+        "request": {"url": url},
+        section: {"values": [{"type": "ValueError", "value": "boom", "stacktrace": {"frames": [{"vars": frame_vars}]}}]},
+    }
+
+
+def _scrubbed_frame_vars(event: dict, section: str = "exception") -> dict:
+    with patch.object(sentry_module, "settings", _fake_settings()):
+        result = sentry_module._before_send(event, {})
+
+    return result[section]["values"][0]["stacktrace"]["frames"][0]["vars"]
+
+
+def test_before_send_masks_cookie_contents_on_non_sensitive_paths():
+    netscape = ".youtube.com\tTRUE\t/\tTRUE\t1893456000\tSID\tg.a000SECRETCOOKIE"
+    json_cookies = '[{"name": "SID", "value": "g.a000SECRETCOOKIE"}]'
+    frame_vars = {
+        "content_str": json_cookies,
+        "content": repr(netscape.encode()),
+        "parsed": repr([{"name": "SID", "value": "g.a000SECRETCOOKIE"}]),
+        "line": netscape,
+        "channel_name": "My Channel",
+        "total_instances": "5",
+    }
+
+    for section in ("exception", "threads"):
+        result = _scrubbed_frame_vars(_event_with_frame_vars(frame_vars, section), section)
+
+        assert "SECRETCOOKIE" not in str(result)
+        assert result["channel_name"] == "My Channel"
+        assert result["total_instances"] == "5"
+
+
+def test_before_send_masks_api_keys_in_provider_reprs_and_authorization():
+    frame_vars = {
+        "provider": "Provider(apiKey='sk-ant-SECRETKEY123', model='claude', baseUrl=None)",
+        "headers": "{'Authorization': 'Bearer abcdefghijklmnop'}",
+        "note": "using key sk-proj-ABCDEFGH12345678 for call",
+        "google": "AIzaSyA1234567890abcdefghijklmnop",
+        "model": "gpt-4o",
+        "video_url": "https://youtube.com/watch?v=abc",
+    }
+
+    result = _scrubbed_frame_vars(_event_with_frame_vars(frame_vars, url="http://127.0.0.1:1919/ai/generate/messages"))
+    dumped = str(result)
+
+    for secret in ("SECRETKEY123", "abcdefghijklmnop", "ABCDEFGH12345678", "AIzaSyA1234567890"):
+        assert secret not in dumped
+
+    assert result["model"] == "gpt-4o"
+    assert result["video_url"] == "https://youtube.com/watch?v=abc"
+
+
+def test_before_send_masks_secrets_in_exception_message_and_logentry():
+    event = {
+        "request": {"url": "http://127.0.0.1:1919/settings/general"},
+        "exception": {"values": [{"type": "RuntimeError", "value": "call failed with apiKey='sk-abcdef123456' for channel Foo"}]},
+        "logentry": {"message": "token=SECRETTOKEN and cookie=SECRETCOOKIE for channel Foo", "params": []},
+    }
+
+    with patch.object(sentry_module, "settings", _fake_settings()):
+        result = sentry_module._before_send(event, {})
+
+    dumped = str(result)
+    assert "sk-abcdef123456" not in dumped
+    assert "SECRETTOKEN" not in dumped
+    assert "SECRETCOOKIE" not in dumped
+    assert "for channel Foo" in dumped
+
+
+def test_before_send_replaces_validation_error_message_that_echoes_input():
+    event = {
+        "request": {"url": "http://127.0.0.1:1919/ai/generate/messages"},
+        "exception": {"values": [{"type": "RequestValidationError", "value": "[{'input': {'whatever': 'PRIVATE-VALUE'}}]"}]},
+    }
+
+    with patch.object(sentry_module, "settings", _fake_settings()):
+        result = sentry_module._before_send(event, {})
+
+    assert "PRIVATE-VALUE" not in str(result)
+
+
+def test_before_send_scrubs_home_paths_and_keeps_source_context():
+    event = {
+        "request": {"url": "http://x/storm/start"},
+        "exception": {
+            "values": [
+                {
+                    "type": "ValueError",
+                    "value": "x",
+                    "stacktrace": {
+                        "frames": [
+                            {
+                                "abs_path": "C:\\Users\\alice\\AppData\\app.py",
+                                "filename": "/home/bob/proj/app.py",
+                                "context_line": "api_key = provider.apiKey",
+                            }
+                        ]
+                    },
+                }
+            ]
+        },
+    }
+
+    with patch.object(sentry_module, "settings", _fake_settings()):
+        frame = sentry_module._before_send(event, {})["exception"]["values"][0]["stacktrace"]["frames"][0]
+
+    assert "alice" not in frame["abs_path"]
+    assert "bob" not in frame["filename"]
+    assert frame["context_line"] == "api_key = provider.apiKey"
+
+
+def test_before_send_drops_event_when_scrubbing_fails():
+    with patch.object(sentry_module, "_scrub", side_effect=RuntimeError("boom")), \
+         patch.object(sentry_module, "settings", _fake_settings()):
+        assert sentry_module._before_send({"request": {"url": "http://x"}}, {}) is None
 
 
 def test_before_send_adds_runtime_context_tags():
@@ -227,15 +354,13 @@ def run(coroutine):
     raise AssertionError("handler unexpectedly suspended")
 
 
-def test_all_exception_handlers_report_to_sentry():
+def test_exception_handlers_report_only_unexpected_and_session_errors_to_sentry():
     validation_error = RequestValidationError(
         [{"loc": ("body", "messages"), "msg": "Value error, bad messages", "type": "value_error"}]
     )
 
     cases = [
         (exception_handlers.common_exception_handler, RuntimeError("x"), "unexpected"),
-        (exception_handlers.business_exception_handler, SystemError("x"), "business"),
-        (exception_handlers.validation_exception_handler, validation_error, "validation"),
         (exception_handlers.session_not_created_exception_handler, RuntimeError("x"), "browser_session"),
     ]
 
@@ -243,3 +368,31 @@ def test_all_exception_handlers_report_to_sentry():
         with patch.object(exception_handlers, "capture_handled_exception") as capture:
             run(handler(None, exc))
             capture.assert_called_once_with(exc, kind)
+
+    for handler, exc in (
+        (exception_handlers.business_exception_handler, SystemError("x")),
+        (exception_handlers.validation_exception_handler, validation_error),
+    ):
+        with patch.object(exception_handlers, "capture_handled_exception") as capture:
+            run(handler(None, exc))
+            capture.assert_not_called()
+
+
+def test_validation_handler_response_never_echoes_input():
+    validation_error = RequestValidationError(
+        [
+            {
+                "loc": ("body", "model"),
+                "msg": "Field required",
+                "type": "missing",
+                "input": {"api_key": "sk-PRIVATEKEY"},
+                "ctx": {"error": ValueError("x")},
+            }
+        ]
+    )
+
+    response = run(exception_handlers.validation_exception_handler(None, validation_error))
+
+    assert response.status_code == 422
+    assert "sk-PRIVATEKEY" not in response.body.decode()
+    assert "input" not in response.body.decode()

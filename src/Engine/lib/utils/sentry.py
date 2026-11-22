@@ -1,5 +1,6 @@
 from logging import ERROR, INFO, Logger, getLogger
 from platform import system
+from re import Pattern, compile as re_compile
 from sys import modules
 from typing import Any, Literal
 
@@ -17,7 +18,8 @@ logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 _sentry_initialized: bool = False
 
-# Local-variable / payload keys that must never leave the user's machine.
+REDACTED: str = "[Filtered]"
+
 _EXTRA_DENYLIST: list[str] = [
     "apiKey",
     "api_key",
@@ -29,9 +31,67 @@ _EXTRA_DENYLIST: list[str] = [
     "license_key",
     "logfire_token",
     "sentry_dsn",
+    "content",
+    "content_str",
+    "parsed",
+    "provider",
+    "ai_settings",
 ]
 
+_SENSITIVE_KEY_PARTS: tuple[str, ...] = (
+    "apikey",
+    "api_key",
+    "cookie",
+    "token",
+    "secret",
+    "password",
+    "passwd",
+    "authorization",
+    "credential",
+    "license_key",
+    "sentry_dsn",
+)
+
+_SENSITIVE_KEY_EXACT: frozenset[str] = frozenset({"provider", "providers", "ai_settings"})
+
+_SENSITIVE_KEY_PREFIXES: tuple[str, ...] = ("content", "parsed")
+
+_VALUE_PATTERNS: tuple[tuple[Pattern[str], str], ...] = (
+    (re_compile(r"\bsk-[A-Za-z0-9_\-]{8,}"), REDACTED),
+    (re_compile(r"\bAIza[0-9A-Za-z_\-]{20,}"), REDACTED),
+    (re_compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=\-]{8,}"), f"Bearer {REDACTED}"),
+    (
+        re_compile(
+            r"(?i)((?:api[_-]?key|token|secret|password|passwd|authorization|cookies?)\w*[\"']?\s*[:=]\s*)([\"']?)[^\"'\s,)}\]]+"
+        ),
+        rf"\1\2{REDACTED}",
+    ),
+    (
+        re_compile(
+            r"(?m)^[^\t\n]+\t(?:TRUE|FALSE)\t[^\t\n]*\t(?:TRUE|FALSE)\t-?\d+\t[^\t\n]+\t[^\n]*$"
+        ),
+        f"{REDACTED} (cookie line)",
+    ),
+    (re_compile(r"(?i)([\"']value[\"']\s*:\s*[\"'])[^\"']{6,}([\"'])"), rf"\1{REDACTED}\2"),
+    (
+        re_compile(r"\b(__Secure-[0-9A-Za-z]+|SAPISID|APISID|HSID|SSID|SIDCC|SID|LOGIN_INFO)=[^;\s'\"]+"),
+        rf"\1={REDACTED}",
+    ),
+)
+
+_PATH_PATTERNS: tuple[tuple[Pattern[str], str], ...] = (
+    (re_compile(r"(?i)([A-Za-z]:[\\/]+Users[\\/]+)[^\\/\s'\"]+"), r"\1[user]"),
+    (re_compile(r"(/home/)[^/\s'\"]+"), r"\1[user]"),
+    (re_compile(r"(/Users/)[^/\s'\"]+"), r"\1[user]"),
+)
+
+_VALIDATION_ERROR_TYPES: frozenset[str] = frozenset({"RequestValidationError", "ValidationError"})
+
 _SENSITIVE_PATH_PREFIXES: tuple[str, ...] = ("/settings/ai/keys",)
+
+_SOURCE_CONTEXT_KEYS: frozenset[str] = frozenset({"context_line", "pre_context", "post_context"})
+
+_MAX_SCRUB_DEPTH: int = 40
 
 ErrorKind = Literal["unexpected", "business", "validation", "browser_session"]
 
@@ -50,10 +110,66 @@ def _is_sensitive_event(event: dict[str, Any]) -> bool:
     )
 
 
+def _iter_stacktrace_frames(event: dict[str, Any]) -> list[dict[str, Any]]:
+    frames: list[dict[str, Any]] = []
+
+    for section in ("exception", "threads"):
+        for entry in (event.get(section) or {}).get("values", []) or []:
+            frames.extend((entry.get("stacktrace") or {}).get("frames", []) or [])
+
+    return frames
+
+
 def _strip_frame_variables(event: dict[str, Any]) -> None:
+    for frame in _iter_stacktrace_frames(event):
+        frame.pop("vars", None)
+
+
+def _is_sensitive_key(key: str) -> bool:
+    lowered: str = key.lower()
+
+    return (
+        lowered in _SENSITIVE_KEY_EXACT
+        or lowered.startswith(_SENSITIVE_KEY_PREFIXES)
+        or any(part in lowered for part in _SENSITIVE_KEY_PARTS)
+    )
+
+
+def _scrub_string(value: str) -> str:
+    for pattern, replacement in _VALUE_PATTERNS:
+        value = pattern.sub(replacement, value)
+
+    for pattern, replacement in _PATH_PATTERNS:
+        value = pattern.sub(replacement, value)
+
+    return value
+
+
+def _scrub(value: Any, key: str | None = None, depth: int = 0) -> Any:
+    if depth > _MAX_SCRUB_DEPTH or key in _SOURCE_CONTEXT_KEYS:
+        return value
+
+    if key is not None and isinstance(value, (str, bytes, dict, list, tuple)) and value and _is_sensitive_key(key):
+        return REDACTED
+
+    if isinstance(value, str):
+        return _scrub_string(value)
+
+    if isinstance(value, dict):
+        return {k: _scrub(v, k if isinstance(k, str) else None, depth + 1) for k, v in value.items()}
+
+    if isinstance(value, (list, tuple)):
+        return [_scrub(item, None, depth + 1) for item in value]
+
+    return value
+
+
+def _sanitize_validation_errors(event: dict[str, Any]) -> None:
     for exception in (event.get("exception") or {}).get("values", []) or []:
-        for frame in (exception.get("stacktrace") or {}).get("frames", []) or []:
-            frame.pop("vars", None)
+        error_type: str = exception.get("type") or ""
+
+        if error_type in _VALIDATION_ERROR_TYPES:
+            exception["value"] = f"{error_type}: input validation failed"
 
 
 def _add_runtime_context(event: dict[str, Any]) -> None:
@@ -71,7 +187,7 @@ def _add_runtime_context(event: dict[str, Any]) -> None:
 
 
 def _before_send(event: dict[str, Any], hint: dict[str, Any]) -> dict[str, Any] | None:
-    """Scrub secrets and enrich events with runtime context. Must never raise."""
+    """Scrub secrets and enrich events with runtime context. Fails closed on scrub errors."""
     try:
         if _is_sensitive_event(event):
             _strip_frame_variables(event)
@@ -80,10 +196,18 @@ def _before_send(event: dict[str, Any], hint: dict[str, Any]) -> dict[str, Any] 
             for key in ("data", "cookies", "query_string"):
                 request.pop(key, None)
 
+        _sanitize_validation_errors(event)
+        event = _scrub(event)
+
+    except Exception as e:  # noqa: BLE001
+        logger.debug(f"Sentry scrubbing failed, dropping event: {e}")
+        return None
+
+    try:
         _add_runtime_context(event)
 
     except Exception as e:  # noqa: BLE001
-        logger.debug(f"Sentry before_send failed: {e}")
+        logger.debug(f"Sentry runtime context failed: {e}")
 
     return event
 
@@ -116,7 +240,8 @@ def init_sentry() -> bool:
         dsn=dsn,
         environment=settings.env,
         release=f"streamstorm-engine@{settings.version}",
-        traces_sample_rate=1.0,
+        traces_sample_rate=settings.sentry_traces_sample_rate,
+        server_name="",
         attach_stacktrace=True,
         include_local_variables=True,
         max_breadcrumbs=100,
