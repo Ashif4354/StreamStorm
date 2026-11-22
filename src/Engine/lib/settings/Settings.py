@@ -1,14 +1,17 @@
 import sys
+from contextlib import suppress
 from pathlib import Path
-from os import makedirs
+from os import makedirs, replace
 from os.path import exists
 from platform import system
 from json import JSONDecodeError, dumps, loads
 from logging import Logger, getLogger
+from shutil import copyfile
+from threading import RLock
 from typing import Any, Literal
 
 from platformdirs import user_data_dir
-from pydantic import model_validator, Field
+from pydantic import model_validator, Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .SavedSettings import SavedSettings, AISettings, DEFAULT_SAVED_SETTINGS
@@ -20,59 +23,91 @@ SETTINGS_FILE_PATH: Path = APP_DATA_DIR / "settings.json"
 logger: Logger = getLogger(f"fastapi.{__name__}")
 # Does not have a handler, so it will not log anything
 
+_settings_file_lock: RLock = RLock()
+
+def _write_file_atomically(path: Path, content: str) -> None:
+    temp_path: Path = path.with_name(f"{path.name}.tmp")
+
+    with open(temp_path, "w", encoding="utf-8") as file:
+        file.write(content)
+
+    replace(temp_path, path)
+
+
 def ensure_settings_json_file() -> None:
     """Ensure the settings file and directory exist"""
-    if not exists(APP_DATA_DIR):
-        makedirs(APP_DATA_DIR, exist_ok=True)
-        logger.info(f"Created settings directory: {APP_DATA_DIR}")
+    with _settings_file_lock:
+        if not exists(APP_DATA_DIR):
+            makedirs(APP_DATA_DIR, exist_ok=True)
+            logger.info(f"Created settings directory: {APP_DATA_DIR}")
 
-    if not exists(SETTINGS_FILE_PATH):
-        with open(SETTINGS_FILE_PATH, "w", encoding="utf-8") as file:
-            file.write(dumps(DEFAULT_SAVED_SETTINGS, indent=4))
-        logger.info(f"Created default settings file: {SETTINGS_FILE_PATH}")
+        if not exists(SETTINGS_FILE_PATH):
+            _write_file_atomically(SETTINGS_FILE_PATH, dumps(DEFAULT_SAVED_SETTINGS, indent=4))
+            logger.info(f"Created default settings file: {SETTINGS_FILE_PATH}")
 
 
-def read_settings_json() -> SavedSettings:        
-    ensure_settings_json_file()
+def _migrate_loaded_settings(loaded: dict) -> dict:
+    if "ai" not in loaded:
+        loaded["ai"] = DEFAULT_SAVED_SETTINGS["ai"]
+
+    if "login_method" not in loaded:
+        loaded["login_method"] = "cookies"
+
+    if "engine" not in loaded:
+        loaded["engine"] = loaded.get("browser_engine", "chromium")
+
+    if loaded["engine"] == "native":
+        loaded["engine"] = "chromium"
+
+    return loaded
+
+
+def _recover_invalid_settings(loaded: dict, error: ValidationError) -> SavedSettings:
+    invalid_fields: set[Any] = {err["loc"][0] for err in error.errors() if err["loc"]}
+    logger.error(f"Invalid saved settings fields, falling back to defaults for: {sorted(map(str, invalid_fields))}")
+
+    with suppress(OSError):
+        copyfile(SETTINGS_FILE_PATH, SETTINGS_FILE_PATH.with_name(f"{SETTINGS_FILE_PATH.name}.bak"))
 
     try:
-        with open(SETTINGS_FILE_PATH, "r", encoding="utf-8") as file:
-            content = file.read()
-            loaded = loads(content)
+        return SavedSettings(**{k: v for k, v in loaded.items() if k not in invalid_fields})
 
-            # Ensure AI section exists
-            if "ai" not in loaded:
-                loaded["ai"] = DEFAULT_SAVED_SETTINGS["ai"]
+    except ValidationError:
+        return SavedSettings(**DEFAULT_SAVED_SETTINGS)
 
-            if "login_method" not in loaded:
-                loaded["login_method"] = "cookies"
 
-            if "engine" not in loaded:
-                old_engine = loaded.get("browser_engine", "obscura")
-                if old_engine == "native":
-                    old_engine = "chromium"
-                loaded["engine"] = old_engine
+def read_settings_json() -> SavedSettings:
+    with _settings_file_lock:
+        ensure_settings_json_file()
 
-            if loaded.get("engine") == "native":
-                loaded["engine"] = "chromium"
+        try:
+            with open(SETTINGS_FILE_PATH, "r", encoding="utf-8") as file:
+                loaded = loads(file.read())
 
+        except (JSONDecodeError, FileNotFoundError) as e:
+            logger.error(f"Error reading settings file, recreating: {e}")
+
+            _write_file_atomically(SETTINGS_FILE_PATH, dumps(DEFAULT_SAVED_SETTINGS, indent=4))
+
+            return SavedSettings(**DEFAULT_SAVED_SETTINGS)
+
+        if not isinstance(loaded, dict):
+            loaded = {}
+
+        loaded = _migrate_loaded_settings(loaded)
+
+        try:
             return SavedSettings(**loaded)
 
-    except (JSONDecodeError, FileNotFoundError) as e:
-        logger.error(f"Error reading settings file, recreating: {e}")
-
-        with open(SETTINGS_FILE_PATH, "w", encoding="utf-8") as file:
-            file.write(dumps(DEFAULT_SAVED_SETTINGS, indent=4))
-
-        return SavedSettings(**DEFAULT_SAVED_SETTINGS) 
+        except ValidationError as e:
+            return _recover_invalid_settings(loaded, e)
 
 
 def write_settings_json(settings_dict: dict) -> None:
     """Write settings to file"""
-    ensure_settings_json_file()
-
-    with open(SETTINGS_FILE_PATH, "w", encoding="utf-8") as file:
-        file.write(dumps(settings_dict, indent=4))
+    with _settings_file_lock:
+        ensure_settings_json_file()
+        _write_file_atomically(SETTINGS_FILE_PATH, dumps(settings_dict, indent=4))
 
 
 _ENV_FILES: list[str | Path] = [".env", "../../.env", "../src/Engine/.env"]
@@ -101,6 +136,7 @@ class Settings(BaseSettings):
     run_only_api: bool = False
 
     sentry_dsn: str = ""  # Fetches from STREAMSTORM_SENTRY_DSN env variable. Empty disables Sentry.
+    sentry_traces_sample_rate: float = Field(default=0.1, ge=0.0, le=1.0)
     logfire_token: str = "logfire_token"  # Fetches from env variable
 
     app_data_dir: Path = APP_DATA_DIR
@@ -112,7 +148,7 @@ class Settings(BaseSettings):
     log_file_path: str = "" # Will be set by CustomLogger during logging setup
 
     login_method: Literal["cookies", "profiles"] = "cookies"
-    engine: Literal["chromium", "obscura"] = "obscura"
+    engine: Literal["chromium", "obscura"] = "chromium"
 
     _initialized: bool = False
 

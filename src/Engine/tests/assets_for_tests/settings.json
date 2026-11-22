@@ -22,5 +22,5 @@
         "defaultBaseUrl": "https://custom.openai.com/v1"
     },
     "login_method": "cookies",
-    "engine": "obscura"
+    "engine": "chromium"
 }

@@ -1310,6 +1310,15 @@
             "login_method": "cookies",
             "engine": null,
             "result": 422
+        },
+        {
+            "id": "general_settings_12_empty_body",
+            "result": 422
+        },
+        {
+            "id": "general_settings_13_engine_only",
+            "engine": "chromium",
+            "result": 200
         }
     ]
 }

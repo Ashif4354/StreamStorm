@@ -28,7 +28,7 @@ DEFAULT_SAVED_SETTINGS: dict = {
         "defaultBaseUrl": None,
     },
     "login_method": "cookies",
-    "engine": "obscura"
+    "engine": "chromium"
 }
 """
 
@@ -57,7 +57,7 @@ class AISettings(BaseModel):
 class SavedSettings(BaseModel):
     ai: AISettings = Field(default_factory=AISettings)
     login_method: Literal["cookies", "profiles"] = "cookies"
-    engine: Literal["chromium", "obscura"] = "obscura"
+    engine: Literal["chromium", "obscura"] = "chromium"
 
 
 DEFAULT_SAVED_SETTINGS: dict = SavedSettings().model_dump()

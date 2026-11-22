@@ -24,17 +24,23 @@ class PydanticAI(AIBase):
         use_defaults = provider_name is None
         if use_defaults:
             provider_name = settings.ai.defaultProvider
-        if model_name is None:
-            model_name = settings.ai.defaultModel
-        if base_url is None and use_defaults:
-            base_url = settings.ai.defaultBaseUrl
+            if model_name is None:
+                model_name = settings.ai.defaultModel
+            if base_url is None:
+                base_url = settings.ai.defaultBaseUrl
 
-        if not provider_name or not model_name:
+        if not provider_name or (use_defaults and not model_name):
             raise SystemError("Default AI provider and model are not configured.")
 
         provider = getattr(settings.ai.providers, provider_name.lower(), None)
         if provider is None:
             raise SystemError(f"Unsupported AI provider: {provider_name}")
+
+        if model_name is None:
+            model_name = provider.model
+
+        if not model_name:
+            raise SystemError(f"Model for {provider_name} is not configured.")
 
         if not api_key:
             api_key = provider.apiKey

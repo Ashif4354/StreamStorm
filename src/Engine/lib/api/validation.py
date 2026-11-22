@@ -450,6 +450,12 @@ class GeneralSettingsData(BaseModel):
             raise ValueError("engine must be 'chromium' or 'obscura'")
         return value
 
+    @model_validator(mode="after")
+    def validate_not_empty(self) -> "GeneralSettingsData":
+        if self.login_method is None and self.engine is None:
+            raise ValueError("Provide at least one of login_method or engine")
+        return self
+
 
 __all__ : list[str] = [
     "StormData",
