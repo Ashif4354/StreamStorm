@@ -1,12 +1,10 @@
 # StreamStorm Release Workflow
 
-The version bump and release build are separate workflows. Update and push the version first, then publish a GitHub Release with a matching `vX.X.X` tag.
+The version bump is done locally and the release build is a workflow. Update and push the version first, then publish a GitHub Release with a matching `vX.X.X` tag.
 
 ## 1. Update and push the version
 
-After merging the release changes into `master`, run the **Update Version** workflow from the Actions tab. Enter `X.X.X` or `vX.X.X`. It updates the version files and commits the changes to `master`.
-
-You can also update the version locally:
+After merging the release changes into `master`, update the version locally:
 
 ```bash
 make update-versions VERSION=X.X.X
@@ -50,7 +48,7 @@ Before anything is written, the publish step refuses to continue if the new vers
 
 ### Concurrency
 
-The release workflow runs one at a time (`release-workflow` group, never cancelled) and the **Update Version** workflow likewise (`version-bump` group). If `master` moves while a bump is pushing, the push is retried after a rebase and fails with a clear error if the rebase conflicts.
+The release workflow runs one at a time (`release-workflow` group, never cancelled).
 
 ### Obscura
 
@@ -62,7 +60,6 @@ Obscura is not bundled with any installer. It is an experimental engine that use
 |---|---|---|
 | `STREAMSTORM_SENTRY_DSN` | Injected into release executables for Sentry monitoring. The release workflow fails if it is empty. | Required |
 | `DGUPDATER_CONFIG` or `DGUPDATER_MONGODB_URI` | Credentials for publishing updater data. The release workflow fails early if neither is set (non-pre-releases). | Required for updater publishing |
-| `RELEASE_PAT` | Allows the **Update Version** workflow to push when repository rules block `GITHUB_TOKEN`. | Optional unless branch protection requires it |
 
 ## Manual build fallback
 
