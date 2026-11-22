@@ -103,7 +103,7 @@ const ValidateStormData = (formControls, systemInfoControls) => {
             formControls.setNoOfChannelsHelperText("Number of channels must be at least 1.");
             atatus.addAction('validation-failed', { field: 'noOfChannels', reason: 'Channels < 1', value: formControls.noOfChannels });
             atatus.validationLogger.warn("Validation failed: Number of channels < 1", { value: formControls.noOfChannels });
-        } else if (formControls.noOfChannels > (systemInfoControls.availableRAM / systemInfoControls.RAM_PER_PROFILE)) {
+        } else if (systemInfoControls.availableRAM != null && formControls.noOfChannels > (systemInfoControls.availableRAM / systemInfoControls.RAM_PER_PROFILE)) {
             isValid = false;
             const maxChannels = Math.floor(systemInfoControls.availableRAM / systemInfoControls.RAM_PER_PROFILE);
             formControls.setErrorText(`You can run a maximum of ${maxChannels} channels with your available RAM.`);
@@ -140,7 +140,7 @@ const ValidateStormData = (formControls, systemInfoControls) => {
         }
 
         const totalChannels = formControls.endChannelIndex - formControls.startChannelIndex + 1;
-        if (totalChannels > (systemInfoControls.availableRAM / systemInfoControls.RAM_PER_PROFILE)) {
+        if (systemInfoControls.availableRAM != null && totalChannels > (systemInfoControls.availableRAM / systemInfoControls.RAM_PER_PROFILE)) {
             isValid = false;
             const maxChannels = Math.floor(systemInfoControls.availableRAM / systemInfoControls.RAM_PER_PROFILE);
             formControls.setErrorText(`You can run a maximum of ${maxChannels} channels with your available RAM.`);
