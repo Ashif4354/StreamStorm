@@ -19,11 +19,11 @@ const Logs = (props) => {
     const appState = useAppState();
 
     useEffect(() => {
-        if (open) {
-            atatus.setViewName('/modal/logs');
-            atatus.setViewContext({ modal: 'logs' });
-            atatus.addAction('modal-opened', { modal: 'logs' });
-        }
+        if (!open) return;
+        const restoreView = atatus.pushViewName('/modal/logs');
+        atatus.setViewContext({ modal: 'logs' });
+        atatus.addAction('modal-opened', { modal: 'logs' });
+        return restoreView;
     }, [open]);
 
     const modalCloseHandler = () => {

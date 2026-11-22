@@ -21,11 +21,11 @@ const ManageProfiles = (props) => {
     const { loginMethod, isLoggedIn } = useAppState();
 
     useEffect(() => {
-        if (open) {
-            atatus.setViewName('/modal/manage-environment');
-            atatus.setViewContext({ loginMethod, isLoggedIn });
-            atatus.addAction('manage-environment-modal-opened', { loginMethod, isLoggedIn });
-        }
+        if (!open) return;
+        const restoreView = atatus.pushViewName('/modal/manage-environment');
+        atatus.setViewContext({ loginMethod, isLoggedIn });
+        atatus.addAction('manage-environment-modal-opened', { loginMethod, isLoggedIn });
+        return restoreView;
     }, [open, loginMethod, isLoggedIn]);
 
     const modalCloseHandler = () => {

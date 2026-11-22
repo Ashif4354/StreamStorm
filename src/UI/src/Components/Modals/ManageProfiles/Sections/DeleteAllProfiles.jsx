@@ -75,8 +75,8 @@ const DeleteAllProfiles = () => {
                     });
                     if (data.error) {
                         console.error('Failed to delete all profiles:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['delete_all_profiles_failed'] });
-                        atatus.envLogger.error('Failed to delete all profiles', { response: data });
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['delete_all_profiles_failed'] });
+                        atatus.envLogger.error('Failed to delete all profiles', { message: data.error });
                     }
                     logEvent(analytics, "delete_all_profiles_failed");
                 }

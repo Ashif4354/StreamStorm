@@ -25,6 +25,14 @@ const LeftPanelDashboard = () => {
     const [messagesRate, setMessagesRate] = useState(0);
     const [previousActiveInstances, setPreviousActiveInstances] = useState(0);
     const instanceCountChangedOnceRef = useRef(false);
+    const viewContextSyncRef = useRef({});
+
+    const syncViewContext = (key, value) => {
+        const now = Date.now();
+        if (now - (viewContextSyncRef.current[key] || 0) < 5000) return;
+        viewContextSyncRef.current[key] = now;
+        atatus.setViewContextProperty(key, value);
+    };
 
     useEffect(() => {
         if (stormStatus === "Running") {
@@ -89,16 +97,15 @@ const LeftPanelDashboard = () => {
         socket.on('messages_rate', (data) => {
             const rate = parseFloat(data.message_rate).toFixed(2);
             setMessagesRate(rate);
-            atatus.setViewContextProperty("messagesRate", rate);
+            syncViewContext("messagesRate", rate);
         });
 
         socket.on('total_messages', (data) => {
             setMessagesSent(data.total_messages);
-            atatus.setViewContextProperty("messagesSent", data.total_messages);
+            syncViewContext("messagesSent", data.total_messages);
         });
 
         socket.on('instance_status', (data) => {
-            atatus.stormLogger.debug(`Instance ${data.instance} status updated to ${data.status}`, data);
             if (data.status === "-1") {
                 appState.setAllChannels(prev => {
                     const newChannels = { ...prev };

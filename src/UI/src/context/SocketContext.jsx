@@ -20,30 +20,30 @@ const SocketProvider = ({ children }) => {
             return;
         }
 
-        atatus.startResource(hostAddress, { type: 'websocket' });
+        atatus.startResource('engine-websocket', { type: 'websocket' });
         const newSocket = io(hostAddress);
         setSocket(newSocket);
 
         newSocket.on("connect", () => {
             setSocketConnected(true);
-            atatus.stopResource(hostAddress, { status: 200 });
+            atatus.stopResource('engine-websocket', { status: 200 });
             atatus.setGlobalContextProperty('socketConnected', true);
-            atatus.addAction('socket-connected', { hostAddress, socketId: newSocket.id });
-            atatus.socketLogger.info('Socket.IO connected to Engine', { hostAddress, socketId: newSocket.id });
+            atatus.addAction('socket-connected', { socketId: newSocket.id });
+            atatus.socketLogger.info('Socket.IO connected to Engine', { socketId: newSocket.id });
         });
 
         newSocket.on("disconnect", (reason) => {
             setSocketConnected(false);
             atatus.setGlobalContextProperty('socketConnected', false);
-            atatus.addAction('socket-disconnected', { hostAddress, reason });
-            atatus.socketLogger.warn('Socket.IO disconnected', { hostAddress, reason });
+            atatus.addAction('socket-disconnected', { reason });
+            atatus.socketLogger.warn('Socket.IO disconnected', { reason });
         });
 
         newSocket.on("connect_error", (err) => {
             setSocketConnected(false);
             atatus.setGlobalContextProperty('socketConnected', false);
-            atatus.addError(err, { tags: ['socket_connect_error'], hostAddress });
-            atatus.socketLogger.error('Socket.IO connection error', { hostAddress }, err);
+            atatus.addError(err, { tags: ['socket_connect_error'] });
+            atatus.socketLogger.error('Socket.IO connection error', {}, err);
         });
 
         return () => {

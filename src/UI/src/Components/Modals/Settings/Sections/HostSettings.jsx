@@ -45,14 +45,13 @@ const HostSettings = () => {
         if (!isValidURL(trimmed)) {
             setHostAddressError(true);
             setHostAddressHelperText("Invalid URL format, Enter a valid URL.");
-            atatus.addAction("host-address-save-validation-failed", { reason: "invalid_url", value: trimmed });
+            atatus.addAction("host-address-save-validation-failed", { reason: "invalid_url" });
             return;
         }
 
         logEvent(analytics, "host_address_change");
-        atatus.addAction("host-address-saved", { hostAddress: trimmed });
-        atatus.setGlobalContextProperty("hostAddress", trimmed);
-        atatus.settingsLogger.info("Host address updated", { hostAddress: trimmed });
+        atatus.addAction("host-address-saved");
+        atatus.settingsLogger.info("Host address updated");
 
         setHostAddressError(false);
         setHostAddressHelperText("");
@@ -71,9 +70,8 @@ const HostSettings = () => {
         setHostAddressHelperText("");
 
         logEvent(analytics, "host_address_reset");
-        atatus.addAction("host-address-reset", { hostAddress: DEFAULT_HOST_ADDRESS });
-        atatus.setGlobalContextProperty("hostAddress", DEFAULT_HOST_ADDRESS);
-        atatus.settingsLogger.info("Host address reset to default", { hostAddress: DEFAULT_HOST_ADDRESS });
+        atatus.addAction("host-address-reset");
+        atatus.settingsLogger.info("Host address reset to default");
 
         notifications.show("Host address reset to default!", {
             severity: "info",

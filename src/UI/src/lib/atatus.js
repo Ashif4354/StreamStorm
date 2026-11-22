@@ -5,12 +5,12 @@
  * - https://js-cdn.atatus.io/atatus-browser-agent/latest/atatus-logs.js
  *
  * Features:
- * - 100% full unmasked visibility with early-call queueing & auto-flush after init()
+ * - Early-call queueing & auto-flush after init()
  * - Full Views, Actions, Resources, Errors, Timings, Duration Vitals, Operations API
  * - Identity (User & Account), Global Context, Feature Flags
  * - Session Replay links and controls
  * - Named Scoped Loggers (storm, environment, settings, ai, socket, server, system, validation, api, ui)
- * - Automatic fetch payload logging & unmasked DOM input change observers
+ * - Automatic fetch metadata logging (method, path, status, duration) & input change observers (field name and type only)
  */
 
 const isBrowser = typeof window !== 'undefined';
@@ -118,7 +118,20 @@ function withLogs(callback) {
 // VIEWS API
 // ==========================================
 export const startView = (name) => withRum((rum) => rum.startView?.(name));
-export const setViewName = (name) => withRum((rum) => rum.setViewName?.(name));
+let baseViewName = null;
+let activeViewName = null;
+
+export const setViewName = (name) => {
+    activeViewName = name;
+    if (!/^\/(modal|dialog)\//.test(name)) baseViewName = name;
+    return withRum((rum) => rum.setViewName?.(name));
+};
+export const pushViewName = (name) => {
+    setViewName(name);
+    return () => {
+        if (activeViewName === name && baseViewName) setViewName(baseViewName);
+    };
+};
 export const setViewContext = (context) => withRum((rum) => rum.setViewContext?.(context));
 export const setViewContextProperty = (key, value) => withRum((rum) => rum.setViewContextProperty?.(key, value));
 export const setViewLoadingTime = (...args) => withRum((rum) => rum.setViewLoadingTime?.(...args));
@@ -299,35 +312,46 @@ export const logger = {
 // ==========================================
 // AUTOMATIC GLOBAL OBSERVERS
 // ==========================================
-let observersInstalled = false;
+const TELEMETRY_HOST_PATTERN = /(^|\.)(atatus\.(io|com)|googleapis\.com|gstatic\.com|firebaseio\.com|firebaseapp\.com|cloudfunctions\.net|googletagmanager\.com|google-analytics\.com)$/i;
+
+const describeRequest = (input) => {
+    try {
+        const raw = typeof input === 'string' ? input : (input?.url ?? String(input));
+        const parsed = new URL(raw, window.location.href);
+        return { skip: TELEMETRY_HOST_PATTERN.test(parsed.hostname), path: parsed.pathname };
+    } catch {
+        return { skip: false, path: 'unknown-url' };
+    }
+};
 
 export const installGlobalObservers = () => {
-    if (!isBrowser || observersInstalled) return;
-    observersInstalled = true;
+    if (!isBrowser || window.__ATATUS_OBSERVERS_INSTALLED__) return;
+    window.__ATATUS_OBSERVERS_INSTALLED__ = true;
 
-    // 1. Transparent Fetch Observer: Logs API request metadata without sensitive body payloads
     const originalFetch = window.fetch;
     window.fetch = async function (...args) {
+        const { skip, path } = describeRequest(args[0]);
+        if (skip) return originalFetch.apply(this, args);
+
         const startTime = Date.now();
-        const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || 'unknown-url');
         const options = args[1] || {};
         const method = options.method || (args[0]?.method) || 'GET';
 
         try {
             const response = await originalFetch.apply(this, args);
             const duration = Date.now() - startTime;
-            apiLogger.debug(`${method} ${url} -> ${response.status} (${duration}ms)`, {
+            apiLogger.debug(`${method} ${path} -> ${response.status} (${duration}ms)`, {
                 method,
-                url,
+                path,
                 status: response.status,
                 duration,
             });
             return response;
         } catch (error) {
             const duration = Date.now() - startTime;
-            apiLogger.error(`${method} ${url} FAILED (${duration}ms)`, {
+            apiLogger.error(`${method} ${path} FAILED (${duration}ms)`, {
                 method,
-                url,
+                path,
                 duration,
             }, error);
             throw error;
@@ -353,6 +377,7 @@ export const installGlobalObservers = () => {
 export default {
     startView,
     setViewName,
+    pushViewName,
     setViewContext,
     setViewContextProperty,
     setViewLoadingTime,

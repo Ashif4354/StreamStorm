@@ -83,7 +83,7 @@ const CreateChannels = () => {
         }
 
         setValidatingPath(true);
-        atatus.addAction('validate-path-triggered', { path: channelsLogoPath });
+        atatus.addAction('validate-path-triggered');
         atatus.startOperation('verify_dir');
         atatus.startDurationVital('verify_dir');
 
@@ -125,8 +125,8 @@ const CreateChannels = () => {
 
                     if (data.error) {
                         console.error('Failed to validate directory:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['validate_path_failed'] });
-                        atatus.envLogger.error('Failed to validate directory', { response: data });
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['validate_path_failed'] });
+                        atatus.envLogger.error('Failed to validate directory', { message: data.error });
                     }
                     logEvent(analytics, 'validate_path_failed');
                 }
@@ -219,8 +219,8 @@ const CreateChannels = () => {
 
                     if (data.error) {
                         console.error('Failed to create channels:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['create_channels_failed'] });
-                        atatus.envLogger.error('Failed to create channels', { response: data });
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['create_channels_failed'] });
+                        atatus.envLogger.error('Failed to create channels', { message: data.error });
                     }
                     logEvent(analytics, 'create_channels_failed');
                     notifications.show(data.message || 'Failed to create channels', {

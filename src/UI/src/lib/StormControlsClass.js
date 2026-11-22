@@ -17,14 +17,14 @@ class StormControlsClass {
         this.setMoreChannelsLoading = null;
     }
 
-    log_analytics(stormData) {
+    log_analytics(stormData, channelSelection) {
         if (stormData.subscribe) { logEvent(analytics, "subscribe"); }
-        if (stormData.subscribe_and_wait) { logEvent(analytics, "subscribe_and_wait"); }
-        if (stormData.subscribe_and_wait_time) { logEvent(analytics, "subscribe_and_wait_time", { time: stormData.subscribe_and_wait_time }); }
-        if (stormData.slow_mode != 5) { logEvent(analytics, "slow_mode_change", { time: stormData.slow_mode }); }
+        if (stormData.subscribeAndWait) { logEvent(analytics, "subscribe_and_wait"); }
+        if (stormData.subscribeAndWaitTime) { logEvent(analytics, "subscribe_and_wait_time", { time: stormData.subscribeAndWaitTime }); }
+        if (stormData.slowMode != 5) { logEvent(analytics, "slow_mode_change", { time: stormData.slowMode }); }
         if (stormData.background) { logEvent(analytics, "background_load"); }
         logEvent(analytics, "channel_count", { count: stormData.channels.length });
-        logEvent(analytics, "channel_selection_mode", { mode: stormData.channelSelection });
+        logEvent(analytics, "channel_selection_mode", { mode: channelSelection });
     }
 
     startStorm(formControls, systemInfoControls, appState) {
@@ -36,12 +36,11 @@ class StormControlsClass {
         }
 
         const stormData = formControls.getStormData();
-        this.log_analytics(stormData);
+        this.log_analytics(stormData, formControls.channelSelection);
 
         atatus.startOperation('start-storm', { channelsCount: stormData.channels.length });
         atatus.startDurationVital('start-storm');
         atatus.addAction('storm-start-requested', {
-            videoUrl: stormData.videoUrl,
             channelsCount: stormData.channels.length,
             slowMode: stormData.slowMode,
             subscribe: stormData.subscribe,
@@ -80,8 +79,8 @@ class StormControlsClass {
                     });
                     if (data.error) {
                         console.error('Failed to start storm:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['storm_start_failed'] });
-                        atatus.stormLogger.error('Failed to start storm', { response: data }, new Error(data.error));
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['storm_start_failed'] });
+                        atatus.stormLogger.error('Failed to start storm', { message: data.error }, new Error(data.error));
                     }
                     logEvent(analytics, "storm_start_failed");
                 }
@@ -134,8 +133,8 @@ class StormControlsClass {
                     });
                     if (data.error) {
                         console.error('Failed to stop storm:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['storm_stop_failed'] });
-                        atatus.stormLogger.error('Failed to stop storm', { response: data }, new Error(data.error));
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['storm_stop_failed'] });
+                        atatus.stormLogger.error('Failed to stop storm', { message: data.error }, new Error(data.error));
                     }
                     logEvent(analytics, "storm_stop_failed");
                 }
@@ -180,8 +179,8 @@ class StormControlsClass {
                     atatus.failOperation('stop-storm-auxiliary', data.error || data.message);
                     if (data.error) {
                         console.error('Failed to stop storm (2):', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['storm_stop_2_failed'] });
-                        atatus.stormLogger.error('Failed to stop storm (2)', { response: data }, new Error(data.error));
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['storm_stop_2_failed'] });
+                        atatus.stormLogger.error('Failed to stop storm (2)', { message: data.error }, new Error(data.error));
                     }
                     logEvent(analytics, "storm_stop_2_failed");
                 }
@@ -228,8 +227,8 @@ class StormControlsClass {
                     });
                     if (data.error) {
                         console.error('Failed to pause storm:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['storm_pause_failed'] });
-                        atatus.stormLogger.error('Failed to pause storm', { response: data }, new Error(data.error));
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['storm_pause_failed'] });
+                        atatus.stormLogger.error('Failed to pause storm', { message: data.error }, new Error(data.error));
                     }
                     logEvent(analytics, "storm_pause_failed");
                 }
@@ -279,8 +278,8 @@ class StormControlsClass {
                     });
                     if (data.error) {
                         console.error('Failed to resume storm:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['storm_resume_failed'] });
-                        atatus.stormLogger.error('Failed to resume storm', { response: data }, new Error(data.error));
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['storm_resume_failed'] });
+                        atatus.stormLogger.error('Failed to resume storm', { message: data.error }, new Error(data.error));
                     }
                     logEvent(analytics, "storm_resume_failed");
                 }
@@ -330,8 +329,8 @@ class StormControlsClass {
                     });
                     if (data.error) {
                         console.error('Failed to set dont-wait:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['dont_wait_failed'] });
-                        atatus.stormLogger.error('Failed to set dont-wait', { response: data }, new Error(data.error));
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['dont_wait_failed'] });
+                        atatus.stormLogger.error('Failed to set dont-wait', { message: data.error }, new Error(data.error));
                     }
                     logEvent(analytics, "dont_wait_failed");
                 }
@@ -356,7 +355,7 @@ class StormControlsClass {
         this.setControlsDisabled(true);
 
         atatus.startOperation('change-messages', { count: messages.length });
-        atatus.addAction('storm-change-messages-requested', { count: messages.length, messages });
+        atatus.addAction('storm-change-messages-requested', { count: messages.length });
 
         fetch(`${this.hostAddress}/storm/change_messages`, {
             method: 'POST',
@@ -383,8 +382,8 @@ class StormControlsClass {
                     });
                     if (data.error) {
                         console.error('Failed to change messages:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['change_messages_failed'] });
-                        atatus.stormLogger.error('Failed to change messages', { response: data }, new Error(data.error));
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['change_messages_failed'] });
+                        atatus.stormLogger.error('Failed to change messages', { message: data.error }, new Error(data.error));
                     }
                     logEvent(analytics, "change_messages_failed");
                 }
@@ -435,8 +434,8 @@ class StormControlsClass {
                     });
                     if (data.error) {
                         console.error('Failed to change slow mode:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['change_slow_mode_failed'] });
-                        atatus.stormLogger.error('Failed to change slow mode', { response: data }, new Error(data.error));
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['change_slow_mode_failed'] });
+                        atatus.stormLogger.error('Failed to change slow mode', { message: data.error }, new Error(data.error));
                     }
                     logEvent(analytics, "change_slow_mode_failed");
                 }
@@ -461,7 +460,7 @@ class StormControlsClass {
         this.setControlsDisabled(true);
 
         atatus.startOperation('start-more-channels', { count: channels.length });
-        atatus.addAction('storm-start-more-channels-requested', { channels });
+        atatus.addAction('storm-start-more-channels-requested', { count: channels.length });
 
         fetch(`${this.hostAddress}/storm/start_more_channels`, {
             method: 'POST',
@@ -486,8 +485,8 @@ class StormControlsClass {
                     });
                     if (data.error) {
                         console.error('Failed to start more channels:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['start_more_channels_failed'] });
-                        atatus.stormLogger.error('Failed to start more channels', { response: data }, new Error(data.error));
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['start_more_channels_failed'] });
+                        atatus.stormLogger.error('Failed to start more channels', { message: data.error }, new Error(data.error));
                     }
                     logEvent(analytics, "start_more_channels_failed");
                 }

@@ -41,15 +41,15 @@ const ChannelCard = (props) => {
     }
 
     const onHandleKillInstance = async () => {
-        atatus.addAction('kill-instance-prompted', { instance: id, channelName: channel.name });
+        atatus.addAction('kill-instance-prompted', { instance: id });
         const confirmed = await dialogs.open(AreYouSure, {
             text: <span>Are you sure you want to <strong style={{ color: "var(--input-active-red-dark)" }}>KILL</strong> Instance {id}. {channel.name}</span>
         });
 
         if (confirmed) {
-            atatus.startOperation('kill-instance', { instance: id, name: channel.name });
+            atatus.startOperation('kill-instance', { instance: id });
             atatus.startDurationVital('kill-instance');
-            atatus.addAction('kill-instance-confirmed', { instance: id, name: channel.name });
+            atatus.addAction('kill-instance-confirmed', { instance: id });
 
             fetch(appState.hostAddress + `/storm/kill_instance`, {
                 method: 'POST',
@@ -63,7 +63,7 @@ const ChannelCard = (props) => {
                     atatus.stopDurationVital('kill-instance');
                     if (data.success) {
                         atatus.succeedOperation('kill-instance');
-                        atatus.stormLogger.info('Instance killed successfully', { instance: id, channelName: channel.name });
+                        atatus.stormLogger.info('Instance killed successfully', { instance: id });
                         notifications.show('Instance Killed', { severity: 'success' });
                         logEvent(analytics, "kill_instance_success", { instance: id });
                     } else {
@@ -71,8 +71,8 @@ const ChannelCard = (props) => {
                         notifications.show(data.message || 'Failed to kill instance', { severity: 'error' });
                         if (data.error) {
                             console.error('Failed to kill instance:', data.error);
-                            atatus.addError(new Error(data.error), { response: data, tags: ['kill_instance_failed'] });
-                            atatus.stormLogger.error('Failed to kill instance', { response: data, instance: id }, new Error(data.error));
+                            atatus.addError(new Error(data.error), { message: data.error, tags: ['kill_instance_failed'] });
+                            atatus.stormLogger.error('Failed to kill instance', { message: data.error, instance: id }, new Error(data.error));
                         }
                         logEvent(analytics, "kill_instance_failed", { instance: id });
                     }

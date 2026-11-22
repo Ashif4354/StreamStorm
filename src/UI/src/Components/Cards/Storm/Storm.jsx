@@ -30,10 +30,9 @@ const Storm = () => {
         atatus.setViewContext({
             stormInProgress: appState.stormInProgress,
             stormStatus: appState.stormStatus,
-            hostAddress: appState.hostAddress,
         });
         atatus.stormLogger.debug(`Dashboard view changed to ${view}`);
-    }, [appState.stormInProgress, appState.stormStatus, appState.hostAddress]);
+    }, [appState.stormInProgress, appState.stormStatus]);
 
     const askToJoinExistingStorm = async () => {
         atatus.addAction('ask-join-storm-prompted');
@@ -75,8 +74,8 @@ const Storm = () => {
                     atatus.failOperation('check-storm-status', data.error || 'Check failed');
                     if (data.error) {
                         console.error("Failed to fetch storm status:", data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['storm_status_check_failed'] });
-                        atatus.stormLogger.error('Failed to check storm status', { response: data }, new Error(data.error));
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['storm_status_check_failed'] });
+                        atatus.stormLogger.error('Failed to check storm status', { message: data.error }, new Error(data.error));
                     }
                 }
             } catch (error) {

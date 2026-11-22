@@ -23,7 +23,7 @@ const AppStateProvider = ({ children }) => {
 
     // General settings (stored in app state, synced with backend)
     const [loginMethod, setLoginMethod] = useState('cookies');
-    const [engine, setEngine] = useState('obscura');
+    const [engine, setEngine] = useState('chromium');
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     const [settingsLoading, setSettingsLoading] = useState(true);
@@ -90,37 +90,37 @@ const AppStateProvider = ({ children }) => {
                     // Set general settings from 'general' sub-key
                     if (data.general) {
                         setLoginMethod(data.general.login_method ?? 'cookies');
-                        setEngine(data.general.engine ?? 'obscura');
+                        setEngine(data.general.engine ?? 'chromium');
                         setIsLoggedIn(data.general.is_logged_in ?? false);
                     }
 
                     // Register identity and global context
                     atatus.setAccount({
-                        id: hostAddress,
+                        id: 'streamstorm-engine',
                         name: 'StreamStorm Engine',
                         engineVersion: data.version,
                     });
                     atatus.setUser({
                         id: data.general?.is_logged_in ? 'authenticated-operator' : 'anonymous-operator',
                         loginMethod: data.general?.login_method || 'cookies',
-                        engine: data.general?.engine || 'obscura',
+                        engine: data.general?.engine || 'chromium',
                         isLoggedIn: data.general?.is_logged_in || false,
                     });
                     atatus.setGlobalContextProperty('engineVersion', data.version);
                     atatus.setGlobalContextProperty('uiVersion', UIVersion);
-                    atatus.setGlobalContextProperty('hostAddress', hostAddress);
 
                     atatus.settingsLogger.info('Engine settings initialized successfully', {
                         version: data.version,
-                        general: data.general,
-                        ai: data.ai,
+                        engine: data.general?.engine,
+                        loginMethod: data.general?.login_method,
+                        defaultProvider: data.ai?.defaultProvider,
                     });
                 } else {
                     atatus.failOperation('settings-bootstrap', data.error || 'Failed to fetch settings');
                     if (data.error) {
                         console.error("Failed to fetch settings:", data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['settings_fetch_failed'] });
-                        atatus.settingsLogger.error('Failed to fetch settings from engine', { response: data }, new Error(data.error));
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['settings_fetch_failed'] });
+                        atatus.settingsLogger.error('Failed to fetch settings from engine', { message: data.error }, new Error(data.error));
                     }
                 }
             } catch (error) {

@@ -17,24 +17,24 @@ const ValidateStormData = (formControls, systemInfoControls) => {
                 isValid = false;
                 formControls.setVideoURLError(true);
                 formControls.setVideoURLHelperText("Invalid Video URL. Must be a YouTube link.");
-                atatus.addAction('validation-failed', { field: 'videoURL', reason: 'Hostname must be www.youtube.com', value: formControls.videoURL });
-                atatus.validationLogger.warn("Validation failed: Not a YouTube link", { value: formControls.videoURL });
+                atatus.addAction('validation-failed', { field: 'videoURL', reason: 'Hostname must be www.youtube.com' });
+                atatus.validationLogger.warn("Validation failed: Not a YouTube link");
             } else if (!url.search.startsWith('?v=')) {
                 isValid = false;
                 formControls.setVideoURLError(true);
                 formControls.setVideoURLHelperText("Invalid Youtube Video Link.");
-                atatus.addAction('validation-failed', { field: 'videoURL', reason: 'Missing ?v= parameter', value: formControls.videoURL });
-                atatus.validationLogger.warn("Validation failed: Missing video ID (?v=)", { value: formControls.videoURL });
+                atatus.addAction('validation-failed', { field: 'videoURL', reason: 'Missing ?v= parameter' });
+                atatus.validationLogger.warn("Validation failed: Missing video ID (?v=)");
             } else if (url.pathname != "/watch") {
                 isValid = false;
                 formControls.setVideoURLError(true);
                 formControls.setVideoURLHelperText("Invalid Youtube Video Link.");
-                atatus.addAction('validation-failed', { field: 'videoURL', reason: 'Pathname is not /watch', value: formControls.videoURL });
-                atatus.validationLogger.warn("Validation failed: Pathname is not /watch", { value: formControls.videoURL });
+                atatus.addAction('validation-failed', { field: 'videoURL', reason: 'Pathname is not /watch' });
+                atatus.validationLogger.warn("Validation failed: Pathname is not /watch");
             }
         } catch (e) {
-            atatus.addError(e, { tags: ['video_url_validation_error'], videoURL: formControls.videoURL });
-            atatus.validationLogger.error("URL parse error during validation", { videoURL: formControls.videoURL }, e);
+            atatus.addError(e, { tags: ['video_url_validation_error'] });
+            atatus.validationLogger.error("URL parse error during validation", {}, e);
             isValid = false;
             formControls.setVideoURLError(true);
             formControls.setVideoURLHelperText("Invalid Video URL.");
@@ -158,7 +158,6 @@ const ValidateStormData = (formControls, systemInfoControls) => {
 
     if (isValid) {
         atatus.addAction('storm-validation-passed', {
-            videoURL: formControls.videoURL,
             messagesCount: formControls.messages.length,
             slowMode: formControls.slowMode,
             channelSelection: formControls.channelSelection,

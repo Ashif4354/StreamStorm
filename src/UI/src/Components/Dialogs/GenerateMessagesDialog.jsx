@@ -32,10 +32,10 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
     const isProviderConfigured = appState.defaultAIProvider !== null && appState.defaultAIProvider !== undefined;
 
     useEffect(() => {
-        if (open) {
-            atatus.setViewName('/dialog/ai-generate-messages');
-            atatus.setViewContext({ provider: appState.defaultAIProvider, model: appState.defaultAIModel });
-        }
+        if (!open) return;
+        const restoreView = atatus.pushViewName('/dialog/ai-generate-messages');
+        atatus.setViewContext({ provider: appState.defaultAIProvider, model: appState.defaultAIModel });
+        return restoreView;
     }, [open, appState.defaultAIProvider, appState.defaultAIModel]);
 
     const handleSubmit = async () => {
@@ -51,8 +51,8 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
 
         atatus.startFeatureOperation('ai-generate-messages', { provider: appState.defaultAIProvider, model: appState.defaultAIModel });
         atatus.startDurationVital('ai-generate-messages');
-        atatus.addAction('ai-generate-messages-submitted', { prompt: prompt.trim(), provider: appState.defaultAIProvider, model: appState.defaultAIModel });
-        atatus.aiLogger.info('Generating messages via AI', { prompt: prompt.trim(), provider: appState.defaultAIProvider, model: appState.defaultAIModel });
+        atatus.addAction('ai-generate-messages-submitted', { promptLength: prompt.trim().length, provider: appState.defaultAIProvider, model: appState.defaultAIModel });
+        atatus.aiLogger.info('Generating messages via AI', { promptLength: prompt.trim().length, provider: appState.defaultAIProvider, model: appState.defaultAIModel });
 
         try {
             const response = await fetch(`${appState.hostAddress}/ai/generate/messages`, {
@@ -60,7 +60,7 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ prompt: prompt.trim() }),
+                body: JSON.stringify({ promptLength: prompt.trim().length }),
             });
 
             const data = await response.json();
@@ -72,8 +72,8 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
                 setHelperText(data.message || 'Failed to generate messages.');
                 if (data.error) {
                     console.error('Failed to generate messages:', data.error);
-                    atatus.addError(new Error(data.error), { response: data, tags: ['ai_generate_messages_failed'] });
-                    atatus.aiLogger.error('Failed to generate messages', { response: data, prompt: prompt.trim() }, new Error(data.error));
+                    atatus.addError(new Error(data.error), { message: data.error, tags: ['ai_generate_messages_failed'] });
+                    atatus.aiLogger.error('Failed to generate messages', { message: data.error, promptLength: prompt.trim().length }, new Error(data.error));
                 }
                 logEvent(analytics, "ai_generate_messages_failed");
                 return;
@@ -83,15 +83,15 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
                 atatus.failOperation('ai-generate-messages', 'Empty messages response');
                 setError(true);
                 setHelperText("No messages were generated. Try a different prompt.");
-                atatus.aiLogger.warn('No messages returned by AI', { prompt: prompt.trim() });
+                atatus.aiLogger.warn('No messages returned by AI', { promptLength: prompt.trim().length });
                 logEvent(analytics, "ai_generate_messages_empty");
                 return;
             }
 
             // Return the generated messages
             atatus.succeedOperation('ai-generate-messages');
-            atatus.aiLogger.info('Messages generated successfully', { count: data.messages.length, messages: data.messages });
-            atatus.addAction('ai-generate-messages-success', { count: data.messages.length, messages: data.messages });
+            atatus.aiLogger.info('Messages generated successfully', { count: data.messages.length });
+            atatus.addAction('ai-generate-messages-success', { count: data.messages.length });
             logEvent(analytics, "ai_generate_messages_success", { count: data.messages.length });
             onClose(data.messages);
             setPrompt("");
@@ -104,8 +104,8 @@ const GenerateMessagesDialog = ({ open, onClose }) => {
                 severity: "error",
                 autoHideDuration: 3000,
             });
-            atatus.addError(err, { tags: ['ai_generate_messages_error'], prompt: prompt.trim() });
-            atatus.aiLogger.error('Network error during AI messages generation', { prompt: prompt.trim() }, err);
+            atatus.addError(err, { tags: ['ai_generate_messages_error'], promptLength: prompt.trim().length });
+            atatus.aiLogger.error('Network error during AI messages generation', { promptLength: prompt.trim().length }, err);
             logEvent(analytics, "ai_generate_messages_error");
         } finally {
             setLoading(false);

@@ -13,10 +13,10 @@ const ChangeSlowMode = ({ payload, open, onClose }) => {
     const [slowModeHelperText, setSlowModeHelperText] = useState("");
 
     useEffect(() => {
-        if (open) {
-            atatus.setViewName("/dialog/change-slow-mode");
-            atatus.setViewContext({ dialog: "change-slow-mode", currentSlowMode: formControls.slowMode });
-        }
+        if (!open) return;
+        const restoreView = atatus.pushViewName("/dialog/change-slow-mode");
+        atatus.setViewContext({ dialog: "change-slow-mode", currentSlowMode: formControls.slowMode });
+        return restoreView;
     }, [open, formControls.slowMode]);
 
     useEffect(() => {

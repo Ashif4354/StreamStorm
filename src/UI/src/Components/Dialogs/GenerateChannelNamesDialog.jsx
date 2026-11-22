@@ -32,10 +32,10 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
     const isProviderConfigured = defaultAIProvider !== null && defaultAIProvider !== undefined;
 
     useEffect(() => {
-        if (open) {
-            atatus.setViewName('/dialog/ai-generate-channel-names');
-            atatus.setViewContext({ provider: defaultAIProvider, model: defaultAIModel });
-        }
+        if (!open) return;
+        const restoreView = atatus.pushViewName('/dialog/ai-generate-channel-names');
+        atatus.setViewContext({ provider: defaultAIProvider, model: defaultAIModel });
+        return restoreView;
     }, [open, defaultAIProvider, defaultAIModel]);
 
     const handleSubmit = async () => {
@@ -51,8 +51,8 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
 
         atatus.startFeatureOperation('ai-generate-channel-names', { provider: defaultAIProvider, model: defaultAIModel });
         atatus.startDurationVital('ai-generate-channel-names');
-        atatus.addAction('ai-generate-channel-names-submitted', { prompt: prompt.trim(), provider: defaultAIProvider, model: defaultAIModel });
-        atatus.aiLogger.info('Generating channel names via AI', { prompt: prompt.trim(), provider: defaultAIProvider, model: defaultAIModel });
+        atatus.addAction('ai-generate-channel-names-submitted', { promptLength: prompt.trim().length, provider: defaultAIProvider, model: defaultAIModel });
+        atatus.aiLogger.info('Generating channel names via AI', { promptLength: prompt.trim().length, provider: defaultAIProvider, model: defaultAIModel });
 
         try {
             const response = await fetch(`${hostAddress}/ai/generate/channel-names`, {
@@ -60,7 +60,7 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ prompt: prompt.trim() }),
+                body: JSON.stringify({ promptLength: prompt.trim().length }),
             });
 
             const data = await response.json();
@@ -72,8 +72,8 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
                 setHelperText(data.message || 'Failed to generate channel names.');
                 if (data.error) {
                     console.error('Failed to generate channel names:', data.error);
-                    atatus.addError(new Error(data.error), { response: data, tags: ['ai_generate_channel_names_failed'] });
-                    atatus.aiLogger.error('Failed to generate channel names', { response: data, prompt: prompt.trim() }, new Error(data.error));
+                    atatus.addError(new Error(data.error), { message: data.error, tags: ['ai_generate_channel_names_failed'] });
+                    atatus.aiLogger.error('Failed to generate channel names', { message: data.error, promptLength: prompt.trim().length }, new Error(data.error));
                 }
                 logEvent(analytics, "ai_generate_channel_names_failed");
                 return;
@@ -83,15 +83,15 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
                 atatus.failOperation('ai-generate-channel-names', 'Empty channel names response');
                 setError(true);
                 setHelperText("No channel names were generated. Try a different prompt.");
-                atatus.aiLogger.warn('No channel names returned by AI', { prompt: prompt.trim() });
+                atatus.aiLogger.warn('No channel names returned by AI', { promptLength: prompt.trim().length });
                 logEvent(analytics, "ai_generate_channel_names_empty");
                 return;
             }
 
             // Return the generated channel names
             atatus.succeedOperation('ai-generate-channel-names');
-            atatus.aiLogger.info('Channel names generated successfully', { count: data.channelNames.length, channelNames: data.channelNames });
-            atatus.addAction('ai-generate-channel-names-success', { count: data.channelNames.length, channelNames: data.channelNames });
+            atatus.aiLogger.info('Channel names generated successfully', { count: data.channelNames.length });
+            atatus.addAction('ai-generate-channel-names-success', { count: data.channelNames.length });
             logEvent(analytics, "ai_generate_channel_names_success", { count: data.channelNames.length });
             onClose(data.channelNames);
             setPrompt("");
@@ -104,8 +104,8 @@ const GenerateChannelNamesDialog = ({ open, onClose }) => {
                 severity: "error",
                 autoHideDuration: 3000,
             });
-            atatus.addError(err, { tags: ['ai_generate_channel_names_error'], prompt: prompt.trim() });
-            atatus.aiLogger.error('Network error during AI channel names generation', { prompt: prompt.trim() }, err);
+            atatus.addError(err, { tags: ['ai_generate_channel_names_error'], promptLength: prompt.trim().length });
+            atatus.aiLogger.error('Network error during AI channel names generation', { promptLength: prompt.trim().length }, err);
             logEvent(analytics, "ai_generate_channel_names_error");
         } finally {
             setLoading(false);

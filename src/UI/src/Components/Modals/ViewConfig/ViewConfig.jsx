@@ -19,11 +19,11 @@ const ViewConfig = (props) => {
     const formControls = useStormData();
 
     useEffect(() => {
-        if (open) {
-            atatus.setViewName('/modal/view-config');
-            atatus.setViewContext({ modal: 'view-config' });
-            atatus.addAction('modal-opened', { modal: 'view-config' });
-        }
+        if (!open) return;
+        const restoreView = atatus.pushViewName('/modal/view-config');
+        atatus.setViewContext({ modal: 'view-config' });
+        atatus.addAction('modal-opened', { modal: 'view-config' });
+        return restoreView;
     }, [open]);
 
     const modalCloseHandler = () => {

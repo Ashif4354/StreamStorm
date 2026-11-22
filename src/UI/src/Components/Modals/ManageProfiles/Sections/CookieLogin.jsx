@@ -72,8 +72,8 @@ const CookieLogin = () => {
                     });
                     if (data.error) {
                         console.error('Failed to cookie login:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['cookie_login_failed'] });
-                        atatus.envLogger.error('Failed to cookie login', { response: data });
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['cookie_login_failed'] });
+                        atatus.envLogger.error('Failed to cookie login', { message: data.error });
                     }
                     logEvent(analytics, "cookie_login_failed");
                 }
@@ -98,7 +98,7 @@ const CookieLogin = () => {
         const files = Array.from(e.target.files);
         setCookieFiles(files);
         setUploadError("");
-        atatus.addAction('cookie-files-selected', { count: files.length, fileNames: files.map(f => f.name) });
+        atatus.addAction('cookie-files-selected', { count: files.length });
     };
 
     const handleCookieUpload = async () => {
@@ -111,7 +111,7 @@ const CookieLogin = () => {
         setUploadError("");
         setUploadLoading(true);
 
-        atatus.addAction('cookie-upload-triggered', { count: cookieFiles.length, files: cookieFiles.map(f => ({ name: f.name, size: f.size })) });
+        atatus.addAction('cookie-upload-triggered', { count: cookieFiles.length });
         atatus.startOperation('cookie_upload');
         atatus.startDurationVital('cookie_upload');
         logEvent(analytics, "cookie_upload_start");
@@ -152,8 +152,8 @@ const CookieLogin = () => {
                 });
                 if (data.error) {
                     console.error('Failed to upload cookies:', data.error);
-                    atatus.addError(new Error(data.error), { response: data, tags: ['cookie_upload_failed'] });
-                    atatus.envLogger.error('Failed to upload cookies', { response: data });
+                    atatus.addError(new Error(data.error), { message: data.error, tags: ['cookie_upload_failed'] });
+                    atatus.envLogger.error('Failed to upload cookies', { message: data.error });
                 }
                 logEvent(analytics, "cookie_upload_failed");
             }
@@ -203,8 +203,8 @@ const CookieLogin = () => {
                     });
                     if (data.error) {
                         console.error('Failed to add account:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['add_account_failed'] });
-                        atatus.envLogger.error('Failed to add account', { response: data });
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['add_account_failed'] });
+                        atatus.envLogger.error('Failed to add account', { message: data.error });
                     }
                     logEvent(analytics, "add_account_failed");
                 }

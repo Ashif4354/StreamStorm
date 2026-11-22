@@ -27,19 +27,6 @@ const App = () => {
         if (!socket || !socket.connected || !socketConnected) return;
 
         socket.on("log", (data) => {
-            // Forward real-time Engine log to Atatus Browser Logs
-            try {
-                const logMessage = typeof data === 'string' ? data : (data?.message || JSON.stringify(data));
-                const lower = logMessage.toLowerCase();
-                if (lower.includes('error') || lower.includes('exception') || lower.includes('failed')) {
-                    atatus.serverLogger.error(logMessage, { source: 'engine-socket', raw: data });
-                } else if (lower.includes('warning') || lower.includes('warn')) {
-                    atatus.serverLogger.warn(logMessage, { source: 'engine-socket', raw: data });
-                } else {
-                    atatus.serverLogger.info(logMessage, { source: 'engine-socket', raw: data });
-                }
-            } catch (_) {}
-
             appState.setLogs(prevLogs => {
                 const newLogs = [...prevLogs, data];
                 if (newLogs.length > MAX_LOGS) {

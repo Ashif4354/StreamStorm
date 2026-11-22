@@ -19,12 +19,12 @@ const ChannelsStatus = (props) => {
     const appState = useAppState();
 
     useEffect(() => {
-        if (open) {
-            atatus.setViewName('/modal/channels-status');
-            atatus.setViewContext({ totalChannels: Object.keys(appState.allChannels || {}).length });
-            atatus.addAction('channels-status-modal-opened', { totalChannels: Object.keys(appState.allChannels || {}).length });
-        }
-    }, [open, appState.allChannels]);
+        if (!open) return;
+        const restoreView = atatus.pushViewName('/modal/channels-status');
+        atatus.setViewContext({ totalChannels: Object.keys(appState.allChannels || {}).length });
+        atatus.addAction('channels-status-modal-opened', { totalChannels: Object.keys(appState.allChannels || {}).length });
+        return restoreView;
+    }, [open]);
 
     const modalCloseHandler = () => {
         atatus.addAction('channels-status-modal-closed');

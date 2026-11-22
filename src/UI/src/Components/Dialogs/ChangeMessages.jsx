@@ -14,10 +14,10 @@ const ChangeMessages = ({ payload, open, onClose }) => {
     const [messagesString, setMessagesString] = useState("");
 
     useEffect(() => {
-        if (open) {
-            atatus.setViewName("/dialog/change-messages");
-            atatus.setViewContext({ dialog: "change-messages" });
-        }
+        if (!open) return;
+        const restoreView = atatus.pushViewName("/dialog/change-messages");
+        atatus.setViewContext({ dialog: "change-messages" });
+        return restoreView;
     }, [open]);
 
     useEffect(() => {
@@ -60,8 +60,8 @@ const ChangeMessages = ({ payload, open, onClose }) => {
             return;
         }
 
-        atatus.addAction("change-messages-submitted", { count: messages.length, messages });
-        atatus.stormLogger.info("User submitted updated messages", { count: messages.length, messages });
+        atatus.addAction("change-messages-submitted", { count: messages.length });
+        atatus.stormLogger.info("User submitted updated messages", { count: messages.length });
         onClose(messages);
     };
 
@@ -72,7 +72,7 @@ const ChangeMessages = ({ payload, open, onClose }) => {
             setMessagesString(generatedMessages.join('\n'));
             setMessagesError(false);
             setMessagesHelperText("");
-            atatus.addAction("ai-messages-applied-in-change-dialog", { count: generatedMessages.length, messages: generatedMessages });
+            atatus.addAction("ai-messages-applied-in-change-dialog", { count: generatedMessages.length });
         }
     };
 

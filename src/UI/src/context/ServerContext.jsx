@@ -69,8 +69,8 @@ const ServerContextProvider = ({ children }) => {
                     }
                     if (data.error) {
                         console.error('Server context error:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['server_context_error'] });
-                        atatus.serverLogger.error('Server context returned error', { response: data }, new Error(data.error));
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['server_context_error'] });
+                        atatus.serverLogger.error('Server context returned error', { message: data.error }, new Error(data.error));
                     }
                 }
             })

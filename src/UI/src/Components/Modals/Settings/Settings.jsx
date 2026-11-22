@@ -39,12 +39,12 @@ const Settings = (props) => {
 
     // Track modal view & tabs
     useEffect(() => {
-        if (open) {
-            const currentTabName = TAB_NAMES[tabValue] || 'general';
-            atatus.setViewName(`/modal/settings/${currentTabName}`);
-            atatus.setViewContext({ modal: 'settings', tab: currentTabName });
-            atatus.settingsLogger.debug(`Settings view set to /modal/settings/${currentTabName}`);
-        }
+        if (!open) return;
+        const currentTabName = TAB_NAMES[tabValue] || 'general';
+        const restoreView = atatus.pushViewName(`/modal/settings/${currentTabName}`);
+        atatus.setViewContext({ modal: 'settings', tab: currentTabName });
+        atatus.settingsLogger.debug(`Settings view set to /modal/settings/${currentTabName}`);
+        return restoreView;
     }, [open, tabValue]);
 
     // Fetch all API keys and default provider when modal opens
@@ -81,8 +81,8 @@ const Settings = (props) => {
                     atatus.failOperation('fetch_ai_keys', data.error || 'Failed to fetch AI keys');
                     if (data.error) {
                         console.error('Failed to fetch API keys:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['api_keys_fetch_failed'] });
-                        atatus.settingsLogger.error('Failed to fetch API keys', { response: data });
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['api_keys_fetch_failed'] });
+                        atatus.settingsLogger.error('Failed to fetch API keys', { message: data.error });
                     }
                 }
             } catch (error) {
@@ -140,8 +140,8 @@ const Settings = (props) => {
                 atatus.failOperation('set_default_provider', data.error || 'Failed to set default provider');
                 if (data.error) {
                     console.error('Failed to set default provider:', data.error);
-                    atatus.addError(new Error(data.error), { response: data, tags: ['set_default_provider_failed'] });
-                    atatus.settingsLogger.error('Failed to set default AI provider', { response: data });
+                    atatus.addError(new Error(data.error), { message: data.error, tags: ['set_default_provider_failed'] });
+                    atatus.settingsLogger.error('Failed to set default AI provider', { message: data.error });
                 }
                 return false;
             }

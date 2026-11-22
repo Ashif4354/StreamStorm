@@ -44,8 +44,8 @@ const AddChannels = ({ payload, open, onClose }) => {
                     setErrorText(data.message || 'Failed to fetch channels data.');
                     if (data.error) {
                         console.error('Failed to fetch channels data:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['channel_data_fetch_failed'] });
-                        atatus.stormLogger.error('Failed to fetch channels data', { response: data }, new Error(data.error));
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['channel_data_fetch_failed'] });
+                        atatus.stormLogger.error('Failed to fetch channels data', { message: data.error }, new Error(data.error));
                     }
                     return;
                 }
@@ -93,18 +93,18 @@ const AddChannels = ({ payload, open, onClose }) => {
             return;
         }
 
-        atatus.addAction('channels-selection-confirmed', { mode, selectedChannels, count: selectedChannels.length });
+        atatus.addAction('channels-selection-confirmed', { mode, count: selectedChannels.length });
         atatus.stormLogger.info('Channels selection confirmed', { mode, count: selectedChannels.length, selectedChannels });
         onClose(selectedChannels.map((channel) => parseInt(channel)));
     };
 
 
     useEffect(() => {
-        if (open) {
-            atatus.setViewName('/dialog/select-channels');
-            atatus.setViewContext({ mode, preselectedCount: selectedChannels.length });
-            getChannelData();
-        }
+        if (!open) return;
+        const restoreView = atatus.pushViewName('/dialog/select-channels');
+        atatus.setViewContext({ mode, preselectedCount: selectedChannels.length });
+        getChannelData();
+        return restoreView;
     }, [open, hostAddress]);
 
 

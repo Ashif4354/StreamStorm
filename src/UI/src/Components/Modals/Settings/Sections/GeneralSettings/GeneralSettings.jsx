@@ -17,7 +17,7 @@ const GeneralSettings = () => {
     const dialogs = useDialogs();
 
     const [localLoginMethod, setLocalLoginMethod] = useState(loginMethod);
-    const [localEngine, setLocalEngine] = useState(engine || 'obscura');
+    const [localEngine, setLocalEngine] = useState(engine || 'chromium');
     const [saving, setSaving] = useState(false);
     const [clearing, setClearing] = useState(false);
     const [error, setError] = useState(null);
@@ -29,7 +29,7 @@ const GeneralSettings = () => {
     }, [loginMethod]);
 
     useEffect(() => {
-        setLocalEngine(engine || 'obscura');
+        setLocalEngine(engine || 'chromium');
     }, [engine]);
 
     const hasChanges = localLoginMethod !== loginMethod || localEngine !== engine;
@@ -72,8 +72,8 @@ const GeneralSettings = () => {
                 setError(data.message || 'Failed to save settings');
                 if (data.error) {
                     console.error('Failed to save settings:', data.error);
-                    atatus.addError(new Error(data.error), { response: data, tags: ['general_settings_save_failed'] });
-                    atatus.settingsLogger.error('Failed to save general settings', { response: data });
+                    atatus.addError(new Error(data.error), { message: data.error, tags: ['general_settings_save_failed'] });
+                    atatus.settingsLogger.error('Failed to save general settings', { message: data.error });
                 }
             }
         } catch (err) {
@@ -129,8 +129,8 @@ const GeneralSettings = () => {
                 setError(data.message || 'Failed to clear login data');
                 if (data.error) {
                     console.error('Failed to clear login data:', data.error);
-                    atatus.addError(new Error(data.error), { response: data, tags: ['clear_login_data_failed'] });
-                    atatus.settingsLogger.error('Failed to clear login data', { response: data });
+                    atatus.addError(new Error(data.error), { message: data.error, tags: ['clear_login_data_failed'] });
+                    atatus.settingsLogger.error('Failed to clear login data', { message: data.error });
                 }
             }
         } catch (err) {
@@ -147,16 +147,16 @@ const GeneralSettings = () => {
 
     const engineOptions = [
         {
-            value: 'obscura',
-            icon: <Zap size={18} color={colorScheme === 'dark' ? 'var(--slight-light-text)' : 'var(--slight-dark-text)'} />,
-            label: 'Obscura',
-            description: 'Ultra-lightweight headless engine (~150MB RAM/account). Highly recommended for lower resource usage.',
-        },
-        {
             value: 'chromium',
             icon: <Globe size={18} color={colorScheme === 'dark' ? 'var(--slight-light-text)' : 'var(--slight-dark-text)'} />,
-            label: 'Chromium',
+            label: 'Chromium (Default)',
             description: 'Standard Chromium browser (~350MB RAM/account). Full browser engine, required when using Browser Profiles.',
+        },
+        {
+            value: 'obscura',
+            icon: <Zap size={18} color={colorScheme === 'dark' ? 'var(--slight-light-text)' : 'var(--slight-dark-text)'} />,
+            label: 'Obscura (Experimental)',
+            description: 'Ultra-lightweight headless engine (~150MB RAM/account). Not bundled: install Obscura yourself first, see the Instructions page.',
         },
     ];
 
@@ -191,7 +191,7 @@ const GeneralSettings = () => {
                     {/* Engine Setting */}
                     <RadioSetting
                         title="Engine"
-                        description="Choose the browser automation engine used to run sessions. Obscura uses significantly less memory."
+                        description="Choose the browser automation engine used to run sessions. Obscura uses less memory but is experimental and must be installed separately."
                         value={localEngine}
                         onChange={(e) => {
                             setLocalEngine(e.target.value);

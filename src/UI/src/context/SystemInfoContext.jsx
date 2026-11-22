@@ -1,7 +1,6 @@
 import { useEffect, useState, createContext, useContext } from 'react';
 import { useNotifications } from '@toolpad/core/useNotifications';
 
-import { RAM_PER_PROFILE } from "../lib/Constants";
 import { useAppState } from "./AppStateContext";
 import * as atatus from '../lib/atatus';
 

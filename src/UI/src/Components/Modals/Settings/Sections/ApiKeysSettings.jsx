@@ -243,9 +243,9 @@ const ApiKeySection = ({ provider, expanded, onExpand, apiKeysData, onUpdateApiK
             } else {
                 atatus.failOperation(`save_api_key_${provider.id}`, responseData.error || responseData.message || 'Failed to save');
                 if (responseData.error) {
-                    atatus.addError(new Error(responseData.error), { response: responseData, tags: ['ai_api_key_save_failed'] });
+                    atatus.addError(new Error(responseData.error), { message: responseData.error, tags: ['ai_api_key_save_failed'] });
                 }
-                atatus.aiLogger.error(`Failed to save ${provider.name} settings`, { response: responseData });
+                atatus.aiLogger.error(`Failed to save ${provider.name} settings`, { message: responseData.error });
                 throw new Error(responseData.error || responseData.message || 'Failed to save');
             }
         } catch (error) {

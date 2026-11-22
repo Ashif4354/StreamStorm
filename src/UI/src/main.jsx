@@ -31,4 +31,4 @@ createRoot(document.getElementById('root')).render(
     </StrictMode>
 );
 
-atatus.addTiming('react_root_mounted');
+atatus.addTiming('react_render_scheduled');

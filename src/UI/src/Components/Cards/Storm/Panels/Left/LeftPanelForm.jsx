@@ -53,8 +53,7 @@ const LeftPanelForm = () => {
         formControls.setVideoURL(value);
         formControls.setVideoURLError(false);
         formControls.setVideoURLHelperText("");
-        atatus.setViewContextProperty('videoURL', value);
-        atatus.stormLogger.debug('Video URL updated', { videoURL: value });
+        atatus.setViewContextProperty('hasVideoURL', value.length > 0);
     };
 
     const handleAdvancedChannelSelection = async () => {
@@ -71,8 +70,8 @@ const LeftPanelForm = () => {
         }
 
         formControls.setAdvancedSelectedChannels(selectedChannels);
-        atatus.addAction('advanced-channels-selected', { count: selectedChannels.length, channels: selectedChannels });
-        atatus.stormLogger.info('Advanced channels selected', { count: selectedChannels.length, channels: selectedChannels });
+        atatus.addAction('advanced-channels-selected', { count: selectedChannels.length });
+        atatus.stormLogger.info('Advanced channels selected', { count: selectedChannels.length });
     };
 
     const handleAiDialogClose = (generatedMessages) => {
@@ -82,8 +81,8 @@ const LeftPanelForm = () => {
             formControls.setMessagesString(generatedMessages.join('\n'));
             formControls.setMessagesError(false);
             formControls.setMessagesHelperText("");
-            atatus.addAction('ai-generated-messages-applied', { count: generatedMessages.length, messages: generatedMessages });
-            atatus.aiLogger.info('Applied AI generated messages to storm form', { count: generatedMessages.length, messages: generatedMessages });
+            atatus.addAction('ai-generated-messages-applied', { count: generatedMessages.length });
+            atatus.aiLogger.info('Applied AI generated messages to storm form', { count: generatedMessages.length });
         }
     };
 

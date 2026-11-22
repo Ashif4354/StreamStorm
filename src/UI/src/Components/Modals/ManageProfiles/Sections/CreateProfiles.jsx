@@ -80,8 +80,8 @@ const CreateProfiles = () => {
                     });
                     if (data.error) {
                         console.error('Failed to create profiles:', data.error);
-                        atatus.addError(new Error(data.error), { response: data, tags: ['create_profiles_failed'] });
-                        atatus.envLogger.error('Failed to create profiles', { response: data });
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['create_profiles_failed'] });
+                        atatus.envLogger.error('Failed to create profiles', { message: data.error });
                     }
                     logEvent(analytics, "create_profiles_failed", { count: profiles });
                 }
