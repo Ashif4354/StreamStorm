@@ -130,7 +130,7 @@ const Instructions = () => {
             <li className="instructions-list-item">
               <strong>RAM Requirements:</strong>
               <ul className="instructions-list">
-                <li className="instructions-list-item"><strong>Chromium Engine (Default):</strong> Requires ~235MB-350MB of free RAM per channel.</li>
+                <li className="instructions-list-item"><strong>Chromium Engine (Default):</strong> Requires ~250MB-350MB of free RAM per channel.</li>
                 <li className="instructions-list-item"><strong>Obscura Engine (Experimental, installed separately):</strong> Only ~150MB of free RAM per channel. See <a href="#obscura-engine" className="instructions-index-link">Using the Experimental Obscura Engine</a>.</li>
               </ul>
             </li>
@@ -538,7 +538,7 @@ const Instructions = () => {
           <h3 id="settings-general" className="instructions-step-heading">General</h3>
           <ul className="instructions-list">
             <li className="instructions-list-item">
-              <strong>Engine</strong>
+              <strong>Engine</strong> (requires StreamStorm 4.3.0 or newer)
               <ul className="instructions-list">
                 <li className="instructions-list-item"><code className="instructions-inline-code">Chromium</code> (Default) - Standard native Chromium browser engine (~250MB-350MB RAM per channel). Requires Google Chrome to be installed. Supports full graphical rendering and is required when using the Browser Profiles login method.</li>
                 <li className="instructions-list-item"><code className="instructions-inline-code">Obscura</code> (Experimental) - Ultra-lightweight headless automation engine (~150MB RAM per channel). It is <strong>not bundled</strong> with StreamStorm: you must install it yourself before selecting it. Works with Cookie-based login only. <a href="#obscura-engine" className="instructions-index-link">How to install and enable it</a>.</li>
@@ -563,7 +563,7 @@ const Instructions = () => {
           <h4 id="obscura-engine">Using the Experimental Obscura Engine</h4>
           <div className="instructions-warning">
             <p className="instructions-warning-text">
-              <strong>Experimental:</strong> Obscura is <strong>not shipped</strong> with StreamStorm. StreamStorm uses the Chromium engine by default. Only follow these steps if you want lower RAM usage and accept that Obscura may be less stable.
+              <strong>Experimental:</strong> Obscura is <strong>not shipped</strong> with StreamStorm. StreamStorm uses the Chromium engine by default. Only follow these steps if you want lower RAM usage and accept that Obscura may be less stable. Engine selection requires StreamStorm <strong>4.3.0 or newer</strong>; on older versions the option is shown but has no effect, so update the application first.
             </p>
           </div>
           <ul className="instructions-list">
@@ -571,15 +571,17 @@ const Instructions = () => {
               Install Obscura yourself by following the official guide: <a href="https://docs.obscura.sh/quickstart/installation" target="_blank" rel="noopener noreferrer" className="instructions-link">Obscura installation guide</a>.
             </li>
             <li className="instructions-list-item">
-              StreamStorm looks for a binary named <code className="instructions-inline-code">obscura</code> (<code className="instructions-inline-code">obscura.exe</code> on Windows) on your <code className="instructions-inline-code">PATH</code>. If it is not on your PATH, these locations are also checked:
+              StreamStorm looks for a binary named <code className="instructions-inline-code">obscura</code> (<code className="instructions-inline-code">obscura.exe</code> on Windows) on your <code className="instructions-inline-code">PATH</code>. Add the <strong>directory</strong> that contains the binary to PATH, not the path of the binary file itself. If it is not on your PATH, these locations are also checked:
               <ul className="instructions-list">
                 <li className="instructions-list-item"><strong>Windows:</strong> <code className="instructions-inline-code">C:\Utils\obscura.exe</code>, <code className="instructions-inline-code">%USERPROFILE%\.local\bin\obscura.exe</code>, <code className="instructions-inline-code">%USERPROFILE%\.cargo\bin\obscura.exe</code>, <code className="instructions-inline-code">%LOCALAPPDATA%\Programs\obscura\obscura.exe</code></li>
                 <li className="instructions-list-item"><strong>macOS / Linux:</strong> <code className="instructions-inline-code">~/.local/bin/obscura</code>, <code className="instructions-inline-code">~/.cargo/bin/obscura</code>, <code className="instructions-inline-code">/usr/local/bin/obscura</code>, <code className="instructions-inline-code">/opt/homebrew/bin/obscura</code>, <code className="instructions-inline-code">/usr/bin/obscura</code></li>
               </ul>
             </li>
+            <li className="instructions-list-item">Check that it is found: run <code className="instructions-inline-code">command -v obscura</code> (macOS / Linux) or <code className="instructions-inline-code">where obscura</code> (Windows). If nothing is printed, fix your PATH, or on macOS / Linux link the binary into a location StreamStorm already checks, for example <code className="instructions-inline-code">ln -s /path/to/obscura ~/.local/bin/obscura</code>.</li>
             <li className="instructions-list-item">Restart StreamStorm after installing so it picks up the updated <code className="instructions-inline-code">PATH</code>.</li>
-            <li className="instructions-list-item">Open <strong>Settings → General → Engine</strong>, select <code className="instructions-inline-code">Obscura (Experimental)</code> and click <strong>Save</strong>.</li>
+            <li className="instructions-list-item">Open <strong>Settings → General → Engine</strong>, select <code className="instructions-inline-code">Obscura (Experimental)</code> and click <strong>Save</strong>. The new engine is used the next time you start a storm; a storm that is already running keeps the engine it started with.</li>
             <li className="instructions-list-item">Obscura works with the <strong>Cookies</strong> login method only. If you select Browser Profiles, StreamStorm uses Chromium instead.</li>
+            <li className="instructions-list-item">Obscura listens on local ports starting at <code className="instructions-inline-code">9222</code>, one port per channel counting upwards. Keep these ports free, for example by closing anything else that uses 9222, such as a Chrome started with remote debugging.</li>
             <li className="instructions-list-item">If Obscura is not found, starting a storm fails with an <code className="instructions-inline-code">Obscura not installed or not on your PATH</code> error. Install it and make sure the binary is on your PATH (the directory must be on PATH, not the file itself), or switch the engine back to Chromium in Settings → General.</li>
           </ul>
 
