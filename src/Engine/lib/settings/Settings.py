@@ -154,6 +154,7 @@ class Settings(BaseSettings):
         env_file=tuple(_ENV_FILES),
         env_file_encoding="utf-8",
         env_prefix="STREAMSTORM_",
+        extra="ignore",
         validate_assignment=True
     )
 

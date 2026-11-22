@@ -20,6 +20,14 @@ def _use_settings_file(monkeypatch: MonkeyPatch, tmp_path, content: str | None =
     return path
 
 
+def test_unknown_env_file_keys_are_ignored(monkeypatch, tmp_path):
+    _use_settings_file(monkeypatch, tmp_path)
+    env_file = tmp_path / ".env"
+    env_file.write_text("STREAMSTORM_REMOVED_FIELD=x\nUNRELATED_KEY=y\nARIZE_PROJECT_NAME=z\n", encoding="utf-8")
+
+    assert settings_module.Settings(_env_file=env_file).engine == "chromium"
+
+
 def test_default_engine_is_chromium():
     assert SavedSettings().engine == "chromium"
     assert DEFAULT_SAVED_SETTINGS["engine"] == "chromium"
