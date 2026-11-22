@@ -25,8 +25,8 @@ The **Release Workflow** runs only for a published release. It validates that th
 ## What the release workflow builds and uploads
 
 - **Linux (`ubuntu-22.04`)**: executable, `.deb` package, and `StreamStorm.tar.gz`.
-- **Windows (`windows-latest`)**: `StreamStorm.exe` and both setup installer filenames.
-- Uploads all build artifacts to the same GitHub Release that triggered the workflow.
+- **Windows (`windows-latest`)**: the setup installer `StreamStorm Setup.exe`, which GitHub serves as `StreamStorm.Setup.exe`. The raw `StreamStorm.exe` is only used to publish the updater and is not attached to the release.
+- Uploads these build artifacts to the same GitHub Release that triggered the workflow, so a release has exactly three assets: `StreamStorm.Setup.exe`, `streamstorm.deb` and `streamstorm.tar.gz`.
 - **Windows job order**: build `StreamStorm.exe`, then publish the updater (`make dgupdater-commit-publish`), then generate the setup installer. The publish must come before the installer because it rewrites `dgupdaterconf.json` and `dgupdaterupdate/`, which the installer bundles; the installer would otherwise ship with a stale version.
 - The Linux and Windows jobs run in parallel. A Linux failure therefore does not stop the Windows job, so the updater can already be published when the Linux build fails; fix the problem and publish the release again at the same version (republishing the same version is allowed).
 

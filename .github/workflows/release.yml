@@ -190,10 +190,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: windows-artifacts
-          path: |
-            export/windows/StreamStorm.exe
-            export/installers/StreamStorm Setup.exe
-            export/installers/StreamStorm_Setup.exe
+          path: export/installers/StreamStorm Setup.exe
           if-no-files-found: error
 
   upload-release-assets:
