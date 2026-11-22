@@ -6,6 +6,8 @@ PY_SCRIPTS_DIR := build/scripts
 
 # Detect OS
 ifeq ($(OS),Windows_NT)
+	# Windows make otherwise picks Git's sh from PATH (as on CI runners), which cannot run the cmd-style `call` below
+	SHELL := cmd.exe
 	PYTHON := python
 	DETECTED_OS := Windows
 	ACTIVATE_VENV := call src\Engine\.venv\Scripts\activate.bat &&
