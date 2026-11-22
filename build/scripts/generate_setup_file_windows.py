@@ -8,7 +8,7 @@ path.insert(0, str(ROOT))
 
 from subprocess import call  # noqa: E402
 from os import chdir  # noqa: E402
-from shutil import which, copy2  # noqa: E402
+from shutil import which  # noqa: E402
 from logging import basicConfig, INFO, info as log_info  # noqa: E402
 
 basicConfig(level=INFO)
@@ -43,15 +43,11 @@ def generate_setup_file_windows() -> None:
         raise RuntimeError(f"Inno Setup compilation failed with exit code {ret}")
 
     setup_file = ROOT / "export" / "installers" / "StreamStorm Setup.exe"
-    setup_file_underscore = ROOT / "export" / "installers" / "StreamStorm_Setup.exe"
 
     if not setup_file.exists():
         raise FileNotFoundError(
             f"Expected Inno Setup installer not found at '{setup_file}'. Check Inno Setup build logs."
         )
-
-    log_info(f"Creating copy {setup_file_underscore}")
-    copy2(setup_file, setup_file_underscore)
 
     log_info("Setup file generation completed successfully.")
 
