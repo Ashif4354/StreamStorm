@@ -1,4 +1,4 @@
-from logging import Formatter, Logger, getLogger, DEBUG, INFO, FileHandler, NullHandler, Handler, LogRecord
+from logging import Filter, Formatter, Logger, getLogger, DEBUG, INFO, ERROR, FileHandler, NullHandler, Handler, LogRecord
 from logging.handlers import QueueHandler, QueueListener
 from platformdirs import user_data_dir
 from pathlib import Path
@@ -7,6 +7,7 @@ from rich.logging import RichHandler
 from atexit import register as atexit_register
 from datetime import datetime
 from asyncio import AbstractEventLoop, run_coroutine_threadsafe
+from sys import exc_info as sys_exc_info
 
 from .GetIstTime import get_ist_time
 from ..settings import settings
@@ -43,6 +44,43 @@ class SocketIOHandler(Handler):
         await sio.emit("log", {"message": msg, "level": level, "time": time}, room="streamstorm")   
         
 
+class ExcInfoFilter(Filter):
+    """
+    Attach the active exception (if any) to ERROR/CRITICAL records that were logged
+    inside an `except` block without `exc_info=True`.
+
+    This lets Sentry's LoggingIntegration report a full traceback instead of a plain message.
+    Records modified here are flagged so the log file / UI log stream keep their original,
+    traceback-free format (see AutoExcInfoQueueHandler).
+    """
+
+    def filter(self, record: LogRecord) -> bool:
+        if record.levelno >= ERROR and not record.exc_info:
+            current: tuple = sys_exc_info()
+
+            if current[0] is not None:
+                record.exc_info = current
+                record.auto_exc_info = True
+
+        return True
+
+
+class AutoExcInfoQueueHandler(QueueHandler):
+    """QueueHandler that does not render auto-attached exc_info into the queued message."""
+
+    def prepare(self, record: LogRecord) -> LogRecord:
+        if not getattr(record, "auto_exc_info", False):
+            return super().prepare(record)
+
+        exc_info, exc_text = record.exc_info, record.exc_text
+        record.exc_info, record.exc_text = None, None
+
+        try:
+            return super().prepare(record)
+        finally:
+            record.exc_info, record.exc_text = exc_info, exc_text
+
+
 class CustomLogger:
     __slots__: tuple[str, ...] = ('logging_dir', 'logger', 'queue_handler')
     
@@ -54,7 +92,8 @@ class CustomLogger:
         self.logging_dir.mkdir(parents=True, exist_ok=True)
         
         if not for_history:
-            self.queue_handler: Handler = QueueHandler(self.log_queue)
+            self.queue_handler: Handler = AutoExcInfoQueueHandler(self.log_queue)
+            self.queue_handler.addFilter(ExcInfoFilter())
             
             CustomLogger.listener = QueueListener(self.log_queue, self.__get_console_handler(), self.__get_file_handler(), self.__get_socketio_handler())
             CustomLogger.listener.start()

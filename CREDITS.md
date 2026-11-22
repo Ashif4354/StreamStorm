@@ -37,6 +37,7 @@
     - [Pydantic Documentation](https://docs.pydantic.dev/latest/)
     - [Firebase Documentation](https://firebase.google.com/docs)
     - [Atatus Documentation](https://docs.atatus.com/)
+    - [Sentry Python Documentation](https://docs.sentry.io/platforms/python/)
     - [Python Socket.io Documentation](https://python-socketio.readthedocs.io/)
     - [Yt-DLP package](https://pypi.org/project/yt-dlp/)
     - [Pydantic AI Documentation](https://ai.pydantic.dev/)

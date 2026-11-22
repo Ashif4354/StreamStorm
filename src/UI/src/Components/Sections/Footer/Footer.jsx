@@ -1,10 +1,21 @@
+import { useEffect } from "react";
 import "./Footer.css";
 import { useColorScheme } from '@mui/material/styles';
+import * as atatus from "../../../lib/atatus";
 import { useAppState } from "../../../context/AppStateContext";
 
 const Footer = () => {
     const { colorScheme } = useColorScheme();
     const appState = useAppState();
+
+    useEffect(() => {
+        if (appState.engineVersion) {
+            atatus.setGlobalContextProperty("engineVersion", appState.engineVersion);
+        }
+        if (import.meta.env.VITE_APP_VERSION) {
+            atatus.setGlobalContextProperty("uiVersion", import.meta.env.VITE_APP_VERSION);
+        }
+    }, [appState.engineVersion]);
 
     return (
         <footer className={`footer footer-${colorScheme} ${colorScheme}-bordered-container`}>
@@ -19,6 +30,6 @@ const Footer = () => {
 
         </footer>
     );
-}
+};
 
 export default Footer;

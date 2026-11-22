@@ -1,9 +1,10 @@
 from typing import Any, AsyncGenerator
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from asyncio import create_task, get_running_loop
+from asyncio import create_task, get_running_loop, to_thread
 from logging import Logger, getLogger
 
+from ...core.Obscura import Obscura
 from ...utils.StormStopper import background_storm_stopper
 from ...utils.SystemInfoEmitter import emit_system_metrics
 from ...utils.CustomLogger import set_logging_loop
@@ -26,6 +27,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
     yield
 
     logger.info("Shutting Down Engine....")
+    await to_thread(Obscura.kill_all)
 
 
 __all__: list[str] = ["lifespan"]

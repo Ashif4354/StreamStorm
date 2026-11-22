@@ -29,14 +29,14 @@ ArchitecturesAllowed=x64compatible
 ; the 64-bit view of the registry.
 ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
-LicenseFile=D:\PROGRAMMING\PROJECTS\StreamStorm\build\INNO Setup\License.txt
-InfoAfterFile=D:\PROGRAMMING\PROJECTS\StreamStorm\build\INNO Setup\AfterText.txt
+LicenseFile=License.txt
+InfoAfterFile=AfterText.txt
 ; Remove the following line to run in administrative install mode (install for all users).
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir=D:\PROGRAMMING\PROJECTS\StreamStorm\export\installers
+OutputDir=..\..\export\installers
 OutputBaseFilename=StreamStorm Setup
-SetupIconFile=D:\PROGRAMMING\PROJECTS\StreamStorm\src\UI\public\favicon.ico
+SetupIconFile=..\..\src\UI\public\favicon.ico
 SolidCompression=yes
 WizardStyle=modern
 
@@ -47,9 +47,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\PROGRAMMING\PROJECTS\StreamStorm\export\windows\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\PROGRAMMING\PROJECTS\StreamStorm\export\windows\dgupdaterupdate\*"; DestDir: "{app}\dgupdaterupdate"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "D:\PROGRAMMING\PROJECTS\StreamStorm\export\windows\dgupdaterconf.json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\export\windows\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\export\windows\dgupdaterupdate\*"; DestDir: "{app}\dgupdaterupdate"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\export\windows\dgupdaterconf.json"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

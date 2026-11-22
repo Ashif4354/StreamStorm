@@ -1,4 +1,5 @@
 import { useState } from "react";
+import * as atatus from "@/config/atatus";
 
 const CodeBlock = ({ code }) => {
     const [copied, setCopied] = useState(false);
@@ -6,13 +7,19 @@ const CodeBlock = ({ code }) => {
     const handleCopy = () => {
         navigator.clipboard.writeText(code);
         setCopied(true);
+        atatus.addAction('linux-code-copied', { codeSnippet: code.substring(0, 40) });
+        atatus.downloadLogger.info('Linux command copied to clipboard', { command: code.substring(0, 60) });
         setTimeout(() => setCopied(false), 2000);
     };
 
     return (
         <div className='linux-code-block-container'>
             <code className='linux-code-block'>{code}</code>
-            <button className='linux-copy-button' onClick={handleCopy}>
+            <button
+                className='linux-copy-button'
+                onClick={handleCopy}
+                data-atatus-action-name="btn-copy-linux-code"
+            >
                 {copied ? '✓ Copied' : 'Copy'}
             </button>
         </div>
@@ -33,9 +40,9 @@ const Linux = () => {
             {/* Quick Navigation */}
             <div className='linux-options-index'>
                 <span>Jump to: </span>
-                <a href="#option1" className='linux-option-link'>📦 Option 1: tar.gz</a>
+                <a href="#option1" className='linux-option-link' data-atatus-action-name="link-linux-jump-targz">📦 Option 1: tar.gz</a>
                 <span className='linux-option-separator'>|</span>
-                <a href="#option2" className='linux-option-link'>🐧 Option 2: .deb Package</a>
+                <a href="#option2" className='linux-option-link' data-atatus-action-name="link-linux-jump-deb">🐧 Option 2: .deb Package</a>
             </div>
 
             {/* Tar.gz Installation */}
@@ -103,7 +110,7 @@ const Linux = () => {
                 <i>⚠️ Note: Linux builds currently do not support checking for new versions and auto-update functionality. We are working on adding this feature soon.</i>
             </span>
         </section>
-    )
+    );
 };
 
-export default Linux
+export default Linux;

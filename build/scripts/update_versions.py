@@ -3,12 +3,13 @@
 from pathlib import Path
 ROOT: Path = Path(__file__).parent.parent.parent.resolve()
 
-from sys import path  # noqa: E402
+from sys import path, argv  # noqa: E402
 path.insert(0, str(ROOT))
 
+import os  # noqa: E402
 from tomlkit import TOMLDocument, parse, dumps  # noqa: E402
 from json import dump, load  # noqa: E402
-from re import sub  # noqa: E402
+from re import sub, subn  # noqa: E402
 from logging import basicConfig, INFO, info as log_info  # noqa: E402
 
 basicConfig(level=INFO)
@@ -16,9 +17,11 @@ basicConfig(level=INFO)
 log_info(f"Root directory: {ROOT}")
 
 
-def update_versions(new_version: str) -> None:
+def update_versions(new_version: str, allow_same_version: bool = False) -> None:
     """Update version numbers in all configuration files."""
-    
+    if new_version.lower().startswith("v"):
+        new_version = new_version[1:]
+
     new_version_split: list[int] = [int(i) for i in new_version.split(".")]
     
     # project.json
@@ -26,8 +29,14 @@ def update_versions(new_version: str) -> None:
         project_data: dict = load(f)
         current_version: list[int] = [int(i) for i in project_data["version"].split(".")]
 
-        if new_version_split <= current_version:
-            raise ValueError("New version must be greater than current version.")
+        if new_version_split < current_version:
+            raise ValueError(
+                f"New version ({new_version}) cannot be less than current version ({project_data['version']})."
+            )
+        if new_version_split == current_version and not allow_same_version:
+            raise ValueError(
+                f"New version ({new_version}) must be strictly greater than current version ({project_data['version']})."
+            )
 
         project_data["version"] = new_version
         
@@ -62,6 +71,44 @@ def update_versions(new_version: str) -> None:
     update_package_json(ROOT / "src" / "UI" / "package.json", new_version)
     update_package_json(ROOT / "src" / "Site" / "package.json", new_version)
 
+    def update_package_lock(file_path: Path, new_version: str) -> None:
+        if not file_path.exists():
+            return
+        log_info(f"Updating {file_path}")
+        text: str = file_path.read_text(encoding="utf-8")
+        text, top_count = subn(
+            r'\A(\s*\{\s*"name":\s*"[^"]+",\s*"version":\s*")[^"]*(")',
+            rf'\g<1>{new_version}\g<2>',
+            text,
+            count=1,
+        )
+        text, root_count = subn(
+            r'("packages":\s*\{\s*"":\s*\{\s*"name":\s*"[^"]+",\s*"version":\s*")[^"]*(")',
+            rf'\g<1>{new_version}\g<2>',
+            text,
+            count=1,
+        )
+        if top_count != 1 or root_count != 1:
+            raise ValueError(f"Could not locate the root version fields in {file_path}.")
+        file_path.write_text(text, encoding="utf-8")
+
+    update_package_lock(ROOT / "src" / "UI" / "package-lock.json", new_version)
+    update_package_lock(ROOT / "src" / "Site" / "package-lock.json", new_version)
+
+    uv_lock: Path = ROOT / "src" / "Engine" / "uv.lock"
+    if uv_lock.exists():
+        log_info(f"Updating {uv_lock}")
+        text = uv_lock.read_text(encoding="utf-8")
+        text, uv_count = subn(
+            r'(\[\[package\]\]\r?\nname = "streamstorm"\r?\nversion = ")[^"]*(")',
+            rf'\g<1>{new_version}\g<2>',
+            text,
+            count=1,
+        )
+        if uv_count != 1:
+            raise ValueError(f"Could not locate the streamstorm package version in {uv_lock}.")
+        uv_lock.write_text(text, encoding="utf-8")
+
 
     # INNO Setup / create_setup.iss
     create_setup_iss: Path = ROOT / "build" /"INNO Setup" / "create_setup.iss"
@@ -81,14 +128,44 @@ def update_versions(new_version: str) -> None:
     text = sub(r'^Version:\s*.*$', f'Version: {new_version}', text, flags=__import__("re").MULTILINE)
 
     control_file.write_text(text, encoding="utf-8")
+
+    # Engine/lib/settings/Settings.py
+    settings_file: Path = ROOT / "src" / "Engine" / "lib" / "settings" / "Settings.py"
+    log_info(f"Updating {settings_file}")
+    text = settings_file.read_text(encoding="utf-8")
+    text = sub(r'version:\s*str\s*=\s*".*"', f'version: str = "{new_version}"', text)
+    settings_file.write_text(text, encoding="utf-8")
+
+    # UI .env files
+    for env_name in [".env", ".env.production", ".env.example"]:
+        env_file: Path = ROOT / "src" / "UI" / env_name
+        if env_file.exists():
+            log_info(f"Updating {env_file}")
+            env_text = env_file.read_text(encoding="utf-8")
+            env_text = sub(r'^VITE_APP_VERSION\s*=.*$', f'VITE_APP_VERSION={new_version}', env_text, flags=__import__("re").MULTILINE)
+            env_file.write_text(env_text, encoding="utf-8")
     
     log_info("Version update completed successfully.")
 
 
 def main() -> None:
     """Main entry point."""
-    new_version: str = input("Enter the new version: ")
-    update_versions(new_version)
+    allow_same_version = (
+        "--allow-same-version" in argv
+        or os.environ.get("ALLOW_SAME_VERSION", "").lower() in ("true", "1")
+    )
+    args = [arg for arg in argv[1:] if not arg.startswith("--")]
+
+    if args and args[0].strip():
+        new_version = args[0].strip()
+    elif os.environ.get("NEW_VERSION"):
+        new_version = os.environ["NEW_VERSION"].strip()
+    elif os.environ.get("VERSION"):
+        new_version = os.environ["VERSION"].strip()
+    else:
+        new_version = input("Enter the new version: ")
+
+    update_versions(new_version, allow_same_version=allow_same_version)
     log_info("Update versions process completed.")
 
 

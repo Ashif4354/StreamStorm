@@ -8,12 +8,20 @@ import Header from "./Components/Sections/Header/Header";
 import Footer from "./Components/Sections/Footer/Footer";
 import Main from "./Components/Sections/Main/Main";
 import { MAX_LOGS } from './lib/Constants';
+import * as atatus from './lib/atatus';
 
 const App = () => {
 
     const { colorScheme } = useColorScheme();
     const { socket, socketConnected } = useSocket();
     const appState = useAppState();
+
+    useEffect(() => {
+        if (colorScheme) {
+            atatus.setGlobalContextProperty('colorScheme', colorScheme);
+            atatus.addFeatureFlagEvaluation('color_scheme', colorScheme);
+        }
+    }, [colorScheme]);
 
     useEffect(() => {
         if (!socket || !socket.connected || !socketConnected) return;
@@ -39,7 +47,7 @@ const App = () => {
             <Main />
             <Footer />
         </div>
-    )
-}
+    );
+};
 
 export default App;

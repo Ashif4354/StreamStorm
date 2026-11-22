@@ -30,7 +30,8 @@ class SeparateInstance(Playwright):
     __slots__: tuple[str, ...] = (
         'channel_name', 'index', 'wait_time', 
         'should_wait', 'profile_dir_name', 'context',
-        '_SeparateInstance__logged_in', '_SeparateInstance__sleep_tasks'
+        '_SeparateInstance__logged_in', '_SeparateInstance__sleep_tasks',
+        'obscura_port', 'ready_counted'
     )
 
     def __init__(
@@ -40,18 +41,25 @@ class SeparateInstance(Playwright):
         wait_time: float = 0,
         channel_name: str = '',
         cookies: list[dict] | None = None,
-        storm_context: StormContext | None = None
+        storm_context: StormContext | None = None,
+        obscura_port: int = 0
     ) -> None:
-        super().__init__(user_data_dir, storm_context.background, cookies, index, channel_name)
-        
+        super().__init__(
+            user_data_dir, storm_context.background, cookies, index, channel_name,
+            login_method=storm_context.login_method, engine=storm_context.engine
+        )
+
         self.index: int = index
-        self.profile_dir_name: str = user_data_dir.split("\\")[-1]  # Profile dir name : Used in StormRouter.py for killing instance
+        self.profile_dir_name: str = user_data_dir.replace("\\", "/").rstrip("/").split("/")[-1]  # Profile dir name : Used in StormRouter.py for killing instance
         self.__logged_in: Optional[bool] = None
         self.__sleep_tasks: list[Task] = []
         self.wait_time: float = wait_time
         self.channel_name: str = channel_name
         self.should_wait: bool = True
         self.context: StormContext | None = storm_context
+        self.obscura_port: int = obscura_port
+        self.ready_counted: bool = False
+
 
     def __repr__(self) -> str:
         return f"Instance(index={self.index}, channel_name={self.channel_name}, wait_time={self.wait_time})"
@@ -66,15 +74,23 @@ class SeparateInstance(Playwright):
 
         try:
             logger.debug(f"[{self.index}] [{self.channel_name}] Opening browser...")
-            await self.open_browser()
+            await self.open_browser(obscura_port=self.obscura_port)
+            
+            # await asyncio_sleep(5)  # Wait for the browser to fully initialize
+            # await self.capture_screenshot("browser_opened")  # Capture screenshot after opening the browser
             
             await self.go_to_page("https://www.youtube.com/account") # We are going to account page because it loads faster than the main page
+            
+            # await asyncio_sleep(5)  # Wait for the page to load completely
+            # await self.capture_screenshot("login_page_loaded")  # Capture screenshot after loading the login page
             
             english: bool = await self.check_language_english()            
             
             if not english:
                 await self.change_language()
-                
+            
+            # await self.capture_screenshot("language_checked")  # Capture screenshot after checking/changing language
+              
             await self.find_and_click_element('//*[@id="avatar-btn"]', 'avatar_button') # Click on avatar button
             
             
@@ -89,8 +105,8 @@ class SeparateInstance(Playwright):
             self.__logged_in = True
             return True
         
-        except BrowserClosedError as _:  
-            logger.error(f"[{self.index}] [{self.channel_name}] Login failed due to browser closure")
+        except (BrowserClosedError, PlaywrightError, TargetClosedError) as e:  
+            logger.error(f"[{self.index}] [{self.channel_name}] Login failed due to browser/page closure: {e}")
             
             self.__logged_in = False
             return False
@@ -207,9 +223,7 @@ class SeparateInstance(Playwright):
             
             if not logged_in:
                 logger.debug(f"[{self.index}] [{self.channel_name}] Login failed - removing from instances")
-                
-                self.context.total_instances -= 1
-                
+
                 logger.error(f"[{self.index}] [{self.channel_name}] : Login failed")
                 exit_reason = "Login failed"
                 return
@@ -229,6 +243,7 @@ class SeparateInstance(Playwright):
             await self.go_to_page(self.context.chat_url)
             
             self.context.ready_to_storm_instances += 1
+            self.ready_counted = True
             logger.info(f"[{self.index}] [{self.channel_name}] : Ready To Storm")
             await self.emit_instance_status(self.index, 2)  # 2 = Ready
 
@@ -310,15 +325,43 @@ class SeparateInstance(Playwright):
         
         finally:
             # Guaranteed cleanup on all exit paths
-            self.context.assigned_profiles[self.profile_dir_name] = None
-            
-            if instance_started:
+            self._is_alive = False
+            if self.__logged_in is None:
+                self.__logged_in = False
+
+            if self.context:
+                self.context.assigned_profiles[self.profile_dir_name] = None
+
+                if not self.ready_counted:
+                    self.ready_counted = True
+                    self.context.total_instances -= 1
+
+            if instance_started and self.context:
                 with suppress(ValueError):
                     self.context.each_channel_instances.remove(self)
                     logger.debug(f"[{self.index}] [{self.channel_name}] : Removed from instances")
-            
-            await self.emit_instance_status(self.index, 0)  # 0 = Dead
-            await self.close_browser(reason=exit_reason)
+
+            try:
+                await self.emit_instance_status(self.index, 0)  # 0 = Dead
+            except Exception as e:
+                logger.error(f"[{self.index}] [{self.channel_name}] Error emitting dead status: {e}")
+
+            try:
+                await self.close_browser(reason=exit_reason)
+            except Exception as e:
+                logger.error(f"[{self.index}] [{self.channel_name}] Error closing browser: {e}")
+
+            obscura_port, self.obscura_port = self.obscura_port, 0
+            if obscura_port and self.context and getattr(self.context, 'obscura', None):
+                try:
+                    await self.context.obscura.stop_instance(obscura_port, self.context)
+                    logger.debug(f"[{self.index}] [{self.channel_name}] Obscura instance on port {obscura_port} stopped")
+                except Exception as e:
+                    logger.error(f"[{self.index}] [{self.channel_name}] Error stopping Obscura port {obscura_port}: {e}")
+
+            if self.context:
+                self.context.run_stopper_event.set()
+
             logger.info(f"[{self.index}] [{self.channel_name}] : Instance cleanup completed")
 
 

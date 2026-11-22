@@ -1,11 +1,14 @@
+import { Suspense } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
-import { GoogleTagManager } from '@next/third-parties/google'
+import { GoogleTagManager } from '@next/third-parties/google';
 import { DownloadCountProvider } from "@/context/DownloadCountContext";
 import { VisitCountProvider } from "@/context/VisitCountContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import AtatusObserver from "@/components/AtatusObserver";
 import "./globals.css";
 import { theme } from "../config/theme";
+import packageJson from "../../package.json";
 
 export const metadata = {
     title: 'StreamStorm - Spam YouTube live chat',
@@ -40,7 +43,7 @@ export const metadata = {
     other: {
         'sitemap': '/sitemap.xml',
     }
-}
+};
 
 const jsonLd = {
     '@context': 'https://schema.org',
@@ -53,13 +56,21 @@ const jsonLd = {
 export default function RootLayout({ children }) {
     return (
         <html lang="en">
-            <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
+            <GoogleTagManager
+                gtmId={process.env.NEXT_PUBLIC_GTM_ID}
+                dataLayer={{ app_version: packageJson.version }}
+            />
             <head>
                 <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
                 <link rel="author" href="https://github.com/Ashif4354" />
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                />
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `window.__STREAMSTORM_VERSION__ = ${JSON.stringify(packageJson.version)};`,
+                    }}
                 />
             </head>
             <body>
@@ -68,6 +79,9 @@ export default function RootLayout({ children }) {
                         height="0" width="0" style={{ display: 'none', visibility: 'hidden' }}></iframe>
                 </noscript>
                 <ThemeProvider theme={theme}>
+                    <Suspense fallback={null}>
+                        <AtatusObserver />
+                    </Suspense>
                     <DownloadCountProvider>
                         <VisitCountProvider>
                             <Header />

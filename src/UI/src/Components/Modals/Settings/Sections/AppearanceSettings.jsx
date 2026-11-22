@@ -3,6 +3,7 @@ import { useLocalStorageState } from '@toolpad/core/useLocalStorageState';
 import { logEvent } from 'firebase/analytics';
 import { Sun, Moon } from 'lucide-react';
 
+import * as atatus from '../../../../lib/atatus';
 import { analytics } from '../../../../config/firebase';
 
 const AppearanceSettings = () => {
@@ -13,6 +14,10 @@ const AppearanceSettings = () => {
         setColorScheme(theme);
         setDefaultColorScheme(theme);
         logEvent(analytics, "theme_switch", { theme });
+        atatus.addAction("theme-switched", { theme });
+        atatus.setGlobalContextProperty("colorScheme", theme);
+        atatus.addFeatureFlagEvaluation("color_scheme", theme);
+        atatus.settingsLogger.info("Theme switched", { theme });
     };
 
     return (
@@ -27,6 +32,7 @@ const AppearanceSettings = () => {
                 <div className="theme-cards-container">
                     <div
                         className={`theme-card theme-card-light ${colorScheme === 'light' ? 'theme-card-active' : ''}`}
+                        data-atatus-action-name="card-theme-light"
                         onClick={() => handleThemeChange('light')}
                     >
                         <div className="theme-card-preview theme-card-preview-light">
@@ -44,6 +50,7 @@ const AppearanceSettings = () => {
 
                     <div
                         className={`theme-card theme-card-dark ${colorScheme === 'dark' ? 'theme-card-active' : ''}`}
+                        data-atatus-action-name="card-theme-dark"
                         onClick={() => handleThemeChange('dark')}
                     >
                         <div className="theme-card-preview theme-card-preview-dark">

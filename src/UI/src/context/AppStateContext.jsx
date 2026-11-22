@@ -1,10 +1,7 @@
-import { useState, useEffect } from 'react';
-import { createContext, useContext } from 'react';
-
+import { useState, useEffect, createContext, useContext } from 'react';
 import { useLocalStorageState } from "@toolpad/core/useLocalStorageState";
 import { DEFAULT_HOST_ADDRESS } from '../lib/Constants';
-import * as atatus from "atatus-spa";
-
+import * as atatus from '../lib/atatus';
 
 const AppStateContext = createContext();
 
@@ -26,13 +23,43 @@ const AppStateProvider = ({ children }) => {
 
     // General settings (stored in app state, synced with backend)
     const [loginMethod, setLoginMethod] = useState('cookies');
+    const [engine, setEngine] = useState('chromium');
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     const [settingsLoading, setSettingsLoading] = useState(true);
 
+    // Sync storm progress to global context and feature flags
+    useEffect(() => {
+        atatus.setGlobalContextProperty('stormInProgress', stormInProgress);
+        atatus.setGlobalContextProperty('stormStatus', stormStatus);
+        atatus.addFeatureFlagEvaluation('storm_in_progress', stormInProgress);
+    }, [stormInProgress, stormStatus]);
+
+    // Sync login method, engine, and status
+    useEffect(() => {
+        atatus.addFeatureFlagEvaluation('login_method', loginMethod);
+        atatus.addFeatureFlagEvaluation('engine', engine);
+        atatus.addFeatureFlagEvaluation('is_logged_in', isLoggedIn);
+        atatus.setUserProperty('loginMethod', loginMethod);
+        atatus.setUserProperty('engine', engine);
+        atatus.setUserProperty('isLoggedIn', isLoggedIn);
+    }, [loginMethod, engine, isLoggedIn]);
+
+    // Sync AI provider
+    useEffect(() => {
+        if (defaultAIProvider) {
+            atatus.addFeatureFlagEvaluation('ai_provider', defaultAIProvider);
+            atatus.setGlobalContextProperty('defaultAIProvider', defaultAIProvider);
+            atatus.setGlobalContextProperty('defaultAIModel', defaultAIModel);
+        }
+    }, [defaultAIProvider, defaultAIModel]);
+
     // Fetch all settings (engine config + AI defaults + general) on app startup
     useEffect(() => {
         const fetchSettings = async () => {
+            atatus.startOperation('settings-bootstrap');
+            atatus.startDurationVital('settings-bootstrap');
+
             try {
                 const response = await fetch(`${hostAddress}/settings`, {
                     method: 'GET',
@@ -42,7 +69,13 @@ const AppStateProvider = ({ children }) => {
                 });
 
                 const data = await response.json();
+                atatus.stopDurationVital('settings-bootstrap');
+
                 if (data.success) {
+                    atatus.succeedOperation('settings-bootstrap');
+                    atatus.setViewLoadingTime();
+                    atatus.addTiming('settings_loaded');
+
                     // Set engine config
                     setEngineVersion(data.version);
                     setLogFilePath(data.log_file_path);
@@ -57,17 +90,45 @@ const AppStateProvider = ({ children }) => {
                     // Set general settings from 'general' sub-key
                     if (data.general) {
                         setLoginMethod(data.general.login_method ?? 'cookies');
+                        setEngine(data.general.engine ?? 'chromium');
                         setIsLoggedIn(data.general.is_logged_in ?? false);
                     }
+
+                    // Register identity and global context
+                    atatus.setAccount({
+                        id: 'streamstorm-engine',
+                        name: 'StreamStorm Engine',
+                        engineVersion: data.version,
+                    });
+                    atatus.setUser({
+                        id: data.general?.is_logged_in ? 'authenticated-operator' : 'anonymous-operator',
+                        loginMethod: data.general?.login_method || 'cookies',
+                        engine: data.general?.engine || 'chromium',
+                        isLoggedIn: data.general?.is_logged_in || false,
+                    });
+                    atatus.setGlobalContextProperty('engineVersion', data.version);
+                    atatus.setGlobalContextProperty('uiVersion', UIVersion);
+
+                    atatus.settingsLogger.info('Engine settings initialized successfully', {
+                        version: data.version,
+                        engine: data.general?.engine,
+                        loginMethod: data.general?.login_method,
+                        defaultProvider: data.ai?.defaultProvider,
+                    });
                 } else {
+                    atatus.failOperation('settings-bootstrap', data.error || 'Failed to fetch settings');
                     if (data.error) {
                         console.error("Failed to fetch settings:", data.error);
-                        atatus.notify(new Error(data.error), { response: data }, ['settings_fetch_failed']);
+                        atatus.addError(new Error(data.error), { message: data.error, tags: ['settings_fetch_failed'] });
+                        atatus.settingsLogger.error('Failed to fetch settings from engine', { message: data.error }, new Error(data.error));
                     }
                 }
             } catch (error) {
+                atatus.stopDurationVital('settings-bootstrap');
+                atatus.failOperation('settings-bootstrap', error.message);
                 console.error('Failed to fetch settings:', error);
-                atatus.notify(error, {}, ['settings_fetch_error']);
+                atatus.addError(error, { tags: ['settings_fetch_error'] });
+                atatus.settingsLogger.error('Settings fetch network error', {}, error);
             } finally {
                 setSettingsLoading(false);
             }
@@ -89,6 +150,7 @@ const AppStateProvider = ({ children }) => {
         defaultAIBaseUrl, setDefaultAIBaseUrl,
         // General Settings
         loginMethod, setLoginMethod,
+        engine, setEngine,
         isLoggedIn, setIsLoggedIn,
         settingsLoading
     };

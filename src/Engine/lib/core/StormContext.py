@@ -22,6 +22,7 @@ class StormContext:
         self.target_channel: tuple[str, bool] = ("", False) # (channel_url, channel_url_fetched)
         self.total_instances: int = 0
         self.ready_to_storm_instances: int = 0
+        self.spawn_in_progress: int = 0
         self.total_channels: int = 0
         self.all_channels: dict[str, dict[str, Any]] = {}
         self.assigned_profiles: dict[str, int | None] = {}
@@ -37,6 +38,10 @@ class StormContext:
         self.message_counter_lock: Lock = Lock()     
 
         self.login_method: str = "cookies"   
+        self.engine: str = "obscura"
+        self.obscura_current_port: int = 9222
+        self.freed_obscura_ports: list[int] = []
+        self.obscura: Any = None
 
         self.initiate_channels()
 

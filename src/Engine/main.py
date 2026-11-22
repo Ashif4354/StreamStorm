@@ -24,9 +24,12 @@ from uvicorn import run as run_uvicorn
 from webview import create_window, start
 
 from lib.settings import settings
+from lib.core.Obscura import Obscura
 from lib.utils.CombinedLifeSpan import combined_lifespan
 from lib.utils.CustomLogger import custom_logger
+from lib.utils.sentry import flush_sentry, init_sentry
 custom_logger.setup_streamstorm_logging()
+init_sentry()  # Must run before the FastAPI/Starlette apps are created
 logger: Logger = getLogger(f"streamstorm.{__name__}")
 
 from lib.api.fastapi_app import app as fastapi_app
@@ -36,6 +39,10 @@ from lib.mcp.mcpserver import mcp_app
 
 def exit_app() -> None:
     logger.debug("Exiting StreamStorm")
+    # Obscura is spawned detached so it would outlive us; SIGTERM below skips atexit on Windows
+    with suppress(Exception):
+        Obscura.kill_all()
+    flush_sentry()
     kill(getpid(), SIGTERM)
 
 
@@ -79,6 +86,7 @@ def serve_api() -> None:
         host=HOST,
         port=PORT,
         log_level="warning",
+        ws="websockets-sansio",
     )
 
 
@@ -87,7 +95,7 @@ def main() -> None:
         serve_api()
         return
 
-    if settings.os == "Windows":
+    if settings.os == "Windows" and settings.env == "production":
         check_update(parallel=True)
 
     Thread(target=serve_api, daemon=True).start()

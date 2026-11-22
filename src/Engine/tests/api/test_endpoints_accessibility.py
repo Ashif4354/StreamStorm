@@ -214,16 +214,20 @@ def test_verify_channels_logo_dir(client: TestClient) -> NoReturn:
     assert response.status_code == 400
     
 
-def test_save_settings(client: TestClient) -> NoReturn:
-    
+def test_save_settings(client: TestClient, mocker: MockerFixture, tmp_path) -> NoReturn:
+    mocker.patch("lib.settings.Settings.SETTINGS_FILE_PATH", tmp_path / "settings.json")
     data: dict = {
-        "login_method": "profiles"
+        "login_method": "cookies",
+        "engine": "obscura"
     }
 
     response: Response = client.post("/settings/general", json=data)
     logger.debug(response.json())
 
     assert response.status_code == 200
+    res_json = response.json()
+    assert res_json["login_method"] == "cookies"
+    assert res_json["engine"] == "obscura"
 
 
 def test_clear_login_data(client: TestClient, mocker: MockerFixture) -> NoReturn:

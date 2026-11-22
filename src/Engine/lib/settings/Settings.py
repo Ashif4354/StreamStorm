@@ -1,13 +1,18 @@
+import sys
+from contextlib import suppress
 from pathlib import Path
-from os import makedirs
+from os import fsync, makedirs, replace
 from os.path import exists
 from platform import system
 from json import JSONDecodeError, dumps, loads
 from logging import Logger, getLogger
-from typing import Literal
+from shutil import copyfile
+from threading import RLock
+from time import sleep
+from typing import Any, Literal
 
 from platformdirs import user_data_dir
-from pydantic import model_validator, Field
+from pydantic import model_validator, Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .SavedSettings import SavedSettings, AISettings, DEFAULT_SAVED_SETTINGS
@@ -19,54 +24,137 @@ SETTINGS_FILE_PATH: Path = APP_DATA_DIR / "settings.json"
 logger: Logger = getLogger(f"fastapi.{__name__}")
 # Does not have a handler, so it will not log anything
 
-def ensure_settings_json_file() -> None:
-    """Ensure the settings file and directory exist"""
-    if not exists(APP_DATA_DIR):
-        makedirs(APP_DATA_DIR, exist_ok=True)
-        logger.info(f"Created settings directory: {APP_DATA_DIR}")
-
-    if not exists(SETTINGS_FILE_PATH):
-        with open(SETTINGS_FILE_PATH, "w", encoding="utf-8") as file:
-            file.write(dumps(DEFAULT_SAVED_SETTINGS, indent=4))
-        logger.info(f"Created default settings file: {SETTINGS_FILE_PATH}")
+_settings_file_lock: RLock = RLock()
 
 
-def read_settings_json() -> SavedSettings:        
-    ensure_settings_json_file()
+def _replace_with_retry(source: Path, destination: Path, attempts: int = 5) -> None:
+    for attempt in range(attempts):
+        try:
+            replace(source, destination)
+            return
+
+        except PermissionError:
+            # Windows rejects the rename while an antivirus or indexer briefly holds the target open.
+            if attempt == attempts - 1:
+                raise
+
+            sleep(0.05 * (attempt + 1))
+
+
+def _write_file_atomically(path: Path, content: str) -> None:
+    temp_path: Path = path.with_name(f"{path.name}.tmp")
 
     try:
-        with open(SETTINGS_FILE_PATH, "r", encoding="utf-8") as file:
-            content = file.read()
-            settings = loads(content)
+        with open(temp_path, "w", encoding="utf-8") as file:
+            file.write(content)
+            file.flush()
+            fsync(file.fileno())
 
-            # Ensure AI section exists
-            if "ai" not in settings:
-                settings["ai"] = DEFAULT_SAVED_SETTINGS["ai"]
+        _replace_with_retry(temp_path, path)
 
-            return SavedSettings(**settings)
+    except Exception:
+        with suppress(OSError):
+            temp_path.unlink()
 
-    except (JSONDecodeError, FileNotFoundError) as e:
-        logger.error(f"Error reading settings file, recreating: {e}")
-
-        with open(SETTINGS_FILE_PATH, "w", encoding="utf-8") as file:
-            file.write(dumps(DEFAULT_SAVED_SETTINGS, indent=4))
-
-        return SavedSettings(**DEFAULT_SAVED_SETTINGS) 
+        raise
 
 
-def write_settings_json(settings: dict) -> None:
+def _backup_settings_file() -> None:
+    with suppress(OSError):
+        copyfile(SETTINGS_FILE_PATH, SETTINGS_FILE_PATH.with_name(f"{SETTINGS_FILE_PATH.name}.bak"))
+
+
+def ensure_settings_json_file() -> None:
+    """Ensure the settings file and directory exist"""
+    with _settings_file_lock:
+        if not exists(APP_DATA_DIR):
+            makedirs(APP_DATA_DIR, exist_ok=True)
+            logger.info(f"Created settings directory: {APP_DATA_DIR}")
+
+        if not exists(SETTINGS_FILE_PATH):
+            _write_file_atomically(SETTINGS_FILE_PATH, dumps(DEFAULT_SAVED_SETTINGS, indent=4))
+            logger.info(f"Created default settings file: {SETTINGS_FILE_PATH}")
+
+
+def _migrate_loaded_settings(loaded: dict) -> dict:
+    if "ai" not in loaded:
+        loaded["ai"] = DEFAULT_SAVED_SETTINGS["ai"]
+
+    if "login_method" not in loaded:
+        loaded["login_method"] = "cookies"
+
+    if "engine" not in loaded:
+        loaded["engine"] = loaded.get("browser_engine", "chromium")
+
+    if loaded["engine"] == "native":
+        loaded["engine"] = "chromium"
+
+    return loaded
+
+
+def _recover_invalid_settings(loaded: dict, error: ValidationError) -> SavedSettings:
+    invalid_fields: set[Any] = {err["loc"][0] for err in error.errors() if err["loc"]}
+    logger.error(f"Invalid saved settings fields, falling back to defaults for: {sorted(map(str, invalid_fields))}")
+
+    _backup_settings_file()
+
+    try:
+        return SavedSettings(**{k: v for k, v in loaded.items() if k not in invalid_fields})
+
+    except ValidationError:
+        return SavedSettings(**DEFAULT_SAVED_SETTINGS)
+
+
+def read_settings_json() -> SavedSettings:
+    with _settings_file_lock:
+        ensure_settings_json_file()
+
+        try:
+            with open(SETTINGS_FILE_PATH, "r", encoding="utf-8") as file:
+                loaded = loads(file.read())
+
+        except (JSONDecodeError, UnicodeDecodeError, FileNotFoundError) as e:
+            logger.error(f"Error reading settings file, recreating: {e}")
+
+            _backup_settings_file()
+            _write_file_atomically(SETTINGS_FILE_PATH, dumps(DEFAULT_SAVED_SETTINGS, indent=4))
+
+            return SavedSettings(**DEFAULT_SAVED_SETTINGS)
+
+        if not isinstance(loaded, dict):
+            _backup_settings_file()
+            loaded = {}
+
+        loaded = _migrate_loaded_settings(loaded)
+
+        try:
+            return SavedSettings(**loaded)
+
+        except ValidationError as e:
+            return _recover_invalid_settings(loaded, e)
+
+
+def write_settings_json(settings_dict: dict) -> None:
     """Write settings to file"""
-    ensure_settings_json_file()
+    with _settings_file_lock:
+        ensure_settings_json_file()
+        _write_file_atomically(SETTINGS_FILE_PATH, dumps(settings_dict, indent=4))
 
-    with open(SETTINGS_FILE_PATH, "w", encoding="utf-8") as file:
-        file.write(dumps(settings, indent=4))
+
+_ENV_FILES: list[str | Path] = [".env", "../../.env", "../src/Engine/.env"]
+
+if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+    # In the PyInstaller executable, a build-time env file (containing only the Sentry DSN)
+    # is bundled inside the extracted bundle. It is placed first so any local .env overrides it.
+    _ENV_FILES.insert(0, Path(sys._MEIPASS) / ".env")
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(".env", "../../.env", "../src/Engine/.env"),
+        env_file=tuple(_ENV_FILES),
         env_file_encoding="utf-8",
         env_prefix="STREAMSTORM_",
+        extra="ignore",
         validate_assignment=True
     )
 
@@ -79,18 +167,26 @@ class Settings(BaseSettings):
     os: str = system()
     run_only_api: bool = False
 
-    atatus_app_name: str = "StreamStormEngine"  # Fetches from env variable
-    atatus_license_key: str = "atatus_license_key"  # Fetches from env variable
+    sentry_dsn: str = ""  # Fetches from STREAMSTORM_SENTRY_DSN env variable. Empty disables Sentry.
+    sentry_traces_sample_rate: float = Field(default=0.1, ge=0.0, le=1.0)
     logfire_token: str = "logfire_token"  # Fetches from env variable
 
     app_data_dir: Path = APP_DATA_DIR
     settings_file_path: Path = SETTINGS_FILE_PATH
     environment_dir: Path = APP_DATA_DIR / "Environment"
+    screenshot_dir: Path = APP_DATA_DIR / "Screenshots"
     data_json_path: Path = environment_dir / "data.json"
     cookies_path: Path = environment_dir / "cookies.json"
     log_file_path: str = "" # Will be set by CustomLogger during logging setup
 
     login_method: Literal["cookies", "profiles"] = "cookies"
+    engine: Literal["chromium", "obscura"] = "chromium"
+
+    _initialized: bool = False
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        object.__setattr__(self, "_initialized", True)
 
     @property
     def is_logged_in(self) -> bool:
@@ -149,26 +245,35 @@ class Settings(BaseSettings):
     saved_settings: SavedSettings = Field(default_factory=SavedSettings) 
     ai: AISettings = Field(default_factory=AISettings)
 
+    def save(self) -> None:
+        """Write current persistent settings to settings.json"""
+        with _settings_file_lock:
+            settings_json_content: dict = self.saved_settings.model_dump()
+            settings_json_content["ai"] = self.ai.model_dump()
+            settings_json_content["login_method"] = self.login_method
+            settings_json_content["engine"] = self.engine
+            write_settings_json(settings_json_content)
+
     @model_validator(mode="before")
     @classmethod
     def load_saved_settings(cls, data: dict) -> dict:
-        settings = read_settings_json()
-        data["saved_settings"] = settings
-        data["ai"] = settings.ai
-        data["login_method"] = settings.login_method
+        loaded = read_settings_json()
+        data["saved_settings"] = loaded
+        data["ai"] = loaded.ai
+        data["login_method"] = loaded.login_method
+        data["engine"] = loaded.engine
 
         return data
 
     @model_validator(mode="after")
     def save_settings(self) -> "Settings":
-        settings_json_content: dict = self.saved_settings.model_dump()
+        self.save()
+        return self
 
-        settings_json_content["ai"] = self.ai.model_dump()
-        settings_json_content["login_method"] = self.login_method
-
-        write_settings_json(settings_json_content)  
-
-        return self        
+    def __setattr__(self, name: str, value: Any) -> None:
+        super().__setattr__(name, value)
+        if getattr(self, "_initialized", False) and name in {"login_method", "engine", "ai"}:
+            self.save()
 
 
 settings: Settings = Settings()
