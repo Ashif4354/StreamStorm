@@ -47,7 +47,7 @@ Standard Atatus RUM tag (per official Atatus documentation):
       trackResourceHeaders: false,
       trackLongTasks: true,
       trackAnonymousUser: true,
-      defaultPrivacyLevel: 'mask-user-input',
+      defaultPrivacyLevel: 'mask',
       enablePrivacyForActionName: true
     });
 
@@ -70,7 +70,8 @@ Standard Atatus RUM tag (per official Atatus documentation):
 ```
 
 ### Privacy & Masking:
-* **Native Atatus Masking**: `defaultPrivacyLevel: 'mask-user-input'` instructs Atatus Session Replay to automatically mask all form inputs, text areas, and user typing across the application. No manual regex or DOM rewriting is needed.
+* **Native Atatus Masking**: `defaultPrivacyLevel: 'mask'` instructs Atatus Session Replay to mask all text and all form inputs across the application, including channel names, status labels and log lines. No manual regex or DOM rewriting is needed.
+* **Update the live GTM tag**: this value lives in the GTM container, not in the repo. Change `defaultPrivacyLevel` there and publish the container for it to take effect.
 
 ## Atatus Browser Logs tag
 

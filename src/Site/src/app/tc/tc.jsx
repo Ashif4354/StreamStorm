@@ -49,7 +49,7 @@ const TermsAndConditions = () => {
             Product and diagnostic telemetry starts automatically while you use StreamStorm; there is no opt-in prompt. By continuing to use the website or application, you acknowledge the telemetry practices described in our <a href="/pp">Privacy Policy</a>.
           </p>
           <ul>
-            <li><strong>Atatus Browser RUM:</strong> Collects session replay, performance metrics, error diagnostics, and application action events. Form inputs and user-typed text are masked in session replay via native configuration (<code>mask-user-input</code>).</li>
+            <li><strong>Atatus Browser RUM:</strong> Collects session replay, performance metrics, error diagnostics, and application action events. All on-screen text and user-typed input are masked in session replay via native configuration (<code>mask</code>).</li>
             <li><strong>Firebase Analytics:</strong> Receives selected product events and aggregated usage statistics to understand feature adoption.</li>
             <li><strong>Microsoft Clarity:</strong> Captures behavioral analytics, heatmaps, and session recordings on configured pages, with sensitive input controls masked.</li>
             <li><strong>Sentry:</strong> Receives backend diagnostic crash reports, error stack traces, and runtime event metadata to ensure software stability.</li>
