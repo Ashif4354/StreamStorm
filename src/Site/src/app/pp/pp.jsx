@@ -19,7 +19,7 @@ const PrivacyPolicy = () => {
     <div className="pp-page">
       <article className="pp-container">
         <h1>Privacy Policy</h1>
-        <p className="last-updated">Last Updated: October 25, 2026</p>
+        <p className="last-updated">Last Updated: November 22, 2026</p>
 
         <section>
           <h2>1. Overview & Transparency Commitment</h2>
@@ -32,15 +32,17 @@ const PrivacyPolicy = () => {
         <section>
           <h2>2. Telemetry, Monitoring &amp; Diagnostics (Atatus, Firebase, Clarity &amp; Sentry)</h2>
           <p>
-            StreamStorm sends product, performance, and diagnostic telemetry automatically while the website or desktop UI and backend engine are in use. Atatus Browser Real User Monitoring (RUM) is loaded via Google Tag Manager for session, performance, error, action, and diagnostic monitoring. Firebase Analytics records selected product events, Microsoft Clarity provides interaction analytics and heatmaps, and Sentry is utilized for backend application crash reporting and diagnostic error tracking (which may include exception stack traces, request metadata, and debugging contextual variables). There is no telemetry opt-in prompt.
+            StreamStorm sends product, performance, and diagnostic telemetry automatically while the website or desktop UI and backend engine are in use. Atatus Browser Real User Monitoring (RUM) is loaded via Google Tag Manager for session, performance, error, action, and diagnostic monitoring. Firebase Analytics records selected product events, Microsoft Clarity provides interaction analytics and heatmaps, and Sentry is utilized for backend application crash reporting and diagnostic error tracking (which may include exception stack traces, request metadata, and debugging contextual variables). Before an error report is sent, credential-like data (cookies, API keys, tokens, and authorization values) is masked, and your computer&apos;s hostname and user directory paths are removed. There is no telemetry opt-in prompt.
           </p>
           <div>
             <strong>Telemetry categories:</strong>
             <ul>
-              <li><strong>Session Replay &amp; Native Input Masking:</strong> Session replays record user navigation, button clicks, and UI interactions to diagnose errors and usability issues. Session replay is configured with native input masking (<code>defaultPrivacyLevel: &apos;mask-user-input&apos;</code>), which automatically masks text typed into input fields, textareas, and form controls.</li>
+              <li><strong>Session Replay &amp; Native Input Masking:</strong> Session replays record user navigation, button clicks, and UI interactions to diagnose errors and usability issues. Session replay is configured with native input masking (<code>defaultPrivacyLevel: &apos;mask-user-input&apos;</code>), which automatically masks text typed into input fields, textareas, and form controls. Input masking does not cover text that the interface displays on screen, so non-input content such as channel names, status labels, and log lines shown in the UI may be visible in a session replay.</li>
               <li><strong>Performance &amp; Web Vitals:</strong> Page load times, resource timings, Core Web Vitals (LCP, FID, CLS, INP), and custom application timing metrics.</li>
               <li><strong>Errors &amp; Exceptions:</strong> Uncaught JavaScript exceptions, unhandled promise rejections, and application error boundary incidents to ensure software stability.</li>
-              <li><strong>Product Actions:</strong> High-level application events triggered within the user interface (e.g., starting or stopping a storm, opening modals, channel selection counts).</li>
+              <li><strong>Product Actions &amp; Logs:</strong> High-level application events triggered within the user interface (e.g., starting or stopping a storm, opening modals, counts of channels or messages, prompt lengths, selected engine, login method, and AI provider and model names). Logged request details are limited to the HTTP method, URL path (without query string, fragment, or host), response status, and duration. Request and response bodies are not logged, and requests to Atatus, Firebase, and Google Tag Manager are excluded.</li>
+              <li><strong>Form Interactions:</strong> Only the name and type of a form field that was changed is recorded, never the value you entered.</li>
+              <li><strong>Content Not Logged:</strong> Video URLs, chat message text, channel names, AI prompt text, AI-generated content, cookie file names, file system paths, your configured engine host address, and engine log output are not included in Atatus action or log events.</li>
               <li><strong>Local Credential Separation:</strong> Authentication credentials—including YouTube session cookies, local browser profiles, and third-party AI API keys—are stored strictly on your local machine and are never transmitted in application telemetry.</li>
               <li><strong>Session Identifiers:</strong> Atatus, Firebase, and Microsoft Clarity use anonymous session identifiers and standard browser storage to correlate visits and sessions.</li>
             </ul>
@@ -65,7 +67,8 @@ const PrivacyPolicy = () => {
           <div>
             <strong>Prompt &amp; Interaction Disclosure:</strong>
             <ul>
-              <li><strong>Prompt Visibility:</strong> All prompts, queries, text inputs, conversation histories, and messages submitted through the Kelu Ask AI assistant and in-app AI generation dialogs (such as AI message and channel name generation) may be recorded and processed via application telemetry and logs visible to the maintainer/administrator of StreamStorm.</li>
+              <li><strong>Prompt Visibility (Kelu Ask AI):</strong> Prompts, queries, conversation histories, and messages submitted through the Kelu Ask AI assistant may be recorded and processed by that service and via application telemetry visible to the maintainer/administrator of StreamStorm.</li>
+              <li><strong>In-App AI Generators:</strong> Prompts entered in the in-app message and channel name generators are sent directly from your machine to the AI provider you configured. Application telemetry records only the prompt length, number of results, and the provider and model names, not the prompt or the generated text.</li>
               <li><strong>Purpose of Collection:</strong> Prompts are reviewed to analyze user questions, provide technical support, debug application errors, monitor feature reliability, refine AI response quality, and improve software documentation.</li>
               <li><strong>Sensitive Information Warning:</strong> Please do not submit confidential credentials, sensitive passwords, private keys, or personal identifiers into any AI prompt interface within StreamStorm.</li>
             </ul>
@@ -92,7 +95,7 @@ const PrivacyPolicy = () => {
           <ul>
             <li><strong>YouTube Authentication Data:</strong> Google/YouTube cookies or browser profiles generated during setup remain stored locally on your machine within your user profile directory. They are stored locally and are never transmitted in telemetry or sent to third-party advertisers.</li>
             <li><strong>Custom AI API Keys:</strong> API keys provided for custom LLM integrations (OpenAI, Anthropic, Google Gemini, Ollama) are stored in your local configuration and communicated directly from your machine to the respective AI provider.</li>
-            <li><strong>Network Traffic:</strong> The engine connects to the internet to check for software releases, download compatible browser drivers (chromedriver), interact with YouTube live chat streams as commanded by you, and transmit the monitoring telemetry detailed above.</li>
+            <li><strong>Network Traffic:</strong> The engine connects to the internet to check for software releases, launch your locally installed Google Chrome (or the optional Obscura engine, which you install yourself) to interact with YouTube live chat streams as commanded by you, and transmit the monitoring telemetry detailed above.</li>
           </ul>
         </section>
 

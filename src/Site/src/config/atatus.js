@@ -6,12 +6,12 @@
  *
  * Features:
  * - SSR-safe for Next.js App Router
- * - 100% full unmasked visibility with early-call queueing & auto-flush after init()
+ * - Early-call queueing & auto-flush after init()
  * - Full Views, Actions, Resources, Errors, Timings, Duration Vitals, Operations API
  * - Identity (User & Account), Global Context, Feature Flags
  * - Session Replay links and controls
  * - Named Scoped Loggers (site, downloads, visits, navigation, ui, api)
- * - Automatic fetch payload logging, unmasked DOM input observer, & outbound/download link observer
+ * - Automatic fetch metadata logging (method, path, status, duration), input observer (field name and type only), & outbound/download link observer
  */
 
 import packageJson from '../../package.json';
@@ -298,11 +298,21 @@ export const logger = {
 // ==========================================
 // AUTOMATIC GLOBAL OBSERVERS
 // ==========================================
-let observersInstalled = false;
+const TELEMETRY_HOST_PATTERN = /(^|\.)(atatus\.(io|com)|googleapis\.com|gstatic\.com|firebaseio\.com|firebaseapp\.com|cloudfunctions\.net|googletagmanager\.com|google-analytics\.com)$/i;
+
+const describeRequest = (input) => {
+    try {
+        const raw = typeof input === 'string' ? input : (input?.url ?? String(input));
+        const parsed = new URL(raw, window.location.href);
+        return { skip: TELEMETRY_HOST_PATTERN.test(parsed.hostname), path: parsed.pathname };
+    } catch {
+        return { skip: false, path: 'unknown-url' };
+    }
+};
 
 export const installGlobalObservers = () => {
-    if (!isBrowser || observersInstalled) return;
-    observersInstalled = true;
+    if (!isBrowser || window.__ATATUS_OBSERVERS_INSTALLED__) return;
+    window.__ATATUS_OBSERVERS_INSTALLED__ = true;
 
     setGlobalContextProperty('appName', 'StreamStormSite');
     setGlobalContextProperty('version', packageJson.version);
@@ -312,66 +322,46 @@ export const installGlobalObservers = () => {
         window.dataLayer.push({ app_version: packageJson.version });
     }
 
-    // 1. Transparent Fetch Observer
     const originalFetch = window.fetch;
     window.fetch = async function (...args) {
+        const { skip, path } = describeRequest(args[0]);
+        if (skip) return originalFetch.apply(this, args);
+
         const startTime = Date.now();
-        const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || 'unknown-url');
         const options = args[1] || {};
         const method = options.method || (args[0]?.method) || 'GET';
-        let reqBody = options.body;
-        if (typeof reqBody === 'string') {
-            try { reqBody = JSON.parse(reqBody); } catch (_) {}
-        }
 
         try {
             const response = await originalFetch.apply(this, args);
             const duration = Date.now() - startTime;
-            const clone = response.clone();
-
-            clone.json().then((json) => {
-                apiLogger.debug(`${method} ${url} -> ${response.status} (${duration}ms)`, {
-                    method,
-                    url,
-                    status: response.status,
-                    duration,
-                    request: reqBody,
-                    response: json,
-                });
-            }).catch(() => {
-                apiLogger.debug(`${method} ${url} -> ${response.status} (${duration}ms)`, {
-                    method,
-                    url,
-                    status: response.status,
-                    duration,
-                });
+            apiLogger.debug(`${method} ${path} -> ${response.status} (${duration}ms)`, {
+                method,
+                path,
+                status: response.status,
+                duration,
             });
-
             return response;
         } catch (error) {
             const duration = Date.now() - startTime;
-            apiLogger.error(`${method} ${url} FAILED (${duration}ms)`, {
+            apiLogger.error(`${method} ${path} FAILED (${duration}ms)`, {
                 method,
-                url,
+                path,
                 duration,
-                request: reqBody,
             }, error);
             throw error;
         }
     };
 
-    // 2. Global Unmasked Input Change Observer
     document.addEventListener('change', (e) => {
         try {
             const target = e.target;
             if (!target) return;
             const tag = target.tagName?.toLowerCase();
             if (tag === 'input' || tag === 'textarea' || tag === 'select') {
-                const name = target.name || target.id || target.getAttribute('aria-label') || target.placeholder || 'unnamed-input';
+                const name = target.name || target.id || target.getAttribute('aria-label') || 'unnamed-input';
                 const type = target.type || tag;
-                const value = type === 'checkbox' ? target.checked : target.value;
-                addAction('input-changed', { field: name, type, value });
-                uiLogger.debug(`Input changed: ${name}`, { field: name, type, value });
+                addAction('input-changed', { field: name, type });
+                uiLogger.debug(`Input changed: ${name}`, { field: name, type });
             }
         } catch (_) {}
     }, true);
@@ -387,18 +377,18 @@ export const installGlobalObservers = () => {
 
                 if (isDownload) {
                     addAction('file-download-clicked', {
-                        href: anchor.href,
+                        href: url.origin + url.pathname,
                         text: anchor.innerText?.trim() || '',
                         path: url.pathname,
                     });
-                    downloadLogger.info(`Download clicked: ${url.pathname}`, { href: anchor.href });
+                    downloadLogger.info(`Download clicked: ${url.pathname}`, { href: url.origin + url.pathname });
                 } else if (isOutbound) {
                     addAction('outbound-link-clicked', {
-                        href: anchor.href,
+                        href: url.origin + url.pathname,
                         host: url.host,
                         text: anchor.innerText?.trim() || '',
                     });
-                    navLogger.info(`Outbound link clicked: ${url.host}`, { href: anchor.href });
+                    navLogger.info(`Outbound link clicked: ${url.host}`, { href: url.origin + url.pathname });
                 }
             }
         } catch (_) {}

@@ -57,7 +57,12 @@ const Instructions = () => {
               <li>
                 <a href="#settings-menu" className="instructions-index-link">Settings Menu</a>
                 <ul className="instructions-index-list">
-                  <li><a href="#settings-general" className="instructions-index-link">General (Engine & Login Method)</a></li>
+                  <li>
+                    <a href="#settings-general" className="instructions-index-link">General (Engine & Login Method)</a>
+                    <ul className="instructions-index-list">
+                      <li><a href="#obscura-engine" className="instructions-index-link">Using the Experimental Obscura Engine</a></li>
+                    </ul>
+                  </li>
                   <li>
                     <a href="#settings-host" className="instructions-index-link">Host Configuration</a>
                     <ul className="instructions-index-list">
@@ -125,11 +130,11 @@ const Instructions = () => {
             <li className="instructions-list-item">
               <strong>RAM Requirements:</strong>
               <ul className="instructions-list">
-                <li className="instructions-list-item"><strong>Obscura Engine (Default & Recommended):</strong> Only ~150MB of free RAM per channel. This allows running significantly more concurrent channels on low-end and high-end systems alike.</li>
-                <li className="instructions-list-item"><strong>Chromium Engine:</strong> Requires ~235MB-350MB of free RAM per channel.</li>
+                <li className="instructions-list-item"><strong>Chromium Engine (Default):</strong> Requires ~235MB-350MB of free RAM per channel.</li>
+                <li className="instructions-list-item"><strong>Obscura Engine (Experimental, installed separately):</strong> Only ~150MB of free RAM per channel. See <a href="#obscura-engine" className="instructions-index-link">Using the Experimental Obscura Engine</a>.</li>
               </ul>
             </li>
-            <li className="instructions-list-item">Chrome / Chromium browser is only required if you choose to use the Chromium engine or the Browser Profiles login method. When using the default Obscura engine, no desktop Chrome installation is required.</li>
+            <li className="instructions-list-item">Google Chrome must be installed for the default Chromium engine and for the Browser Profiles login method. It is not needed if you switch to the experimental Obscura engine with Cookie-based login.</li>
           </ul>
 
           <h2 id="using-the-app" className="instructions-section-heading">Using The Application</h2>
@@ -535,8 +540,8 @@ const Instructions = () => {
             <li className="instructions-list-item">
               <strong>Engine</strong>
               <ul className="instructions-list">
-                <li className="instructions-list-item"><code className="instructions-inline-code">Obscura</code> (Default & Recommended) - Ultra-lightweight headless automation engine. Consumes only ~150MB RAM per channel (a ~60% reduction compared to standard browsers) and shares a single Playwright driver process. Works with Cookie-based login across Windows, macOS, and Linux.</li>
-                <li className="instructions-list-item"><code className="instructions-inline-code">Chromium</code> - Standard native Chromium browser engine (~250MB-350MB RAM per channel). Supports full graphical rendering and is required when using the Browser Profiles login method.</li>
+                <li className="instructions-list-item"><code className="instructions-inline-code">Chromium</code> (Default) - Standard native Chromium browser engine (~250MB-350MB RAM per channel). Requires Google Chrome to be installed. Supports full graphical rendering and is required when using the Browser Profiles login method.</li>
+                <li className="instructions-list-item"><code className="instructions-inline-code">Obscura</code> (Experimental) - Ultra-lightweight headless automation engine (~150MB RAM per channel). It is <strong>not bundled</strong> with StreamStorm: you must install it yourself before selecting it. Works with Cookie-based login only. <a href="#obscura-engine" className="instructions-index-link">How to install and enable it</a>.</li>
               </ul>
             </li>
             <li className="instructions-list-item">
@@ -553,6 +558,29 @@ const Instructions = () => {
                 <li className="instructions-list-item">You will need to log in again after clearing the data.</li>
               </ul>
             </li>
+          </ul>
+
+          <h4 id="obscura-engine">Using the Experimental Obscura Engine</h4>
+          <div className="instructions-warning">
+            <p className="instructions-warning-text">
+              <strong>Experimental:</strong> Obscura is <strong>not shipped</strong> with StreamStorm. StreamStorm uses the Chromium engine by default. Only follow these steps if you want lower RAM usage and accept that Obscura may be less stable.
+            </p>
+          </div>
+          <ul className="instructions-list">
+            <li className="instructions-list-item">
+              Install Obscura yourself by following the official guide: <a href="https://docs.obscura.sh/quickstart/installation" target="_blank" rel="noopener noreferrer" className="instructions-link">Obscura installation guide</a>.
+            </li>
+            <li className="instructions-list-item">
+              StreamStorm looks for a binary named <code className="instructions-inline-code">obscura</code> (<code className="instructions-inline-code">obscura.exe</code> on Windows) on your <code className="instructions-inline-code">PATH</code>. If it is not on your PATH, these locations are also checked:
+              <ul className="instructions-list">
+                <li className="instructions-list-item"><strong>Windows:</strong> <code className="instructions-inline-code">C:\Utils\obscura.exe</code>, <code className="instructions-inline-code">%USERPROFILE%\.local\bin\obscura.exe</code>, <code className="instructions-inline-code">%USERPROFILE%\.cargo\bin\obscura.exe</code>, <code className="instructions-inline-code">%LOCALAPPDATA%\Programs\obscura\obscura.exe</code></li>
+                <li className="instructions-list-item"><strong>macOS / Linux:</strong> <code className="instructions-inline-code">~/.local/bin/obscura</code>, <code className="instructions-inline-code">~/.cargo/bin/obscura</code>, <code className="instructions-inline-code">/usr/local/bin/obscura</code>, <code className="instructions-inline-code">/opt/homebrew/bin/obscura</code>, <code className="instructions-inline-code">/usr/bin/obscura</code></li>
+              </ul>
+            </li>
+            <li className="instructions-list-item">Restart StreamStorm after installing so it picks up the updated <code className="instructions-inline-code">PATH</code>.</li>
+            <li className="instructions-list-item">Open <strong>Settings → General → Engine</strong>, select <code className="instructions-inline-code">Obscura (Experimental)</code> and click <strong>Save</strong>.</li>
+            <li className="instructions-list-item">Obscura works with the <strong>Cookies</strong> login method only. If you select Browser Profiles, StreamStorm uses Chromium instead.</li>
+            <li className="instructions-list-item">If Obscura is not found, starting a storm fails with an <code className="instructions-inline-code">Obscura not installed</code> error. Install it, or switch the engine back to Chromium in Settings → General.</li>
           </ul>
 
           <h3 id="settings-host" className="instructions-step-heading">Host Configuration</h3>
@@ -632,8 +660,8 @@ const Instructions = () => {
           <ul className="instructions-list">
             <li className="instructions-list-item">The less free RAM you have after clicking <code className="instructions-inline-code">Start Storm</code>, the more likely the storming process will be slower, and the more likely it is to fail. Choose the number of accounts responsibly according to your selected engine:
               <ul className="instructions-list">
-                <li className="instructions-list-item"><strong>With Obscura (Default):</strong> Each channel uses only ~150MB of RAM. If you have 8GB of free RAM, you can comfortably run 40+ channels while leaving plenty of headroom for your operating system.</li>
-                <li className="instructions-list-item"><strong>With Chromium:</strong> Each channel uses ~250MB-350MB of RAM. If you have 8GB of free RAM, limit your run to around 15–20 channels.</li>
+                <li className="instructions-list-item"><strong>With Chromium (Default):</strong> Each channel uses ~250MB-350MB of RAM. If you have 8GB of free RAM, limit your run to around 15–20 channels.</li>
+                <li className="instructions-list-item"><strong>With Obscura (Experimental):</strong> Each channel uses only ~150MB of RAM. If you have 8GB of free RAM, you can run around 40 channels while leaving headroom for your operating system.</li>
               </ul>
             </li>
             <li className="instructions-list-item">Check the <strong>System Info</strong> card on the live dashboard while the storm is running to monitor real-time CPU and RAM trends.</li>
