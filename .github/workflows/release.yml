@@ -135,6 +135,8 @@ jobs:
     name: Build Windows (.exe, dgupdater & setup)
     runs-on: windows-latest
     needs: [validate-release, linux-build]
+    env:
+      PYTHONUTF8: "1"
     steps:
       - name: Checkout release commit
         uses: actions/checkout@v7
