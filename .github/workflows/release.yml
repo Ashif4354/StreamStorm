@@ -3,6 +3,7 @@ name: Release Workflow
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -25,7 +26,7 @@ jobs:
           SENTRY_DSN: ${{ secrets.STREAMSTORM_SENTRY_DSN }}
           DGUPDATER_CONFIG: ${{ secrets.DGUPDATER_CONFIG }}
           DGUPDATER_MONGODB_URI: ${{ secrets.DGUPDATER_MONGODB_URI }}
-          IS_PRERELEASE: ${{ github.event.release.prerelease }}
+          IS_PRERELEASE: ${{ github.event_name == 'workflow_dispatch' || github.event.release.prerelease }}
         run: |
           if [[ -z "$SENTRY_DSN" ]]; then
             echo "::error::STREAMSTORM_SENTRY_DSN secret is empty. Releases must ship with Sentry error tracking."
@@ -40,20 +41,28 @@ jobs:
       - name: Checkout release tag
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.event.release.tag_name || github.sha }}
           fetch-depth: 0
 
       - name: Validate tag and project version
         id: release
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
+          PROJECT_VERSION=$(python3 -c 'import json; print(json.load(open("project.json", encoding="utf-8"))["version"])')
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "::notice::Dry run: building from $GITHUB_SHA as version $PROJECT_VERSION. Nothing will be published."
+            echo "tag=dry-run" >> "$GITHUB_OUTPUT"
+            echo "version=$PROJECT_VERSION" >> "$GITHUB_OUTPUT"
+            echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::Release tag '$RELEASE_TAG' must match vX.X.X (for example, v4.2.1)."
             exit 1
           fi
           VERSION="${RELEASE_TAG#v}"
-          PROJECT_VERSION=$(python3 -c 'import json; print(json.load(open("project.json", encoding="utf-8"))["version"])')
           if [[ "$PROJECT_VERSION" != "$VERSION" ]]; then
             echo "::error::Tag version ($VERSION) does not match project.json version ($PROJECT_VERSION). Bump and push the version before publishing the release."
             exit 1
@@ -163,7 +172,7 @@ jobs:
         run: make executable
 
       - name: Publish with dgupdater
-        if: github.event.release.prerelease == false
+        if: github.event_name == 'release' && github.event.release.prerelease == false
         shell: cmd
         env:
           VERSION: ${{ needs.validate-release.outputs.version }}
@@ -189,6 +198,7 @@ jobs:
     name: Upload Assets to Release
     runs-on: ubuntu-latest
     needs: [validate-release, linux-build, windows-build]
+    if: github.event_name == 'release'
     steps:
       - name: Download Linux artifacts
         uses: actions/download-artifact@v4

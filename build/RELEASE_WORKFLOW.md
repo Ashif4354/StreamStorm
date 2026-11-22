@@ -38,6 +38,12 @@ If the Windows job fails after the updater step (for example during Inno Setup),
 
 Publishing a GitHub **pre-release** runs every build and uploads the assets, but skips the updater publish. Use a pre-release to dry-run the pipeline end to end before cutting the real release.
 
+### Dry run (manual)
+
+Run **Release Workflow** from the Actions tab (**Run workflow**, pick any branch) to rehearse the pipeline with no tag and no release. A manual run is always a dry run: it builds Linux, the Windows executable and the Windows installer from the selected commit, using the version in `project.json`, and keeps the results as downloadable run artifacts (`linux-artifacts`, `windows-artifacts`).
+
+A dry run never publishes to the updater and never uploads to a GitHub Release, and it does not need the dgupdater secrets. It still requires `STREAMSTORM_SENTRY_DSN`. Because the updater publish is skipped, the Windows installer from a dry run bundles the unpublished `dgupdaterconf.json`, and the publish step itself is only exercised by a real release.
+
 ### Updater safety checks
 
 Before anything is written, the publish step refuses to continue if the new version is lower than the version in `export/windows/dgupdaterconf.json` or lower than the version stored in the updater database, and it fails if the database version cannot be read. Publishing a lower tag fails instead of downgrading production; the same version as the database is republished with a warning.
