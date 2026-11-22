@@ -39,7 +39,7 @@ jobs:
 
 
       - name: Checkout release tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.release.tag_name || github.sha }}
           fetch-depth: 0
@@ -80,17 +80,17 @@ jobs:
         run: ldd --version
 
       - name: Checkout release commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.validate-release.outputs.commit_sha }}
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
       - name: Cache pip and uv venv
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cache/pip
@@ -123,7 +123,7 @@ jobs:
           tar -czf export/installers/streamstorm.tar.gz -C export/linux/opt StreamStorm
 
       - name: Upload Linux artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-artifacts
           path: |
@@ -137,17 +137,17 @@ jobs:
     needs: [validate-release, linux-build]
     steps:
       - name: Checkout release commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.validate-release.outputs.commit_sha }}
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
       - name: Cache pip and uv venv
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~\AppData\Local\pip\Cache
@@ -185,7 +185,7 @@ jobs:
         run: make generate-setup-windows
 
       - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-artifacts
           path: |
@@ -201,13 +201,13 @@ jobs:
     if: github.event_name == 'release'
     steps:
       - name: Download Linux artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: linux-artifacts
           path: ./release-assets
 
       - name: Download Windows artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: windows-artifacts
           path: ./release-assets
